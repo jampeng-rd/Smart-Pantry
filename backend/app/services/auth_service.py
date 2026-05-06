@@ -116,6 +116,15 @@ class AuthService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="使用者不存在")
         return MeResponseData(user=UserProfile(id=user.id, email=user.email, display_name=user.display_name))
 
+    def get_current_user_id(self, access_token: str) -> int:
+        """取得目前登入者 user_id。"""
+        payload = self._decode_access_token(access_token)
+        user_id = int(payload.get("sub", "0"))
+        user = self.auth_repository.get_user_by_id(user_id=user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="使用者不存在")
+        return user.id
+
     def _decode_refresh_token(self, token: str) -> dict:
         """解碼並驗證 refresh token。"""
         try:

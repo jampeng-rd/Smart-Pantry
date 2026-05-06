@@ -5,7 +5,7 @@
 ```text
 Phase 01：專案初始化 ✅
 Phase 02：使用者註冊 / 登入 + Refresh Token ✅
-Phase 03：手動食材庫存管理 ⏳
+Phase 03：手動食材庫存管理 ✅
 Phase 04：食材分類、過期提醒與狀態篩選 ⏳
 Phase 05：購物清單 ⏳
 Phase 06：前端完整 UI + 主題切換 ⏳
@@ -56,6 +56,16 @@ docker compose up --build
 - `logout` 會撤銷 refresh token，撤銷後 refresh 會失敗。
 
 MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環境建議 refresh token 改為 httpOnly secure cookie。
+
+## Pantry CRUD
+
+已完成：
+- `POST /pantry/items`
+- `GET /pantry/items`（支援 `page/page_size/category/q/sort=expiration_date`）
+- `PATCH /pantry/items/{item_id}`
+- `DELETE /pantry/items/{item_id}`
+
+所有 pantry 資料均強制綁定目前登入 `user_id`，不可跨使用者讀寫。
 
 ## 前端 UI
 

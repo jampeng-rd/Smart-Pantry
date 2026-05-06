@@ -1,7 +1,8 @@
 """Model 匯出模組。"""
 
 from backend.app.domain.models.base import Base
+from backend.app.domain.models.pantry_item_model import PantryItem
 from backend.app.domain.models.refresh_token_model import RefreshToken
 from backend.app.domain.models.user_model import User
 
-__all__ = ["Base", "User", "RefreshToken"]
+__all__ = ["Base", "User", "RefreshToken", "PantryItem"]
