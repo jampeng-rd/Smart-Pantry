@@ -8,7 +8,6 @@ __pycache__/
 
 # dependencies
 */node_modules
-# package-lock.json
 /.pnp
 .pnp.js
 dist
@@ -19,6 +18,7 @@ out/
 
 # Env
 .env
+!.env.example
 
 # Logs
 *.log
@@ -28,5 +28,3 @@ storage/logs/*.db
 # OS
 .DS_Store
 .agents
-# agent-docs
-# AGENTS.md

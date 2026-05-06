@@ -4,7 +4,7 @@
 
 ```text
 Phase 01：專案初始化 ✅
-Phase 02：使用者註冊 / 登入 + Refresh Token ⏳
+Phase 02：使用者註冊 / 登入 + Refresh Token ✅
 Phase 03：手動食材庫存管理 ⏳
 Phase 04：食材分類、過期提醒與狀態篩選 ⏳
 Phase 05：購物清單 ⏳
@@ -19,6 +19,10 @@ Phase 11：餐點營養粗估 ⏳
 ## 環境需求
 
 Python 3.10+、Node.js 20+、Docker、PostgreSQL、Ollama（AI 階段）。
+
+## 環境變數
+
+請先複製 `.env.example` 為 `.env`，並填入本機設定。`.env` 不可提交到版本控制，`.env.example` 僅放範例值，不可放真實 secret。
 
 ## 後端啟動
 
@@ -45,9 +49,13 @@ docker compose up --build
 
 ## Auth 與 Token
 
-使用 access token + refresh token。Access token 預設 15 分鐘，refresh token 預設 7 天。MVP 前端可使用 sessionStorage 儲存 token，但需標示 XSS 風險；正式環境建議 refresh token 改用 httpOnly secure cookie。
+已完成 `register/login/refresh/logout/me`：
+- Access token 預設 15 分鐘。
+- Refresh token 預設 7 天。
+- Refresh token 僅存 DB hash，不存明文。
+- `logout` 會撤銷 refresh token，撤銷後 refresh 會失敗。
 
-> Phase 01 尚未實作登入、refresh token 與 token 流程，本段為後續階段規劃。
+MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環境建議 refresh token 改為 httpOnly secure cookie。
 
 ## 前端 UI
 
@@ -59,4 +67,4 @@ AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認�
 
 ## 效能與擴充性
 
-開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index，AI / OCR / 圖片處理 MVP 可同步呼叫，後續可改 Celery / RQ / Dramatiq background job。圖片不存 DB blob/base64；DB 只存 image_path / image_url，圖片正式環境使用 S3 / R2 / MinIO。
+開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index，AI / OCR / 圖片處理 MVP 可同步呼叫，後續可改 Celery / RQ / Dramatiq background job。圖片不存 DB blob/base64；DB 只存 image_path / image_url。

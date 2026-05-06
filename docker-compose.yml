@@ -17,7 +17,16 @@ services:
       dockerfile: backend/Dockerfile
     container_name: smartpantry-backend
     environment:
-      SMARTPANTRY_DATABASE_URL: postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+      DATABASE_URL: postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+      APP_NAME: Smart Pantry API
+      APP_ENV: dev
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      JWT_SECRET_KEY: change-me-in-local-env
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      CORS_ORIGINS: http://localhost:5173
     ports:
       - "8000:8000"
     depends_on:
