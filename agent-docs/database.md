@@ -1,0 +1,99 @@
+# PostgreSQL 與資料庫規範
+
+## 開發與部署資料庫策略
+
+- 開發階段以本地 Docker PostgreSQL 為主。
+- 部署階段再使用 managed PostgreSQL，例如 Render PostgreSQL、Railway PostgreSQL、AWS RDS。
+- 不使用 SQLite 作為主要資料庫。
+
+## Docker Compose service
+
+```yaml
+services:
+  smartpantry-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: smartpantry_db
+      POSTGRES_USER: smartpantry_user
+      POSTGRES_PASSWORD: smartpantry_password
+    ports: ["5432:5432"]
+    volumes:
+      - smartpantry_postgres_data:/var/lib/postgresql/data
+volumes:
+  smartpantry_postgres_data:
+```
+
+本地開發環境變數範例：
+
+```env
+DATABASE_URL=postgresql+psycopg://smartpantry_user:smartpantry_password@localhost:5432/smartpantry_db
+```
+
+Docker Compose 內後端連 DB 可使用 service name：
+
+```env
+DATABASE_URL=postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+```
+
+## 建議資料表
+
+### users
+
+id、email unique indexed、password_hash、display_name、created_at、updated_at。
+
+### refresh_tokens
+
+id、user_id indexed、token_hash unique indexed、expires_at indexed、revoked_at nullable、created_at、replaced_by_token_id nullable。
+
+規則：
+
+- 只存 refresh token hash，不存明文 token。
+- refresh token 預設 7 天。
+- 支援 revoke / logout。
+
+### pantry_items
+
+id、user_id indexed、name indexed、category indexed、quantity、unit、expiration_date indexed、storage_location、note、created_at、updated_at。
+
+### shopping_list_items
+
+id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit、is_purchased indexed、purchased_at nullable、created_at、updated_at。
+
+### user_preferences
+
+id、user_id unique indexed、diet_preference、allergies、cooking_tools、disliked_foods、created_at、updated_at。
+
+### recipe_recommendations
+
+id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text、created_at indexed。
+
+### receipt_imports / ingredient_photo_imports
+
+id、user_id indexed、image_path 或 image_url、raw_ocr_text 或 candidate_items json/jsonb、status indexed、created_at indexed。
+
+圖片本體不得以 blob / base64 存在 PostgreSQL。
+
+### meal_logs / nutrition_estimates
+
+餐點紀錄與營養粗估。
+
+## 圖片儲存規範
+
+- 不把圖片 blob / base64 存 PostgreSQL。
+- 開發階段可先存本機 `uploads/`。
+- DB 只存 image_path / image_url。
+- 上傳圖片大小限制預設 5MB。
+- 可壓縮、resize 或轉換格式後再保存。
+- 正式環境使用 S3 / R2 / MinIO 等 object storage。
+
+## Repository 規範
+
+API layer 不可直接操作資料庫。Service 透過 repository。DB session / connection 放在 `infra/database.py`，環境變數放在 `infra/settings.py`。
+
+## 效能規範
+
+- 所有使用者資料查詢帶 user_id。
+- pantry_items 建 user_id、expiration_date、category 索引。
+- shopping_list_items 建 user_id、is_purchased 索引。
+- 列表 API 必須 pagination。
+- 大型 JSON 只用於 AI snapshot / candidate，不作主要查詢欄位。
