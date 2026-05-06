@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+
+# dependencies
+*/node_modules
+package-lock.json
+/.pnp
+.pnp.js
+dist
+dist-ssr
+*.local
+.next/
+out/
+
+# Env
+.env
+
+# Logs
+*.log
+storage/logs/*.log
+storage/logs/*.db
+
+# OS
+.DS_Store
+.agents
+agent-docs
+AGENTS.md

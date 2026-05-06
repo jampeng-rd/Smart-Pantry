@@ -1,0 +1,27 @@
+services:
+  smartpantry-db:
+    image: postgres:16
+    container_name: smartpantry-db
+    environment:
+      POSTGRES_DB: smartpantry_db
+      POSTGRES_USER: smartpantry_user
+      POSTGRES_PASSWORD: smartpantry_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - smartpantry_postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartpantry-backend
+    environment:
+      SMARTPANTRY_DATABASE_URL: postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - smartpantry-db
+
+volumes:
+  smartpantry_postgres_data:
