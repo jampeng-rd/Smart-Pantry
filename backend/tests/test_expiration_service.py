@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest
@@ -39,7 +39,7 @@ class FakePantryRepository:
 
     def create_item(self, user_id: int, name: str, category: str, quantity: float, unit: str, expiration_date, storage_location: str | None, note: str | None) -> FakePantryItem:
         """建立食材。"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         item = FakePantryItem(
             id=self._seq,
             user_id=user_id,
@@ -87,7 +87,7 @@ class FakePantryRepository:
         """更新食材。"""
         for key, value in fields.items():
             setattr(item, key, value)
-        item.updated_at = datetime.utcnow()
+        item.updated_at = datetime.now(timezone.utc)
         return item
 
     def delete_item(self, item: FakePantryItem) -> None:

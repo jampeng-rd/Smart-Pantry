@@ -1,6 +1,6 @@
 """Auth 商業邏輯服務。"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from jose import JWTError
@@ -74,7 +74,7 @@ class AuthService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token 無效")
         if token_row.revoked_at is not None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token 已失效")
-        if token_row.expires_at <= datetime.utcnow():
+        if token_row.expires_at <= datetime.now(timezone.utc):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token 已過期")
 
         user = self.auth_repository.get_user_by_id(user_id=token_row.user_id)

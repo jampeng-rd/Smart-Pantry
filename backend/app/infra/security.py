@@ -2,7 +2,7 @@
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -26,7 +26,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(user_id: int, email: str) -> tuple[str, int]:
     """建立 access token，並回傳 token 與秒數。"""
     expires_delta = timedelta(minutes=settings.access_token_expire_minutes)
-    expires_at = datetime.utcnow() + expires_delta
+    expires_at = datetime.now(timezone.utc) + expires_delta
     payload = {
         "sub": str(user_id),
         "email": email,
@@ -39,7 +39,7 @@ def create_access_token(user_id: int, email: str) -> tuple[str, int]:
 
 def create_refresh_token(user_id: int, email: str) -> tuple[str, datetime]:
     """建立 refresh token，並回傳 token 與過期時間。"""
-    expires_at = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     payload = {
         "sub": str(user_id),
         "email": email,

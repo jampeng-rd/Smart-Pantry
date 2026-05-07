@@ -86,6 +86,15 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 - `is_purchased` 由 `false -> true` 時自動寫入 `purchased_at=now`。
 - `is_purchased` 由 `true -> false` 時自動清空 `purchased_at=null`。
 - 所有 shopping 查詢與操作都強制 `user_id` 隔離，禁止跨使用者讀寫。
+- 已購買項目目前不會自動更新 pantry；需由使用者確認後才可寫入 pantry。
+
+## 時間與時區策略（MVP）
+
+- 後端資料庫時間欄位統一使用 UTC（timezone-aware）儲存。
+- API 回傳 datetime 為 ISO 8601，必須明確帶時區（例如 `Z` 或 `+00:00`）。
+- 後端不直接儲存各地區本地時間（例如 Asia/Taipei、America/New_York）。
+- 前端顯示時再轉為本地時間：Phase 06 先用瀏覽器 `Intl` API 依使用者本機時區顯示。
+- 未來可在 `user_preferences` 新增 `timezone` 欄位，讓使用者覆蓋瀏覽器偵測（例如 `Asia/Taipei`、`America/New_York`、`Europe/London`、`Asia/Tokyo`）。
 
 ## 前端 UI
 

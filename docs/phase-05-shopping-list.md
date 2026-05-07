@@ -21,6 +21,8 @@
 - 全部回應格式符合 `agent-docs/api.md`：
   - 成功：`{"status":"success","data":{},"message":null}`
   - 失敗：`{"status":"error","data":null,"message":"錯誤訊息"}`
+- 時間欄位統一改為 UTC timezone-aware（`users`、`refresh_tokens`、`pantry_items`、`shopping_list_items`）。
+- API datetime 回傳為 ISO 8601，明確帶時區（`Z` 或 `+00:00`）。
 
 ## 3. 涉及檔案
 
@@ -115,8 +117,30 @@ Docker：`docker compose up --build`
 - 目前僅完成後端 API，尚未實作完整 shopping 前端頁面。
 - `sort` 目前提供 `created_at` 與 `purchased_at`，尚未擴充升冪/降冪參數。
 - 目前仍採 `Base.metadata.create_all`，正式環境建議改 Alembic migration。
+- 目前僅記錄購物完成狀態，不會自動把 shopping item 寫入 pantry item。
 
-## 11. 下一階段建議
+## 11. 購物完成後流程（保留設計）
+
+- `is_purchased=false`：尚未購買，保留在購物清單。
+- `is_purchased=true`：已購買，記錄 `purchased_at`（UTC timezone-aware）。
+- 已購買後，Phase 06 前端可提示「是否加入或更新庫存？」。
+- 寫入 `pantry_items` 前必須由使用者確認：`name`、`quantity`、`unit`、`expiration_date`、`storage_location`。
+- 本階段不自動更新 pantry，避免實際購買數量、單位、保存期限與儲存位置錯誤。
+
+## 12. 時間與時區策略
+
+- 後端與 API 一律以 UTC 作為標準時間。
+- 資料庫不直接儲存地區時間（例如台灣、美國、日本、英國本地時間）。
+- 前端顯示時再依使用者瀏覽器時區轉換成本地時間（Phase 06 先用 `Intl` API）。
+- 未來可在 `user_preferences` 新增 `timezone` 欄位，讓使用者手動覆蓋瀏覽器時區。
+
+## 13. TODO（後續 API）
+
+- 後續可新增 `POST /shopping/items/{item_id}/convert-to-pantry`。
+- request 必須明確提供：`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
+- 不可直接把 shopping item 原值自動寫入 pantry。
+
+## 14. 下一階段建議
 
 - 實作 Phase 06 前端完整 UI（含 shopping 操作流程與主題整合）。
 - 新增 shopping API 整合測試（FastAPI TestClient + 測試資料庫）。

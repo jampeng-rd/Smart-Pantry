@@ -1,6 +1,6 @@
 """Shopping 商業邏輯服務。"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 
@@ -80,7 +80,7 @@ class ShoppingService:
             next_value = sanitized_fields["is_purchased"]
             prev_value = item.is_purchased
             if prev_value is False and next_value is True:
-                sanitized_fields["purchased_at"] = datetime.utcnow()
+                sanitized_fields["purchased_at"] = datetime.now(timezone.utc)
             elif prev_value is True and next_value is False:
                 sanitized_fields["purchased_at"] = None
 

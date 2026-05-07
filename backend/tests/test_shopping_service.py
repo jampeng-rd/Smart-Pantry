@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -58,7 +58,7 @@ class FakeShoppingRepository:
 
     def create_item(self, user_id: int, source_pantry_item_id: int | None, name: str, quantity: float, unit: str) -> FakeShoppingItem:
         """建立購物清單項目。"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         item = FakeShoppingItem(
             id=self._seq,
             user_id=user_id,
@@ -115,7 +115,7 @@ class FakeShoppingRepository:
         """更新購物清單。"""
         for key, value in fields.items():
             setattr(item, key, value)
-        item.updated_at = datetime.utcnow()
+        item.updated_at = datetime.now(timezone.utc)
         return item
 
     def delete_item(self, item: FakeShoppingItem) -> None:
@@ -139,6 +139,8 @@ def test_create_shopping_item_manual_success(shopping_service: tuple[ShoppingSer
     assert result.user_id == 1
     assert result.name == "牛奶"
     assert result.source_pantry_item_id is None
+    assert result.created_at.tzinfo is not None
+    assert result.updated_at.tzinfo is not None
 
 
 def test_create_shopping_item_from_pantry_success(shopping_service: tuple[ShoppingService, FakeShoppingRepository]) -> None:
@@ -227,9 +229,12 @@ def test_set_purchased_should_auto_set_purchased_at(shopping_service: tuple[Shop
     item = service.create_item(user_id=1, source_pantry_item_id=None, name="牛奶", quantity=1, unit="瓶")
 
     updated = service.update_item(user_id=1, item_id=item.id, update_fields={"is_purchased": True})
+    payload = updated.model_dump(mode="json")
 
     assert updated.is_purchased is True
     assert updated.purchased_at is not None
+    assert updated.purchased_at.tzinfo is not None
+    assert payload["purchased_at"].endswith("Z") or payload["purchased_at"].endswith("+00:00")
 
 
 def test_unset_purchased_should_clear_purchased_at(shopping_service: tuple[ShoppingService, FakeShoppingRepository]) -> None:
@@ -242,6 +247,16 @@ def test_unset_purchased_should_clear_purchased_at(shopping_service: tuple[Shopp
 
     assert updated.is_purchased is False
     assert updated.purchased_at is None
+
+
+def test_datetime_json_should_include_timezone(shopping_service: tuple[ShoppingService, FakeShoppingRepository]) -> None:
+    """datetime 序列化應包含 timezone。"""
+    service, _ = shopping_service
+    item = service.create_item(user_id=1, source_pantry_item_id=None, name="牛奶", quantity=1, unit="瓶")
+    payload = item.model_dump(mode="json")
+
+    assert payload["created_at"].endswith("Z") or payload["created_at"].endswith("+00:00")
+    assert payload["updated_at"].endswith("Z") or payload["updated_at"].endswith("+00:00")
 
 
 def test_update_shopping_item_success(shopping_service: tuple[ShoppingService, FakeShoppingRepository]) -> None:

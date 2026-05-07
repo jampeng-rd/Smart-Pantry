@@ -1,6 +1,6 @@
 """Auth 資料存取層。"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -49,13 +49,13 @@ class AuthRepository:
 
     def revoke_refresh_token(self, token_row: RefreshToken) -> None:
         """撤銷指定 refresh token。"""
-        token_row.revoked_at = datetime.utcnow()
+        token_row.revoked_at = datetime.now(timezone.utc)
         self.db.add(token_row)
         self.db.commit()
 
     def revoke_refresh_token_with_replacement(self, token_row: RefreshToken, replacement_id: int) -> None:
         """撤銷舊 token 並設定 replacement token。"""
-        token_row.revoked_at = datetime.utcnow()
+        token_row.revoked_at = datetime.now(timezone.utc)
         token_row.replaced_by_token_id = replacement_id
         self.db.add(token_row)
         self.db.commit()

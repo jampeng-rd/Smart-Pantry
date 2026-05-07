@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
@@ -74,11 +74,11 @@ class FakeAuthRepository:
 
     def revoke_refresh_token(self, token_row: FakeRefreshToken) -> None:
         """撤銷 refresh token。"""
-        token_row.revoked_at = datetime.utcnow()
+        token_row.revoked_at = datetime.now(timezone.utc)
 
     def revoke_refresh_token_with_replacement(self, token_row: FakeRefreshToken, replacement_id: int) -> None:
         """撤銷舊 token 並更新 replacement。"""
-        token_row.revoked_at = datetime.utcnow()
+        token_row.revoked_at = datetime.now(timezone.utc)
         token_row.replaced_by_token_id = replacement_id
 
 
@@ -145,7 +145,7 @@ def test_refresh_token_expired(auth_service: tuple[AuthService, FakeAuthReposito
 
     row = repository.get_refresh_token_by_hash(hash_refresh_token(login_result.refresh_token))
     assert row is not None
-    row.expires_at = datetime.utcnow() - timedelta(seconds=1)
+    row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
 
     with pytest.raises(HTTPException) as exc:
         service.refresh(login_result.refresh_token)
