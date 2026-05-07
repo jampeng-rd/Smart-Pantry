@@ -57,3 +57,26 @@ MVP 可先使用單一 API server + PostgreSQL，但設計時需保留 paginatio
 - `source_pantry_item_id` 表示來源關聯，不表示自動更新庫存。
 - `is_purchased=true` 只代表已購買並記錄 `purchased_at`，不可自動寫入 pantry。
 - 若需轉入庫存，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
+
+## Web 系統 UI 架構
+
+本專案 Web UI 為完整系統型 Dashboard，而非單頁工具。
+
+主要流程：
+
+```text
+開啟網站
+→ Login / Register Page
+→ 登入成功
+→ Dashboard
+→ Sidebar 導覽不同功能
+→ Workspace 顯示功能頁
+```
+
+Dashboard 採：
+- 左側 Sidebar
+- 右側 Workspace
+- 上方 Toolbar
+
+Sidebar 底部固定顯示目前登入使用者。
+點擊後向上展開使用者選單。

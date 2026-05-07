@@ -88,3 +88,113 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 ## Slice 狀態設計
 
 列表資料需包含 items、page、pageSize、total、loading、error。Auth 需包含 user、accessToken、isAuthenticated、loading、error。Theme mode 為 `light-soft | dark-soft`。
+
+## Dashboard Layout 規範
+
+### App Layout
+
+登入前：
+- 首頁顯示登入 / 註冊頁。
+- 未登入不可直接進入 Dashboard。
+
+登入後：
+- 使用 Dashboard Layout。
+- 採 Sidebar + Workspace 結構。
+
+建議結構：
+
+```text
+<AppLayout>
+  <Sidebar />
+  <MainLayout>
+    <TopToolbar />
+    <Workspace />
+  </MainLayout>
+</AppLayout>
+```
+
+### Sidebar 規範
+
+Sidebar 必須包含：
+- Logo 區。
+- Sidebar 收合按鈕。
+- 功能導覽。
+- 底部固定使用者資訊區。
+
+Sidebar 功能導覽至少包含：
+- Dashboard
+- Pantry
+- Expiration
+- Shopping
+- Recipes
+- OCR
+- Nutrition
+- Settings
+
+### Sidebar 收合規範
+
+- Sidebar 支援 expanded / collapsed。
+- collapsed 時保留 icon。
+- icon button 必須有 aria-label。
+
+### 使用者選單規範
+
+點擊 Sidebar 底部使用者區塊：
+- 需在 Sidebar 內向上展開使用者選單。
+- 不可超出 Sidebar 寬度。
+
+至少包含：
+- Profile
+- Settings
+- Help
+- Log out
+
+### Workspace 規範
+
+- Workspace 為主要內容區。
+- 每個頁面最上方需有 Toolbar。
+
+Toolbar 可包含：
+- 搜尋
+- 篩選
+- 排序
+- 新增按鈕
+- 頁面操作
+
+## 前端階段拆分規範
+
+Phase 06 必須拆分：
+
+### Phase 06-1
+- Login/Register UI
+- tokenService
+- route guard
+- protected layout
+
+### Phase 06-2
+- Sidebar
+- Dashboard layout
+- theme switch
+- responsive layout
+
+### Phase 06-3
+- Pantry UI
+- pantry CRUD
+- pagination
+- filter/sort/search
+
+### Phase 06-4
+- Expiration UI
+- expiration summary
+- status UI
+
+### Phase 06-5
+- Shopping UI
+- purchase state
+- shopping/pantry UX
+
+### Phase 06-6
+- UX polish
+- loading/error states
+- timezone display
+- responsive fixes

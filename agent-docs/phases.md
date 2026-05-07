@@ -75,3 +75,73 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 上傳餐點照片；AI 粗估菜色與熱量/蛋白質/碳水/脂肪；建立 meal_logs 與 nutrition_estimates；明確生活參考聲明。
 
 文件：`docs/phase-11-nutrition-estimate.md`
+
+## Phase 06 子階段規劃
+
+### Phase 06-1：Auth UI + Protected Layout
+
+內容：
+- Login/Register UI
+- tokenService
+- auth guard
+- 登入前首頁
+- 登入後導向 Dashboard
+
+文件：
+- docs/phase-06-1-auth-ui.md
+
+### Phase 06-2：Dashboard + Sidebar + Theme
+
+內容：
+- Dashboard Layout
+- Sidebar
+- collapsible sidebar
+- 使用者選單
+- light-soft / dark-soft theme
+- Toolbar layout
+
+文件：
+- docs/phase-06-2-dashboard-layout.md
+
+### Phase 06-3：Pantry UI
+
+內容：
+- pantry CRUD UI
+- pagination
+- search/filter/sort
+- drawer/modal form
+
+文件：
+- docs/phase-06-3-pantry-ui.md
+
+### Phase 06-4：Expiration UI
+
+內容：
+- expiration summary cards
+- expired/expiring_soon UI
+- status filter
+
+文件：
+- docs/phase-06-4-expiration-ui.md
+
+### Phase 06-5：Shopping UI
+
+內容：
+- shopping list UI
+- purchase state UI
+- shopping -> pantry UX flow
+
+文件：
+- docs/phase-06-5-shopping-ui.md
+
+### Phase 06-6：UX 修正與整合
+
+內容：
+- loading/error UX
+- timezone display
+- responsive layout
+- accessibility
+- mobile/tablet polish
+
+文件：
+- docs/phase-06-6-frontend-polish.md

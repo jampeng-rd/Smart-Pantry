@@ -115,3 +115,52 @@ MVP 可先以單一 backend instance + 本地 Docker PostgreSQL 運作，但需�
 - 不可自動寫入 `pantry_items`。
 - 若要把已購買項目加入庫存，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 後才可寫入。
 - 未來可新增 convert-to-pantry API，但 request 必須明確提供上述欄位。
+
+## 10. 前端 UI 架構與 Dashboard 規範
+
+- Web UI 必須是一個完整系統，而不是單獨頁面集合。
+- 未登入使用者進入網站時，首頁必須先顯示登入 / 註冊頁。
+- 使用者登入成功後才可進入 Dashboard。
+- Dashboard 採用「左側 Sidebar + 右側 Workspace」版型。
+
+### Sidebar 規範
+
+Sidebar 需包含：
+- 最上方 Logo。
+- Logo 右側需有 Sidebar 收合按鈕（icon button）。
+- 中間為功能導覽區：Dashboard、Pantry、Expiration、Shopping、Recipes、OCR、Nutrition、Settings。
+- 底部固定顯示目前登入使用者。
+
+### 使用者選單規範
+
+點擊 Sidebar 底部使用者區塊後：
+- 需在側邊欄內向上展開使用者選單。
+- 第一列顯示目前登入使用者。
+- 下方至少包含：
+  - Profile
+  - Settings
+  - Help
+  - Log out
+
+### Workspace 規範
+
+- Dashboard 右側為主要工作區。
+- Workspace 最上方需有當前頁面工具列（page toolbar / action bar）。
+- Toolbar 可放搜尋、篩選、新增按鈕、排序等頁面功能。
+
+## 11. 前端實作階段拆分
+
+Phase 06 不可一次做完整前端。必須拆分子階段：
+
+- Phase 06-1：Auth UI + App Layout
+- Phase 06-2：Dashboard + Sidebar + Theme
+- Phase 06-3：Pantry UI
+- Phase 06-4：Expiration UI
+- Phase 06-5：Shopping UI
+- Phase 06-6：前端整合與 UX 修正
+
+每個子階段都需：
+- 可單獨測試
+- 更新 docs
+- 更新 README
+- 維持 frontend build 可通過
