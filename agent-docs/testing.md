@@ -24,6 +24,11 @@
 
 使用 FastAPI TestClient 或 httpx。測試成功與失敗案例，並確認 response 格式符合 `agent-docs/api.md`。
 
+時間欄位需額外驗證：
+- 新建立資料的 datetime 回傳需包含時區（`Z` 或 `+00:00`）。
+- `purchased_at` 在 `is_purchased=true` 時需包含時區；`is_purchased=false` 時為 `null`。
+- 後端與 DB 使用 UTC timezone-aware datetime，避免 naive datetime。
+
 ## Web 測試
 
 v1 可先做 TypeScript 型別檢查、npm build、核心 utility function 測試、theme 切換 utility、tokenService refresh 行為測試。
@@ -32,6 +37,9 @@ v1 可先做 TypeScript 型別檢查、npm build、核心 utility function 測�
 cd frontend
 npm run build
 ```
+
+- Phase 06 MVP 需驗證使用瀏覽器 `Intl API` 將 UTC datetime 轉成本地時間顯示。
+- 若後續加入 `user_preferences.timezone`，需驗證可覆蓋瀏覽器時區。
 
 
 ## Token 與儲存測試補充
@@ -46,3 +54,9 @@ npm run build
 - 圖片上傳需測試超過 5MB 時拒絕。
 - 測試 DB 僅保存 image_path / image_url，不保存圖片 blob/base64。
 - AI / OCR MVP 可測同步流程；若加入 background job，需測 job 建立、狀態查詢、成功與失敗案例。
+
+## Shopping 與 Pantry 關係測試補充
+
+- 測試 `source_pantry_item_id` 僅做來源關聯，不會自動更新 pantry。
+- 測試標記 `is_purchased=true` 只更新 shopping item 狀態與 `purchased_at`。
+- 若未來新增 convert-to-pantry API，需測必填欄位確認流程（`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`）。

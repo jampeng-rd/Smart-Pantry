@@ -72,6 +72,19 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 - 若 API 回傳 401，最多 refresh 一次並重送原 request。
 - Refresh 失敗才清除登入狀態並導回登入頁。
 
+## 時間顯示規範
+
+- 後端與 API 以 UTC 為標準時間，前端不可假設回傳時間是本地時間。
+- Phase 06 MVP 先用瀏覽器 `Intl API` 將 UTC datetime 轉為使用者本機時區顯示。
+- 後續可支援 `user_preferences.timezone` 覆蓋瀏覽器時區。
+- 需可正確顯示台灣（`Asia/Taipei`）、美國（`America/*`）、日本（`Asia/Tokyo`）、英國（`Europe/London`）等本地時間。
+
+## Shopping 與 Pantry UX 規範
+
+- `shopping_list_items` 與 `pantry_items` 是不同資料集合。
+- shopping 項目標記已購買後，前端可提示「是否加入或更新庫存？」。
+- 在使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 前，不可自動寫入 pantry。
+
 ## Slice 狀態設計
 
 列表資料需包含 items、page、pageSize、total、loading、error。Auth 需包含 user、accessToken、isAuthenticated、loading、error。Theme mode 為 `light-soft | dark-soft`。

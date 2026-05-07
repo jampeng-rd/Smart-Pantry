@@ -28,11 +28,21 @@
 
 建立 shopping_list_items；手動新增、從庫存加入、標記已購買、刪除；購物清單獨立於庫存但可引用 pantry_item_id。
 
+本階段補充規範：
+- `is_purchased=true` 只記錄 `purchased_at`，不可自動寫入 pantry。
+- `source_pantry_item_id` 僅為來源關聯，不是庫存同步機制。
+- 若要把已購買項目加入庫存，需由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 後再寫入。
+- 未來可新增 convert-to-pantry API，但 request 必須明確提供上述欄位。
+
 文件：`docs/phase-05-shopping-list.md`
 
 ## Phase 06：前端完整 UI + 主題切換
 
 React + Vite + TypeScript；Redux slices 分開；登入/註冊；自動 refresh token；Dashboard；食材頁；購物清單；react-icons；繁中 UI；柔和亮/暗主題；API 集中在 apiClient。
+
+本階段補充規範：
+- 時間顯示先用瀏覽器 `Intl API` 將 API 回傳 UTC datetime 轉為本地時間。
+- 後續可新增 `user_preferences.timezone` 讓使用者覆蓋瀏覽器時區。
 
 文件：`docs/phase-06-web-ui-theme.md`
 

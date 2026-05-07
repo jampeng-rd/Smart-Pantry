@@ -22,7 +22,8 @@
 → 手動新增食材
 → 查看即將過期食材
 → 加入購物清單
-→ 採買後更新庫存
+→ 採買後先標記已購買（僅記錄 purchased_at）
+→ 使用者確認欄位後再更新庫存
 → AI 根據庫存推薦料理
 → 後續用 OCR / 食材照片輔助匯入
 ```
@@ -44,6 +45,15 @@ MVP 可先使用單一 API server + PostgreSQL，但設計時需保留 paginatio
 - 開發階段以本地 Docker PostgreSQL 為主，部署階段再使用 managed PostgreSQL。
 - Access token 預設 15 分鐘，refresh token 預設 7 天，refresh token 只以 hash 形式存入 DB。
 - MVP 前端可使用 sessionStorage 儲存 token，但需標示 XSS 風險；正式環境建議 refresh token 使用 httpOnly secure cookie。
+- 後端與 DB 的 datetime 一律使用 UTC timezone-aware；API datetime 一律回傳含時區（`Z` 或 `+00:00`）。
+- 前端顯示時間時再依瀏覽器 timezone 或 `user_preferences.timezone` 轉換本地時間；Phase 06 MVP 先用瀏覽器 `Intl API`。
 - 圖片不可用 blob/base64 存入 PostgreSQL；開發階段可存本機 uploads/，正式環境使用 S3 / R2 / MinIO，DB 只存 image_path / image_url。
 - AI / OCR / Vision MVP 可同步呼叫，任務變慢後改成 Celery / RQ / Dramatiq background job。
 - AI 階段使用 LangChain 1.x 系列，LLM client 仍封裝在 infra 層。
+
+## Shopping 與 Pantry 關係
+
+- `pantry_items` 代表目前庫存，`shopping_list_items` 代表購物清單。
+- `source_pantry_item_id` 表示來源關聯，不表示自動更新庫存。
+- `is_purchased=true` 只代表已購買並記錄 `purchased_at`，不可自動寫入 pantry。
+- 若需轉入庫存，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。

@@ -59,6 +59,14 @@ frontend/src/styles/{theme.css,globals.css}
 - 若 API 回傳 401，最多 refresh 一次並重送原 request。
 - Refresh 失敗才清除登入狀態並導回登入頁。
 
+## 4.1 時間與時區策略
+
+- 後端與 DB 一律使用 UTC timezone-aware datetime。
+- API datetime 回傳必須帶 `Z` 或 `+00:00`。
+- 不在後端儲存使用者本地時間（例如 Asia/Taipei、America/New_York）。
+- 前端顯示時再依瀏覽器 timezone 或未來 `user_preferences.timezone` 轉換成本地時間。
+- Phase 06 MVP 先使用瀏覽器 `Intl API` 顯示本地時間。
+
 ## 5. 圖片與檔案儲存規範
 
 - 不可把圖片 blob 或 base64 直接存入 PostgreSQL。
@@ -97,3 +105,13 @@ MVP 可先以單一 backend instance + 本地 Docker PostgreSQL 運作，但需�
 - 部署階段 DB 使用 managed PostgreSQL。
 - 可用 Redis cache 熱門 Dashboard summary。
 - 加入 rate limit，避免大量請求造成服務阻塞。
+
+## 9. 購物清單與庫存關係規範
+
+- `pantry_items` 代表目前庫存。
+- `shopping_list_items` 代表購物清單。
+- `source_pantry_item_id` 只表示購物項目來源於某筆庫存項目，不代表自動更新庫存。
+- 標記 `is_purchased=true` 只記錄 `purchased_at`。
+- 不可自動寫入 `pantry_items`。
+- 若要把已購買項目加入庫存，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 後才可寫入。
+- 未來可新增 convert-to-pantry API，但 request 必須明確提供上述欄位。

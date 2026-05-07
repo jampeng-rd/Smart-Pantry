@@ -6,6 +6,12 @@
 
 失敗：`{"status":"error","data":null,"message":"錯誤訊息"}`
 
+## 時間欄位規範
+
+- API datetime 欄位使用 ISO 8601，且必須帶時區資訊（`Z` 或 `+00:00`）。
+- 後端時間標準為 UTC timezone-aware datetime。
+- 不回傳無時區的 datetime 字串，避免前端誤判為本地時間。
+
 ## Auth
 
 ### POST /auth/register
@@ -96,9 +102,19 @@ category=蔬菜&status=expiring_soon&sort=expiration_date&q=番茄&page=1&page_s
 
 更新購物清單項目，例如標記已購買。
 
+規則：
+- `is_purchased=true` 時只記錄 `purchased_at`。
+- 不可自動寫入 `pantry_items`。
+
 ### DELETE /shopping/items/{item_id}
 
 刪除購物清單項目。
+
+### （未來）POST /shopping/items/{item_id}/convert-to-pantry
+
+- 本 API 目前不在 MVP 必做範圍。
+- 若未來新增，request 必須明確提供：`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
+- 不可直接使用 shopping item 原值自動寫入 pantry。
 
 ## AI
 

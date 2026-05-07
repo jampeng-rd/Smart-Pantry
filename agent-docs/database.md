@@ -37,6 +37,12 @@ DATABASE_URL=postgresql+psycopg://smartpantry_user:smartpantry_password@smartpan
 
 ## 建議資料表
 
+## 時間與時區策略
+
+- 後端與 DB 一律使用 UTC timezone-aware datetime。
+- 不在 DB 儲存使用者本地時間。
+- API 輸出 datetime 需帶 `Z` 或 `+00:00`，前端再轉本地時區顯示。
+
 ### users
 
 id、email unique indexed、password_hash、display_name、created_at、updated_at。
@@ -50,14 +56,23 @@ id、user_id indexed、token_hash unique indexed、expires_at indexed、revoked_
 - 只存 refresh token hash，不存明文 token。
 - refresh token 預設 7 天。
 - 支援 revoke / logout。
+- `created_at`、`expires_at`、`revoked_at` 使用 UTC timezone-aware datetime。
 
 ### pantry_items
 
 id、user_id indexed、name indexed、category indexed、quantity、unit、expiration_date indexed、storage_location、note、created_at、updated_at。
 
+`created_at`、`updated_at` 使用 UTC timezone-aware datetime。
+
 ### shopping_list_items
 
 id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit、is_purchased indexed、purchased_at nullable、created_at、updated_at。
+
+規則：
+- `source_pantry_item_id` 僅代表資料來源，不代表自動回寫 pantry。
+- `is_purchased=true` 只記錄 `purchased_at`（UTC timezone-aware）。
+- 不可自動把 shopping item 寫入 `pantry_items`。
+- 若要轉入 pantry，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
 
 ### user_preferences
 
