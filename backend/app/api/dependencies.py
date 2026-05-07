@@ -7,6 +7,7 @@ from backend.app.infra.database import get_db_session
 from backend.app.infra.repository.auth_repository import AuthRepository
 from backend.app.infra.repository.pantry_repository import PantryRepository
 from backend.app.services.auth_service import AuthService
+from backend.app.services.expiration_service import ExpirationService
 from backend.app.services.pantry_service import PantryService
 
 
@@ -20,6 +21,11 @@ def get_pantry_service(db: Session = Depends(get_db_session)) -> PantryService:
     """提供 PantryService 依賴。"""
     repository = PantryRepository(db=db)
     return PantryService(pantry_repository=repository)
+
+
+def get_expiration_service(pantry_service: PantryService = Depends(get_pantry_service)) -> ExpirationService:
+    """提供 ExpirationService 依賴。"""
+    return ExpirationService(pantry_service=pantry_service)
 
 
 def get_bearer_token(authorization: str | None = Header(default=None)) -> str:

@@ -6,7 +6,7 @@
 Phase 01：專案初始化 ✅
 Phase 02：使用者註冊 / 登入 + Refresh Token ✅
 Phase 03：手動食材庫存管理 ✅
-Phase 04：食材分類、過期提醒與狀態篩選 ⏳
+Phase 04：食材分類、過期提醒與狀態篩選 ✅
 Phase 05：購物清單 ⏳
 Phase 06：前端完整 UI + 主題切換 ⏳
 Phase 07：CI/CD 與部署 ⏳
@@ -57,15 +57,21 @@ docker compose up --build
 
 MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環境建議 refresh token 改為 httpOnly secure cookie。
 
-## Pantry CRUD
+## Pantry 與 Expiration
 
 已完成：
 - `POST /pantry/items`
-- `GET /pantry/items`（支援 `page/page_size/category/q/sort=expiration_date`）
+- `GET /pantry/items`（支援 `page/page_size/category/q/sort=expiration_date/status`）
 - `PATCH /pantry/items/{item_id}`
 - `DELETE /pantry/items/{item_id}`
+- `GET /expiration/summary`
 
-所有 pantry 資料均強制綁定目前登入 `user_id`，不可跨使用者讀寫。
+狀態規則：
+- `expired`：`expiration_date < 今天`
+- `expiring_soon`：`今天 <= expiration_date <= 今天 + 7 天`
+- `normal`：其他情況，`expiration_date=null` 視為 `normal`
+
+所有 pantry/expiration 查詢都強制綁定目前登入 `user_id`，不可跨使用者讀寫。
 
 ## 前端 UI
 

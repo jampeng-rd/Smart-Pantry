@@ -1,8 +1,10 @@
 """Pantry 商業邏輯服務。"""
 
+from datetime import date, timedelta
+
 from fastapi import HTTPException, status
 
-from backend.app.domain.schemas.pantry_schema import PantryItemData, PantryListResponseData
+from backend.app.domain.schemas.pantry_schema import PantryItemData, PantryItemStatus, PantryListResponseData
 from backend.app.infra.repository.pantry_repository import PantryRepository
 
 
@@ -45,6 +47,7 @@ class PantryService:
         category: str | None,
         q: str | None,
         sort: str | None,
+        status: PantryItemStatus | None,
     ) -> PantryListResponseData:
         """查詢目前使用者食材（含 pagination）。"""
         items, total = self.pantry_repository.list_items(
@@ -54,6 +57,7 @@ class PantryService:
             category=category,
             q=q,
             sort=sort,
+            status=status,
         )
         return PantryListResponseData(
             items=[self._to_item_data(item) for item in items],
@@ -82,6 +86,41 @@ class PantryService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="找不到食材資料")
         self.pantry_repository.delete_item(item=item)
 
+    def count_items_by_status(self, user_id: int, status: PantryItemStatus) -> int:
+        """取得目前使用者在指定狀態的食材數量。"""
+        return self.pantry_repository.count_items_by_status(user_id=user_id, status=status)
+
+    def list_items_by_status_limited(
+        self,
+        user_id: int,
+        status: PantryItemStatus,
+        limit: int,
+        sort: str | None,
+    ) -> list[PantryItemData]:
+        """取得目前使用者在指定狀態的有限筆數食材。"""
+        items = self.pantry_repository.list_items_by_status_limited(
+            user_id=user_id,
+            status=status,
+            limit=limit,
+            sort=sort,
+        )
+        return [self._to_item_data(item) for item in items]
+
+    # 回傳資料時算狀態- 已過期/即將過期/正常 是那一種情況
+    def get_item_status(self, expiration_date: date | None) -> PantryItemStatus:
+        """依 expiration_date 計算食材狀態。"""
+        if expiration_date is None:
+            return "normal"
+
+        today = date.today()
+        soon_end = today + timedelta(days=7)
+
+        if expiration_date < today:
+            return "expired"
+        if today <= expiration_date <= soon_end:
+            return "expiring_soon"
+        return "normal"
+
     def _to_item_data(self, item) -> PantryItemData:
         """將 model 轉為回應 schema。"""
         return PantryItemData(
@@ -92,6 +131,7 @@ class PantryService:
             quantity=float(item.quantity),
             unit=item.unit,
             expiration_date=item.expiration_date,
+            status=self.get_item_status(item.expiration_date),
             storage_location=item.storage_location,
             note=item.note,
             created_at=item.created_at,

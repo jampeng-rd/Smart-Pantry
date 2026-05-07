@@ -1,9 +1,12 @@
 """Pantry 資料存取層。"""
 
-from sqlalchemy import asc, func, or_, select
+from datetime import date, timedelta
+
+from sqlalchemy import and_, asc, func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.app.domain.models.pantry_item_model import PantryItem
+from backend.app.domain.schemas.pantry_schema import PantryItemStatus
 
 
 class PantryRepository:
@@ -48,6 +51,7 @@ class PantryRepository:
         category: str | None,
         q: str | None,
         sort: str | None,
+        status: PantryItemStatus | None,
     ) -> tuple[list[PantryItem], int]:
         """依條件查詢使用者食材列表並回傳總筆數。"""
         statement = select(PantryItem).where(PantryItem.user_id == user_id)
@@ -62,6 +66,11 @@ class PantryRepository:
             filter_condition = or_(PantryItem.name.ilike(keyword), PantryItem.note.ilike(keyword))
             statement = statement.where(filter_condition)
             count_statement = count_statement.where(filter_condition)
+
+        status_condition = self._build_status_condition(status=status)
+        if status_condition is not None:
+            statement = statement.where(status_condition)
+            count_statement = count_statement.where(status_condition)
 
         if sort == "expiration_date":
             statement = statement.order_by(asc(PantryItem.expiration_date), asc(PantryItem.id))
@@ -93,3 +102,49 @@ class PantryRepository:
         """刪除食材資料。"""
         self.db.delete(item)
         self.db.commit()
+
+    def count_items_by_status(self, user_id: int, status: PantryItemStatus) -> int:
+        """計算指定使用者在指定狀態的食材數量。"""
+        condition = self._build_status_condition(status=status)
+        statement = select(func.count(PantryItem.id)).where(PantryItem.user_id == user_id)
+        if condition is not None:
+            statement = statement.where(condition)
+        return int(self.db.execute(statement).scalar_one())
+
+    def list_items_by_status_limited(
+        self,
+        user_id: int,
+        status: PantryItemStatus,
+        limit: int,
+        sort: str | None,
+    ) -> list[PantryItem]:
+        """取得指定使用者在指定狀態的有限筆數資料。"""
+        condition = self._build_status_condition(status=status)
+        statement = select(PantryItem).where(PantryItem.user_id == user_id)
+        if condition is not None:
+            statement = statement.where(condition)
+
+        if sort == "expiration_date":
+            statement = statement.order_by(asc(PantryItem.expiration_date), asc(PantryItem.id))
+        else:
+            statement = statement.order_by(asc(PantryItem.id))
+
+        statement = statement.limit(limit)
+        return list(self.db.execute(statement).scalars().all())
+
+    # DB 查詢篩選時算狀態- 過期/即將過期/正常 是那一種情況
+    def _build_status_condition(self, status: PantryItemStatus | None):
+        """建立狀態對應的 SQLAlchemy 篩選條件。"""
+        if status is None:
+            return None
+
+        today = date.today()
+        soon_end = today + timedelta(days=7)
+
+        if status == "expired":
+            return PantryItem.expiration_date < today
+
+        if status == "expiring_soon":
+            return and_(PantryItem.expiration_date >= today, PantryItem.expiration_date <= soon_end)
+
+        return or_(PantryItem.expiration_date.is_(None), PantryItem.expiration_date > soon_end)

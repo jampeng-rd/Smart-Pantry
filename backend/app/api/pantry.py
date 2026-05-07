@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from backend.app.api.dependencies import get_current_user_id, get_pantry_service
 from backend.app.domain.schemas.common_schema import ApiResponse
-from backend.app.domain.schemas.pantry_schema import PantryItemCreateRequest, PantryItemUpdateRequest
+from backend.app.domain.schemas.pantry_schema import PantryItemCreateRequest, PantryItemStatus, PantryItemUpdateRequest
 from backend.app.services.pantry_service import PantryService
 
 router = APIRouter(prefix="/pantry", tags=["pantry"])
@@ -37,6 +37,7 @@ def list_pantry_items(
     category: str | None = Query(default=None),
     q: str | None = Query(default=None),
     sort: str | None = Query(default=None),
+    status: PantryItemStatus | None = Query(default=None),
     user_id: int = Depends(get_current_user_id),
     service: PantryService = Depends(get_pantry_service),
 ) -> ApiResponse:
@@ -48,6 +49,7 @@ def list_pantry_items(
         category=category,
         q=q,
         sort=sort,
+        status=status,
     )
     return ApiResponse(status="success", data=data.model_dump(), message=None)
 

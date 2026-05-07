@@ -1,8 +1,11 @@
 """Pantry 模組 Schema。"""
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+PantryItemStatus = Literal["normal", "expiring_soon", "expired"]
 
 
 class PantryItemCreateRequest(BaseModel):
@@ -39,6 +42,7 @@ class PantryItemData(BaseModel):
     quantity: float
     unit: str
     expiration_date: date | None
+    status: PantryItemStatus
     storage_location: str | None
     note: str | None
     created_at: datetime
