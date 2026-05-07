@@ -8,7 +8,8 @@ Phase 02：使用者註冊 / 登入 + Refresh Token ✅
 Phase 03：手動食材庫存管理 ✅
 Phase 04：食材分類、過期提醒與狀態篩選 ✅
 Phase 05：購物清單 ✅
-Phase 06：前端完整 UI + 主題切換 ⏳
+Phase 06-1：Auth UI + Protected Layout ✅
+Phase 06-2：Pantry/Expiration/Shopping UI ⏳
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
@@ -99,6 +100,33 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 ## 前端 UI
 
 主要介面使用繁體中文，按鈕與導覽使用 react-icons，支援柔和亮色與柔和暗色主題。
+
+## Phase 06-1：Auth UI + Protected Layout
+
+已完成：
+- `LoginPage`、`RegisterPage`
+- `DashboardPlaceholderPage`（僅佔位，不含完整 Sidebar 功能頁）
+- `tokenService`（集中管理 token 的 sessionStorage 讀寫與到期判斷）
+- `authSlice`（初始化登入狀態、登入、註冊、登出、loading/error）
+- `apiClient` auth 串接：`register/login/refresh/logout/me`
+- route guard（未登入不可進 `/dashboard`）
+- Login/Register 頁面改為互斥顯示（不會同時 render）
+- 修正 `initializeAuth` 與 `login/register` 的狀態競態覆蓋
+- 預設主題為 `light-soft`（無偏好時 fallback 到 `light-soft`）
+- `dark-soft` 主背景改為單純柔和深色，不使用漸層
+- 按鈕圓角統一約 `10px`，與 input 風格一致
+- 主題切換從登入後 header 移除，改到登入後使用者設定區塊
+- 首頁 Login/Register 採單一卡片置中版型（`100vh` 置中）
+- 系統名稱與英文副標題移入 auth card 內，不再獨立於卡片外
+- 首頁移除主題切換與額外提示文字
+- Login/Register 密碼欄位支援顯示/隱藏切換（含註冊確認密碼）
+
+Route 行為：
+- 未登入進入 `/`：顯示登入/註冊 UI
+- 未登入進入 `/dashboard`：導回登入頁
+- 登入成功：導向 `/dashboard`
+- 已登入重新整理：嘗試恢復登入狀態
+- 登出：清除 token 並回登入頁
 
 ## AI 功能限制
 

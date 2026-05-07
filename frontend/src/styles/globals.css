@@ -2,26 +2,48 @@
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 html,
 body,
 #root {
-  margin: 0;
   min-height: 100%;
 }
 
 body {
-  background: radial-gradient(circle at top left, #dfe8dc 0%, var(--color-bg) 46%);
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--color-bg);
   color: var(--color-text);
 }
 
-.app-shell {
-  max-width: 860px;
+.app-shell,
+.auth-shell {
+  max-width: 980px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
 
-.app-header h1 {
+.app-header h1,
+.auth-header h1 {
   margin: 0;
+}
+
+.auth-shell {
+  min-height: 100dvh;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  display: grid;
+  place-items: center;
 }
 
 .card {
@@ -29,6 +51,50 @@ body {
   border-radius: 14px;
   background: var(--color-surface);
   padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.auth-card {
+  width: min(560px, 100%);
+  margin-top: 0;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.auth-brand p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+}
+
+.auth-form-title {
+  margin: 1rem 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 90%, #ffffff 10%);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .btn {
@@ -37,9 +103,113 @@ body {
   gap: 0.5rem;
   margin-top: 1rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 0.6rem 1rem;
   background: var(--color-accent);
   color: #f6fbf8;
   cursor: pointer;
+}
+
+.btn.primary {
+  justify-content: center;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 32%, transparent);
+}
+
+.btn.danger {
+  background: #9a4f4f;
+}
+
+.btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.password-toggle {
+  margin-top: 0;
+  padding: 0.6rem 0.8rem;
+}
+
+.error-text {
+  color: #bf4c4c;
+  margin: 0.2rem 0;
+}
+
+.muted-text {
+  color: var(--color-muted);
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+}
+
+.side-panel {
+  margin-top: 0;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-top p,
+.side-nav p,
+.side-user p {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.side-top h1 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.side-top p {
+  margin: 0.35rem 0 0;
+}
+
+.side-user {
+  border-top: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  padding-top: 0.85rem;
+}
+
+.side-user p {
+  margin: 0.3rem 0;
+}
+
+.side-user-actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.side-user-actions .btn {
+  margin-top: 0;
+  justify-content: center;
+}
+
+.layout-content .card {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .side-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-shell {
+    padding: 0.75rem;
+  }
 }

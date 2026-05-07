@@ -7,7 +7,9 @@ import { store } from "./app/store";
 import "./styles/globals.css";
 import "./styles/theme.css";
 
-document.documentElement.setAttribute("data-theme", "light-soft");
+const savedTheme = localStorage.getItem("smartpantry_theme_mode");
+const themeMode = savedTheme === "dark-soft" || savedTheme === "light-soft" ? savedTheme : "light-soft";
+document.documentElement.setAttribute("data-theme", themeMode);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
