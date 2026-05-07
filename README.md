@@ -7,7 +7,7 @@ Phase 01：專案初始化 ✅
 Phase 02：使用者註冊 / 登入 + Refresh Token ✅
 Phase 03：手動食材庫存管理 ✅
 Phase 04：食材分類、過期提醒與狀態篩選 ✅
-Phase 05：購物清單 ⏳
+Phase 05：購物清單 ✅
 Phase 06：前端完整 UI + 主題切換 ⏳
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
@@ -72,6 +72,20 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 - `normal`：其他情況，`expiration_date=null` 視為 `normal`
 
 所有 pantry/expiration 查詢都強制綁定目前登入 `user_id`，不可跨使用者讀寫。
+
+## Shopping List
+
+已完成：
+- `POST /shopping/items`（支援手動新增與 `source_pantry_item_id`）
+- `GET /shopping/items`（支援 `page/page_size/is_purchased/q/sort`）
+- `PATCH /shopping/items/{item_id}`（支援 `name/quantity/unit/is_purchased`）
+- `DELETE /shopping/items/{item_id}`
+
+資料與行為規則：
+- `source_pantry_item_id` 若有提供，會驗證該 pantry item 必須存在且屬於目前登入使用者，否則回 `404`。
+- `is_purchased` 由 `false -> true` 時自動寫入 `purchased_at=now`。
+- `is_purchased` 由 `true -> false` 時自動清空 `purchased_at=null`。
+- 所有 shopping 查詢與操作都強制 `user_id` 隔離，禁止跨使用者讀寫。
 
 ## 前端 UI
 

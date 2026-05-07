@@ -8,6 +8,7 @@ from backend.app.api.error_handlers import register_error_handlers
 from backend.app.api.expiration import router as expiration_router
 from backend.app.api.health import router as health_router
 from backend.app.api.pantry import router as pantry_router
+from backend.app.api.shopping import router as shopping_router
 from backend.app.infra.database import init_database
 from backend.app.infra.settings import get_cors_origin_list, get_settings
 
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(pantry_router)
     app.include_router(expiration_router)
+    app.include_router(shopping_router)
 
     @app.on_event("startup")
     def startup_event() -> None:

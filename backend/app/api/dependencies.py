@@ -6,9 +6,11 @@ from sqlalchemy.orm import Session
 from backend.app.infra.database import get_db_session
 from backend.app.infra.repository.auth_repository import AuthRepository
 from backend.app.infra.repository.pantry_repository import PantryRepository
+from backend.app.infra.repository.shopping_repository import ShoppingRepository
 from backend.app.services.auth_service import AuthService
 from backend.app.services.expiration_service import ExpirationService
 from backend.app.services.pantry_service import PantryService
+from backend.app.services.shopping_service import ShoppingService
 
 
 def get_auth_service(db: Session = Depends(get_db_session)) -> AuthService:
@@ -26,6 +28,12 @@ def get_pantry_service(db: Session = Depends(get_db_session)) -> PantryService:
 def get_expiration_service(pantry_service: PantryService = Depends(get_pantry_service)) -> ExpirationService:
     """提供 ExpirationService 依賴。"""
     return ExpirationService(pantry_service=pantry_service)
+
+
+def get_shopping_service(db: Session = Depends(get_db_session)) -> ShoppingService:
+    """提供 ShoppingService 依賴。"""
+    repository = ShoppingRepository(db=db)
+    return ShoppingService(shopping_repository=repository)
 
 
 def get_bearer_token(authorization: str | None = Header(default=None)) -> str:
