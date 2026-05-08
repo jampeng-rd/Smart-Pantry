@@ -27,6 +27,7 @@
 
 - 展開狀態使用較短品牌文案：`智慧食材系統` / `Smart Pantry`
 - 收合狀態改為僅顯示主題對應 logo（不顯示文字），logo 縮小為約 38px
+- 收合狀態 header 預設顯示 logo，滑鼠 hover/focus 才顯示「展開側邊欄」按鈕
   - `light-soft`：`light_soft_logo.png`
   - `dark-soft`：`Dark_Soft_logo.png`
 - 右側提供收合按鈕（icon button，具完整 `aria-label`）
@@ -65,6 +66,7 @@ Sidebar 底部顯示：
 
 - 一般狀態：選單在 Sidebar 內向上展開。
 - 收合狀態（desktop）：選單改為 Sidebar 內 icon-only menu（不顯示文字），每項為方形 icon button。
+- 修正收合 icon-only user menu 的 x 軸 overflow，避免出現 horizontal scrollbar。
 
 ## 4. Responsive Drawer
 

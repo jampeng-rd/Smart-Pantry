@@ -103,7 +103,12 @@ export function Sidebar({
       <aside className={`sidebar ${collapsed ? "collapsed" : "expanded"} ${isDrawerOpen ? "open" : ""}`}>
         <div className="sidebar-logo">
           {isCollapsedDesktop ? (
-            <img src={sidebarLogo} className="logo-icon" alt="智慧食材系統 Logo" />
+            <div className="collapsed-logo-switcher">
+              <img src={sidebarLogo} className="logo-icon" alt="智慧食材系統 Logo" />
+              <button type="button" className="icon-btn collapsed-expand-btn" aria-label="展開側邊欄" onClick={onToggleCollapsed}>
+                <FiChevronRight aria-hidden="true" />
+              </button>
+            </div>
           ) : (
             <div className="logo-text-wrap">
               <p className="logo-zh">智慧食材系統</p>
@@ -111,14 +116,16 @@ export function Sidebar({
             </div>
           )}
 
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label={collapsed ? "展開側邊欄" : "收合側邊欄"}
-            onClick={isMobile ? (mobileOpen ? onCloseMobile : onOpenMobile) : onToggleCollapsed}
-          >
-            {collapsed ? <FiChevronRight aria-hidden="true" /> : <FiChevronLeft aria-hidden="true" />}
-          </button>
+          {!isCollapsedDesktop ? (
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label={collapsed ? "展開側邊欄" : "收合側邊欄"}
+              onClick={isMobile ? (mobileOpen ? onCloseMobile : onOpenMobile) : onToggleCollapsed}
+            >
+              {collapsed ? <FiChevronRight aria-hidden="true" /> : <FiChevronLeft aria-hidden="true" />}
+            </button>
+          ) : null}
         </div>
 
         <nav className="sidebar-nav" aria-label="主要導覽">

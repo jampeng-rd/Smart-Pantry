@@ -273,6 +273,25 @@ body {
   margin: 0 auto;
 }
 
+.collapsed-logo-switcher {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.collapsed-expand-btn {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 32px;
+  height: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
 .sidebar.collapsed .sidebar-logo {
   min-height: 54px;
   padding: 0.1rem 0 0.35rem;
@@ -287,6 +306,17 @@ body {
 
 .sidebar.collapsed .logo-text-wrap {
   display: none;
+}
+
+.sidebar.collapsed .sidebar-logo:hover .logo-icon,
+.sidebar.collapsed .sidebar-logo:focus-within .logo-icon {
+  opacity: 0;
+}
+
+.sidebar.collapsed .sidebar-logo:hover .collapsed-expand-btn,
+.sidebar.collapsed .sidebar-logo:focus-within .collapsed-expand-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-nav {
@@ -488,15 +518,19 @@ body {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
-  width: 44px;
+  width: 52px;
+  box-sizing: border-box;
   padding: 0.2rem;
   gap: 0.22rem;
+  overflow-x: hidden;
 }
 
 .sidebar.collapsed .user-menu.icon-only .user-menu-item {
   width: 40px;
   height: 40px;
+  min-width: 40px;
   padding: 0;
+  flex-shrink: 0;
   justify-content: center;
 }
 
