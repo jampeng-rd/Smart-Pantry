@@ -84,8 +84,8 @@ export function LoginPage({ onLoggedIn, onShowRegister }: LoginPageProps) {
       </form>
 
       <button type="button" className="btn ghost" onClick={onShowRegister} aria-label="切換到註冊頁">
-        <FiUserPlus aria-hidden="true" />
         沒有帳號？前往註冊
+        <FiUserPlus aria-hidden="true" />
       </button>
     </section>
   );

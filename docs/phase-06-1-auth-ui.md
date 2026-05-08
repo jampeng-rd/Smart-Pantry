@@ -40,6 +40,9 @@
   - `dark-soft` 背景不使用漸層
   - button `border-radius` 統一約 `10px`
   - 主題切換移到登入後使用者設定區
+  - `theme.css` 改為完整 `light-soft` / `dark-soft` tokens，補齊 surface/accent/border/semantic/shadow/radius/transition 變數
+  - `globals.css` 的 card、input、button、ghost button、error text、side panel divider、body 改用 theme variables
+  - `tsconfig.json` 移除 deprecated `baseUrl` 設定，避免 TypeScript 7.0 警告
 - 首頁 Auth UI 調整：
   - Login / Register 僅保留乾淨單一卡片
   - 系統名稱與英文副標題放在 auth card 內最上方

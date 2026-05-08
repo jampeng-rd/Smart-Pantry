@@ -1,15 +1,82 @@
+/* 🌞 明亮柔和主題 (Light Soft) */
 :root[data-theme="light-soft"] {
+  /* 基礎背景與表面 (Background & Surfaces) */
   --color-bg: #f4f1e8;
   --color-surface: #fff9ef;
+  --color-surface-hover: #f0eade; /* 表面互動色 */
+
+  /* 文字與內容 (Typography) */
   --color-text: #26312b;
   --color-muted: #5b6760;
+
+  /* 品牌/強調色 (Brand/Accent) */
   --color-accent: #4f7a67;
+  --color-accent-hover: #3b5c4e; /* 強調色的 Hover 狀態 */
+  --color-accent-active: #2c473a; /* 強調色的點擊狀態 */
+
+  /* 邊框與分隔線 (Borders & Dividers) */
+  --color-border: #dcd7ce;
+  --color-border-hover: #c4bfaa;
+
+  /* 狀態與語意色 (Semantic Colors - 調整為低飽和以符合 Soft 風格) */
+  --color-error: #b75d5d; /* 柔和的紅 */
+  --color-error-bg: #fceded;
+  --color-success: #638c64; /* 柔和的綠 */
+  --color-success-bg: #eef5ee;
+  --color-warning: #c2954a; /* 柔和的琥珀/土黃 */
+  --color-warning-bg: #fdf5e6;
+  --color-info: #5a819e; /* 柔和的莫蘭迪藍 */
+  --color-info-bg: #eef4f8;
+
+  /* 陰影設定 (Shadows - 使用帶有主色調的陰影，會比純黑更自然) */
+  --shadow-sm: 0 1px 2px rgba(38, 49, 43, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(38, 49, 43, 0.08), 0 2px 4px -1px rgba(38, 49, 43, 0.04);
 }
 
+/* 🌙 暗黑柔和主題 (Dark Soft) */
 :root[data-theme="dark-soft"] {
+  /* 基礎背景與表面 (Background & Surfaces) */
   --color-bg: #1b2022;
   --color-surface: #252d30;
+  --color-surface-hover: #2d363a; /* 表面互動色 */
+
+  /* 文字與內容 (Typography) */
   --color-text: #e8efea;
   --color-muted: #a7b4ad;
+
+  /* 品牌/強調色 (Brand/Accent) */
   --color-accent: #8bc0a4;
+  --color-accent-hover: #a1d1b7; /* 在暗色模式下，hover 通常會變亮 */
+  --color-accent-active: #b5e0c8;
+
+  /* 邊框與分隔線 (Borders & Dividers) */
+  --color-border: #384347;
+  --color-border-hover: #4a575c;
+
+  /* 狀態與語意色 (Semantic Colors) */
+  --color-error: #d07d7d;
+  --color-error-bg: #3d2626;
+  --color-success: #81ad82;
+  --color-success-bg: #223624;
+  --color-warning: #d9b171;
+  --color-warning-bg: #3a2f1c;
+  --color-info: #85a9c4;
+  --color-info-bg: #202d36;
+
+  /* 陰影設定 (Shadows - 暗色模式的陰影通常需要深一點、擴散一點才看得出來) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* 全域共用設定 (Shared Variables - 通常不隨明暗切換) */
+:root {
+  /* 圓角 (Border Radius) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* 轉場動畫 (Transitions) */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
 }

@@ -114,12 +114,15 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 - 修正 `initializeAuth` 與 `login/register` 的狀態競態覆蓋
 - 預設主題為 `light-soft`（無偏好時 fallback 到 `light-soft`）
 - `dark-soft` 主背景改為單純柔和深色，不使用漸層
+- `theme.css` 使用完整 `light-soft` / `dark-soft` token（含 surface/accent/border/semantic/shadow）
+- 全域樣式改用 theme variables（card/input/button/ghost/error/divider/body）
 - 按鈕圓角統一約 `10px`，與 input 風格一致
 - 主題切換從登入後 header 移除，改到登入後使用者設定區塊
 - 首頁 Login/Register 採單一卡片置中版型（`100vh` 置中）
 - 系統名稱與英文副標題移入 auth card 內，不再獨立於卡片外
 - 首頁移除主題切換與額外提示文字
 - Login/Register 密碼欄位支援顯示/隱藏切換（含註冊確認密碼）
+- `frontend/tsconfig.json` 已移除 deprecated `baseUrl` 設定
 
 Route 行為：
 - 未登入進入 `/`：顯示登入/註冊 UI
