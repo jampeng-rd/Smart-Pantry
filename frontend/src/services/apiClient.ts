@@ -1,4 +1,5 @@
 import type { ApiResponse, AuthTokenData, MeData, RegisterPayload } from "../features/auth/authTypes";
+import type { ExpirationSummary } from "../features/expiration/expirationTypes";
 import type {
   PantryCreatePayload,
   PantryItem,
@@ -65,6 +66,12 @@ export const pantryApi = {
   update: (itemId: number, payload: PantryUpdatePayload) =>
     requestWithAuth<PantryItem>(`/pantry/items/${itemId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   remove: (itemId: number) => requestWithAuth<{ deleted: boolean }>(`/pantry/items/${itemId}`, { method: "DELETE" }),
+};
+
+/** Expiration API 封裝。 */
+export const expirationApi = {
+  /** 取得到期提醒摘要。 */
+  getSummary: () => requestWithAuth<ExpirationSummary>("/expiration/summary", { method: "GET" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

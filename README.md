@@ -11,7 +11,7 @@ Phase 05：購物清單 ✅
 Phase 06-1：Auth UI + Protected Layout ✅
 Phase 06-2：Dashboard + Sidebar + Theme ✅
 Phase 06-3：Pantry UI ✅
-Phase 06-4：Expiration UI ⏳
+Phase 06-4：Expiration UI ✅
 Phase 06-5：Shopping UI ⏳
 Phase 06-6：前端整合與 UX 修正 ⏳
 Phase 07：CI/CD 與部署 ⏳
@@ -170,6 +170,21 @@ Route 行為：
 測試方式：
 - `cd frontend && npm run build`
 - 啟動前後端後登入，進入 `/pantry` 手動測試 CRUD + 搜尋/篩選/排序/分頁。
+
+## Phase 06-4：Expiration UI
+
+已完成：
+- Expiration 專屬 Redux 狀態管理（`summary/stats/loading/error/selectedStatusFilter`）
+- Expiration API 串接（`expirationApi.getSummary()`，統一走 `requestWithAuth`）
+- 到期提醒頁（`/expiration`）摘要卡片（已過期/即將到期/正常/全部）
+- 狀態篩選（全部/已過期/即將到期/正常）
+- 到期提醒列表（桌機表格 + 手機 card-like）
+- Loading、Error + Retry、Empty state
+- 延續現有 Dashboard/TopToolbar/Sidebar 樣式與 light-soft/dark-soft 主題
+
+測試方式：
+- `cd frontend && npm run build`
+- 啟動前後端後登入，進入 `/expiration` 手動測試摘要、篩選、RWD、error/retry。
 
 ## AI 功能限制
 
