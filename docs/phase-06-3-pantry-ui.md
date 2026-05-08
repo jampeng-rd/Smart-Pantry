@@ -51,8 +51,8 @@ npm run dev
 
 1. 先啟動 backend（預設 `http://localhost:8000`）。
 2. 啟動 frontend，登入後進入 `/pantry`。
-3. 測試新增食材（名稱/數量必填）。
-4. 測試編輯食材（開啟 drawer 後修改欄位）。
+3. 測試新增食材（名稱/分類/數量必填）。
+4. 測試編輯食材（開啟 drawer 後修改欄位，分類不可空白）。
 5. 測試刪除食材（確認視窗後刪除）。
 6. 測試搜尋（名稱或備註關鍵字）。
 7. 測試分類/狀態篩選、過期日排序。
@@ -82,7 +82,18 @@ npm run dev
 - `sort=created_at` 需後端支援才有完整效果；若後端忽略此參數，實際排序仍以後端結果為準。
 - 刪除確認目前使用 `window.confirm`，後續可改成一致化 modal。
 
-## 9. 下一階段建議
+## 9. 表單驗證補充（Phase 06-6A 修正）
+
+- Pantry Drawer（新增/編輯）採前端先驗證，避免直接暴露後端錯誤訊息。
+- 必填欄位：
+  - `name`：空白顯示 `請輸入食材名稱`
+  - `category`：空白顯示 `請輸入分類`
+  - `quantity`：空白顯示 `請輸入數量`
+- `quantity` 驗證：
+  - 非整數：`數量必須是整數`
+  - `< 1`：`數量必須大於或等於 1`
+- 表單保留 `noValidate`，並使用 `aria-required`、`aria-invalid`、`aria-describedby` 提升可及性。
+## 10. 下一階段建議
 
 - 進入 Phase 06-4：Expiration UI（summary、狀態群組、到期提醒視圖）。
 - 將 pantry/expiration 的日期顯示統一套入 `Intl` 本地時區格式。

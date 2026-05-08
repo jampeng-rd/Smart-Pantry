@@ -34,7 +34,7 @@ const defaultFormState: PantryFormState = {
 /** 新增/編輯食材表單抽屜。 */
 export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit }: PantryFormDrawerProps) {
   const [form, setForm] = useState<PantryFormState>(defaultFormState);
-  const [errors, setErrors] = useState<{ name?: string; quantity?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; category?: string; quantity?: string }>({});
 
   const modeText = useMemo(() => (initialItem ? "編輯食材" : "新增食材"), [initialItem]);
 
@@ -66,10 +66,14 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors: { name?: string; quantity?: string } = {};
+    const nextErrors: { name?: string; category?: string; quantity?: string } = {};
 
     if (!form.name.trim()) {
       nextErrors.name = "請輸入食材名稱";
+    }
+
+    if (!form.category.trim()) {
+      nextErrors.category = "請輸入分類";
     }
 
     const quantityRaw = form.quantity.trim();
@@ -86,7 +90,7 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
       }
     }
 
-    if (nextErrors.name || nextErrors.quantity) {
+    if (nextErrors.name || nextErrors.category || nextErrors.quantity) {
       setErrors(nextErrors);
       return;
     }
@@ -141,8 +145,26 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
           </label>
 
           <label>
-            分類
-            <input type="text" value={form.category} onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))} />
+            分類 *
+            <input
+              type="text"
+              value={form.category}
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, category: value }));
+                if (errors.category && value.trim()) {
+                  setErrors((prev) => ({ ...prev, category: undefined }));
+                }
+              }}
+              aria-required="true"
+              aria-invalid={Boolean(errors.category)}
+              aria-describedby={errors.category ? "pantry-category-error" : undefined}
+            />
+            {errors.category ? (
+              <p id="pantry-category-error" className="pantry-field-error" role="alert">
+                {errors.category}
+              </p>
+            ) : null}
           </label>
 
           <label>

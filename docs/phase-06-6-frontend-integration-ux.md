@@ -53,6 +53,7 @@
 - 表單皆使用 `noValidate`，避免瀏覽器英文 tooltip。
 - 保留 `aria-required`、`aria-invalid`、`aria-describedby`。
 - icon-only button 皆有 `aria-label`（本階段新增的 icon 按鈕情境仍遵守）。
+- Pantry 新增/編輯 Drawer 也已統一改為前端中文驗證，`category` 為必填，避免後端驗證錯誤直接顯示給使用者。
 
 ## 5. 受影響檔案
 

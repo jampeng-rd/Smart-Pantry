@@ -228,6 +228,8 @@ Route 行為：
 - 確認後呼叫既有 `pantryApi.create()` 新增 pantry item；成功後自動移除原購物清單項目。
 - 新增整合成功/失敗中文提示，並維持 light/dark theme 與 mobile RWD。
 - Pantry 刪除若因 shopping 關聯失敗，前端顯示友善中文提示，避免顯示原始 NetworkError。
+- Pantry 新增/編輯 Drawer 的 `category` 已改為前端必填，空白時直接顯示「請輸入分類」，不送 API。
+- Pantry 新增/編輯表單先做中文驗證（name/category/quantity），避免只看到後端錯誤或模糊失敗提示。
 
 流程限制說明：
 - `source_pantry_item_id` 僅記錄 shopping 項目來源關聯，不代表自動更新 pantry。
