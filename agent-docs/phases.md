@@ -44,7 +44,13 @@ React + Vite + TypeScript；Redux slices 分開；登入/註冊；自動 refresh
 - 時間顯示先用瀏覽器 `Intl API` 將 API 回傳 UTC datetime 轉為本地時間。
 - 後續可新增 `user_preferences.timezone` 讓使用者覆蓋瀏覽器時區。
 
-文件：`docs/phase-06-web-ui-theme.md`
+文件：
+- `docs/phase-06-1-auth-ui.md`
+- `docs/phase-06-2-dashboard-layout.md`
+- `docs/phase-06-3-pantry-ui.md`
+- `docs/phase-06-4-expiration-ui.md`
+- `docs/phase-06-5-shopping-ui.md`
+- `docs/phase-06-6-frontend-integration-ux.md`
 
 ## Phase 07：CI/CD 與部署
 
@@ -85,7 +91,7 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - tokenService
 - auth guard
 - 登入前首頁
-- 登入後導向 Dashboard
+- 登入後導向 Pantry（`/pantry`）
 
 文件：
 - docs/phase-06-1-auth-ui.md
@@ -99,6 +105,7 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - 使用者選單
 - light-soft / dark-soft theme
 - Toolbar layout
+- `/dashboard` 保留為未來總覽頁（目前 placeholder）
 
 文件：
 - docs/phase-06-2-dashboard-layout.md
@@ -144,4 +151,4 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - mobile/tablet polish
 
 文件：
-- docs/phase-06-6-frontend-polish.md
+- docs/phase-06-6-frontend-integration-ux.md

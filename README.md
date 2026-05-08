@@ -13,7 +13,8 @@ Phase 06-2：Dashboard + Sidebar + Theme ✅
 Phase 06-3：Pantry UI ✅
 Phase 06-4：Expiration UI ✅
 Phase 06-5：Shopping UI ✅
-Phase 06-6：前端整合與 UX 修正 ⏳
+Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
+Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
@@ -92,6 +93,8 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 - `is_purchased` 由 `true -> false` 時自動清空 `purchased_at=null`。
 - 所有 shopping 查詢與操作都強制 `user_id` 隔離，禁止跨使用者讀寫。
 - 已購買項目目前不會自動更新 pantry；需由使用者確認後才可寫入 pantry。
+- `source_pantry_item_id` 僅作內部來源關聯，不在 UI 顯示 ID。
+- 已購買 shopping item 加入 pantry 成功後，前端會自動移除原 shopping item（既有 API 組合）。
 
 ## 時間與時區策略（MVP）
 
@@ -109,7 +112,6 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 
 已完成：
 - `LoginPage`、`RegisterPage`
-- `DashboardPlaceholderPage`（僅佔位，不含完整 Sidebar 功能頁）
 - `tokenService`（集中管理 token 的 sessionStorage 讀寫與到期判斷）
 - `authSlice`（初始化登入狀態、登入、註冊、登出、loading/error）
 - `apiClient` auth 串接：`register/login/refresh/logout/me`
@@ -131,7 +133,10 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 Route 行為：
 - 未登入進入 `/`：顯示登入/註冊 UI
 - 未登入進入 `/dashboard`：導回登入頁
-- 登入成功：導向 `/dashboard`
+- 未登入進入 `/pantry`：導回登入頁
+- 登入成功：導向 `/pantry`
+- 註冊成功：導向 `/pantry`
+- 已登入進入 `/`：自動導向 `/pantry`
 - 已登入重新整理：嘗試恢復登入狀態
 - 登出：清除 token 並回登入頁
 
@@ -144,7 +149,8 @@ Route 行為：
 - 收合狀態依 theme 顯示 logo（light-soft/dark-soft），僅顯示 icon 不顯示文字，並縮小 logo 尺寸
 - 收合 sidebar header 預設顯示 logo，hover/focus 才顯示展開按鈕（不常駐）
 - Mobile/Tablet 改為 overlay drawer + 遮罩層，開啟時鎖定 `body` 捲動
-- Sidebar 主導覽移除 Settings，保留 Dashboard/Pantry/Expiration/Shopping/Recipes/OCR/Nutrition
+- Sidebar 主導覽移除 Settings；MVP 目前顯示 Pantry/Expiration/Shopping/Recipes/OCR/Nutrition
+- `/dashboard` route 保留為未來總覽頁 placeholder，MVP 側欄暫時隱藏「儀表板」導航
 - Sidebar 底部使用者區與向上展開 user menu（Profile/Settings/Help/Theme Toggle/Log out）
 - 收合 sidebar 的 nav/user 改為 square icon button（40x40），修正 hover/active 框外溢
 - 收合 sidebar 的 user menu 改為 sidebar 內 icon-only menu（不浮到外側）
@@ -211,12 +217,13 @@ Route 行為：
 - Desktop table + Mobile card-like（含欄位 label）
 - `purchased_at` 以瀏覽器本地時區格式化顯示
 - Shopping Drawer 輸入框高度已調整為與 Pantry Drawer 一致
+- Shopping 新增/編輯表單：`name`、`quantity` 必填，`quantity` 必須為整數且 >= 1（`noValidate` + 自訂繁中訊息）
 
 測試方式：
 - `cd frontend && npm run build`
 - 啟動前後端後登入，進入 `/shopping` 手動測試 CRUD、篩選/排序、分頁、狀態切換。
 
-## Phase 06-6A：Pantry / Shopping 前端整合 UX 修正
+## Phase 06-6A / 06-6B：前端整合與 UX 修正
 
 已完成：
 - Pantry 列表新增「加入購物清單」操作，使用既有 `shoppingApi.create()` 建立購物項目。
@@ -231,8 +238,9 @@ Route 行為：
 - Pantry 新增/編輯 Drawer 的 `category` 已改為前端必填，空白時直接顯示「請輸入分類」，不送 API。
 - Pantry 新增/編輯表單先做中文驗證（name/category/quantity），避免只看到後端錯誤或模糊失敗提示。
 - Phase 06-6B 路由整理：登入成功、註冊成功、已登入進入首頁 `/`，皆導向 `/pantry`（食材庫存）。
-- Sidebar 保留「儀表板」入口，`/dashboard` 目前維持未來總覽 placeholder。
+- `/dashboard` 保留為未來總覽 placeholder；MVP 側欄暫時隱藏「儀表板」導航。
 - 已移除不再使用的 `DashboardPlaceholderPage.tsx`（Phase 06-1 舊佔位頁）。
+- 表單策略：全部使用 `noValidate` + 前端繁中錯誤訊息，不直接暴露 Pydantic 原始錯誤、NetworkError 或 fetch error。
 
 流程限制說明：
 - `source_pantry_item_id` 僅記錄 shopping 項目來源關聯，不代表自動更新 pantry。
@@ -243,6 +251,15 @@ Route 行為：
 路由與導向（MVP）：
 - 預設登入後工作頁為 `/pantry`。
 - `/dashboard` 保留為未來總覽頁，現階段僅為 placeholder，不影響主流程。
+
+共用 UX 規範（目前狀態）：
+- 共用分頁元件：`frontend/src/components/common/Pagination.tsx`
+- Pantry / Expiration / Shopping 預設每頁 10，支援 10 / 20 / 50。
+- Pantry / Shopping Drawer 的 input 與 label spacing 保持一致。
+- icon-only button 皆需 `aria-label`。
+- mobile table-to-card 需顯示欄位 label，操作欄不顯示「操作」label。
+- 刪除確認目前仍可能使用 `window.confirm`，後續可改共用 ConfirmModal。
+- success/error 提示後續可再抽成共用 Toast/Alert 元件。
 
 測試方式：
 - `cd frontend && npm run build`

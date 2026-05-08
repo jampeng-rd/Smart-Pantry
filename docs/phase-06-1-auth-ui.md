@@ -2,13 +2,12 @@
 
 ## 1. 階段目標
 
-完成前端登入/註冊流程、token 管理、受保護路由與登入後基本版型。未登入使用者不可進入 Dashboard，登入成功後導向 Dashboard placeholder。
+完成前端登入/註冊流程、token 管理、受保護路由與登入後基本版型。未登入使用者不可進入受保護頁。
 
 ## 2. 完成內容
 
 - 新增 `LoginPage`。
 - 新增 `RegisterPage`。
-- 新增 `DashboardPlaceholderPage`。
 - 新增 `ProtectedRoute`（auth guard）。
 - 新增 `ProtectedLayout`（登入後簡化左側區塊 + 使用者設定區）。
 - 完整實作 `authSlice`：
@@ -58,7 +57,6 @@
 - `frontend/src/components/ProtectedLayout.tsx`
 - `frontend/src/pages/LoginPage.tsx`
 - `frontend/src/pages/RegisterPage.tsx`
-- `frontend/src/pages/DashboardPlaceholderPage.tsx`
 - `frontend/src/features/auth/authSlice.ts`
 - `frontend/src/features/auth/authTypes.ts`
 - `frontend/src/services/tokenService.ts`
@@ -81,7 +79,7 @@ npm run dev
 2. 啟動 frontend。
 3. 開啟 `/`：應看到登入畫面。
 4. 點選「沒有帳號？前往註冊」，完成註冊。
-5. 註冊成功後應自動登入並導向 `/dashboard`。
+5. 註冊成功後應自動登入（目前行為於 Phase 06-6B 更新為導向 `/pantry`）。
 6. 重新整理 `/dashboard`：應嘗試恢復登入狀態。
 7. 點擊登出：應清除 token 並回 `/`。
 8. 未登入直接開 `/dashboard`：應被導回 `/`。
@@ -101,7 +99,7 @@ npm run dev
 - `ProtectedRoute` 負責檢查 `initialized` 與 `isAuthenticated`。
 - 若已初始化但未登入，執行導回 `/`。
 - `/dashboard` 必須包在 `ProtectedRoute` 內。
-- `/` 為登入/註冊入口，登入成功導向 `/dashboard`。
+- `/` 為登入/註冊入口（目前行為於 Phase 06-6B 更新為登入成功導向 `/pantry`）。
 - Auth 首頁僅顯示單一畫面：`login` 或 `register`，不會同時顯示兩頁。
 
 ## 7.1 initializeAuth 競態修正

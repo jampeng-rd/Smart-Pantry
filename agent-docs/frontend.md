@@ -82,8 +82,25 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 ## Shopping 與 Pantry UX 規範
 
 - `shopping_list_items` 與 `pantry_items` 是不同資料集合。
-- shopping 項目標記已購買後，前端可提示「是否加入或更新庫存？」。
+- `source_pantry_item_id` 只作內部來源關聯，不在 UI 顯示 ID。
+- 從 Pantry 加入 Shopping 時，前端建立 shopping item 並帶入 `source_pantry_item_id`。
+- shopping 項目標記已購買只更新 `is_purchased` / `purchased_at`。
 - 在使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 前，不可自動寫入 pantry。
+- 已購買項目確認加入 pantry 成功後，前端自動移除原 shopping item（使用既有 `pantryApi.create()` + `shoppingApi.remove()`）。
+
+## 表單驗證與錯誤訊息規範
+
+- Pantry 新增/編輯：
+  - `name` 必填
+  - `category` 必填
+  - `quantity` 必填，且必須是整數且 `>= 1`
+- Shopping 新增/編輯：
+  - `name` 必填
+  - `quantity` 必填，且必須是整數且 `>= 1`
+- Shopping -> Pantry 加入庫存：
+  - `category` 必填
+- 所有表單使用 `noValidate` + 自訂繁中錯誤訊息，不依賴瀏覽器英文 tooltip。
+- 不直接向使用者顯示 Pydantic 原始錯誤、NetworkError 或 fetch error。
 
 ## Slice 狀態設計
 
@@ -95,10 +112,11 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 
 登入前：
 - 首頁顯示登入 / 註冊頁。
-- 未登入不可直接進入 Dashboard。
+- 未登入不可直接進入任何受保護頁。
 
 登入後：
 - 使用 Dashboard Layout。
+- MVP 預設導向 `/pantry`（不是 `/dashboard`）。
 - 採 Sidebar + Workspace 結構。
 
 建議結構：
@@ -122,14 +140,14 @@ Sidebar 必須包含：
 - 底部固定使用者資訊區。
 
 Sidebar 功能導覽至少包含：
-- Dashboard
 - Pantry
 - Expiration
 - Shopping
 - Recipes
 - OCR
 - Nutrition
-- Settings
+- Dashboard route（`/dashboard`）目前保留為未來總覽頁，MVP 側欄可先隱藏該導航項目。
+- Settings 由使用者選單進入。
 
 ### Sidebar 收合規範
 
@@ -198,3 +216,4 @@ Phase 06 必須拆分：
 - loading/error states
 - timezone display
 - responsive fixes
+- 路由整理（登入/註冊/已登入首頁導向 `/pantry`）

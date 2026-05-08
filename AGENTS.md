@@ -111,24 +111,30 @@ MVP 可先以單一 backend instance + 本地 Docker PostgreSQL 運作，但需�
 - `pantry_items` 代表目前庫存。
 - `shopping_list_items` 代表購物清單。
 - `source_pantry_item_id` 只表示購物項目來源於某筆庫存項目，不代表自動更新庫存。
+- `source_pantry_item_id` 為內部關聯欄位，不在 UI 顯示來源 ID。
 - 標記 `is_purchased=true` 只記錄 `purchased_at`。
 - 不可自動寫入 `pantry_items`。
 - 若要把已購買項目加入庫存，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 後才可寫入。
+- 已購買項目確認加入 pantry 成功後，前端可自動移除原 shopping item（使用既有 API 串接，不新增後端 API）。
 - 未來可新增 convert-to-pantry API，但 request 必須明確提供上述欄位。
 
 ## 10. 前端 UI 架構與 Dashboard 規範
 
 - Web UI 必須是一個完整系統，而不是單獨頁面集合。
 - 未登入使用者進入網站時，首頁必須先顯示登入 / 註冊頁。
-- 使用者登入成功後才可進入 Dashboard。
+- 使用者登入成功後預設進入 Pantry（`/pantry`）。
+- 註冊成功後預設進入 Pantry（`/pantry`）。
+- 已登入使用者若進入首頁 `/`，自動導向 `/pantry`。
 - Dashboard 採用「左側 Sidebar + 右側 Workspace」版型。
+- `/dashboard` route 保留作為未來總覽頁，但 MVP Sidebar 導覽暫時隱藏「儀表板」項目。
 
 ### Sidebar 規範
 
 Sidebar 需包含：
 - 最上方 Logo。
 - Logo 右側需有 Sidebar 收合按鈕（icon button）。
-- 中間為功能導覽區：Dashboard、Pantry、Expiration、Shopping、Recipes、OCR、Nutrition、Settings。
+- 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、OCR、Nutrition。
+- Dashboard route 保留但導航先隱藏；Settings 由使用者選單進入。
 - 底部固定顯示目前登入使用者。
 
 ### 使用者選單規範

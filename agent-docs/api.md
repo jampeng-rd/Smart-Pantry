@@ -105,6 +105,7 @@ category=蔬菜&status=expiring_soon&sort=expiration_date&q=番茄&page=1&page_s
 規則：
 - `is_purchased=true` 時只記錄 `purchased_at`。
 - 不可自動寫入 `pantry_items`。
+- `source_pantry_item_id` 僅作來源關聯，不應作為 UI 顯示資訊。
 
 ### DELETE /shopping/items/{item_id}
 
@@ -115,6 +116,12 @@ category=蔬菜&status=expiring_soon&sort=expiration_date&q=番茄&page=1&page_s
 - 本 API 目前不在 MVP 必做範圍。
 - 若未來新增，request 必須明確提供：`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
 - 不可直接使用 shopping item 原值自動寫入 pantry。
+
+## 前端現行整合流程（不新增 API）
+
+- Pantry -> Shopping：使用既有 `POST /shopping/items`，帶入 `name/quantity/unit/source_pantry_item_id`。
+- Shopping（已購買）-> Pantry：使用既有 `POST /pantry/items`，由使用者確認欄位後送出。
+- Pantry 新增成功後，前端再呼叫既有 `DELETE /shopping/items/{item_id}` 移除原購物項目。
 
 ## AI
 

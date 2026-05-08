@@ -67,8 +67,8 @@ MVP 可先使用單一 API server + PostgreSQL，但設計時需保留 paginatio
 ```text
 開啟網站
 → Login / Register Page
-→ 登入成功
-→ Dashboard
+→ 登入/註冊成功
+→ Pantry（/pantry）
 → Sidebar 導覽不同功能
 → Workspace 顯示功能頁
 ```
@@ -80,3 +80,7 @@ Dashboard 採：
 
 Sidebar 底部固定顯示目前登入使用者。
 點擊後向上展開使用者選單。
+
+補充：
+- `/dashboard` route 目前保留為未來總覽頁（placeholder）。
+- MVP 側邊欄暫時隱藏「儀表板」導航項目。

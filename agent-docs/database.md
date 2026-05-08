@@ -73,6 +73,8 @@ id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit�
 - `is_purchased=true` 只記錄 `purchased_at`（UTC timezone-aware）。
 - 不可自動把 shopping item 寫入 `pantry_items`。
 - 若要轉入 pantry，必須由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`。
+- `source_pantry_item_id` 為內部關聯欄位，前端 UI 不顯示該 ID。
+- 目前 MVP 為前端整合流程：`pantryApi.create()` 成功後再 `shoppingApi.remove()` 移除原購物項目（未新增 convert API）。
 
 ### user_preferences
 

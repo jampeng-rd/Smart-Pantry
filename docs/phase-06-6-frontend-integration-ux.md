@@ -1,4 +1,4 @@
-# Phase 06-6A：Pantry / Shopping 前端整合 UX 修正
+# Phase 06-6A / 06-6B：Pantry / Shopping 整合與前端導向 UX 修正
 
 ## 1. 階段目標
 
@@ -15,7 +15,8 @@
 - 註冊成功後導向 `/pantry`。
 - 已登入使用者若進入首頁 `/`，會自動導向 `/pantry`。
 - 未登入使用者進入受保護路由（包含 `/pantry`）仍會導回登入頁。
-- Sidebar 保留「儀表板」入口，`/dashboard` 目前維持為 placeholder（未來總覽頁）。
+- `/dashboard` route 保留為 placeholder（未來總覽頁）。
+- MVP Sidebar 導覽暫時隱藏「儀表板」項目，未來實作總覽後再重新啟用。
 - 已移除未使用的 `DashboardPlaceholderPage.tsx`（舊 Phase 06-1 佔位檔）。
 
 ### 2.1 Pantry -> Shopping：加入購物清單
@@ -54,6 +55,7 @@
 - `source_pantry_item_id` 不在 UI 顯示 ID，僅作內部關聯。
 - 標記已購買僅更新 shopping item 的 `is_purchased` / `purchased_at`。
 - 已購買項目要加入 pantry，仍需人工確認資料後手動送出。
+- 加入 pantry 成功後，前端會自動移除原 shopping item（既有 `pantryApi.create()` + `shoppingApi.remove()`）。
 - 若 pantry item 刪除失敗（例如已被 shopping 引用），前端顯示友善中文提示：
   - `此食材已加入購物清單，請先刪除購物清單中的相關項目，再刪除此食材。`
 - 本階段沒有新增任何後端 API。
@@ -64,8 +66,27 @@
 - 保留 `aria-required`、`aria-invalid`、`aria-describedby`。
 - icon-only button 皆有 `aria-label`（本階段新增的 icon 按鈕情境仍遵守）。
 - Pantry 新增/編輯 Drawer 也已統一改為前端中文驗證，`category` 為必填，避免後端驗證錯誤直接顯示給使用者。
+- Shopping 新增/編輯與 Shopping -> Pantry 表單同樣採前端中文驗證與 `noValidate`，避免顯示瀏覽器英文 tooltip。
+- 前端提示避免直接暴露 Pydantic 原始錯誤、NetworkError、fetch error。
 
-## 5. 受影響檔案
+## 5. 時間與時區
+
+- 後端與 DB 儲存 UTC timezone-aware datetime。
+- API datetime 回傳帶 `Z` 或 `+00:00`。
+- 前端以 `Intl.DateTimeFormat` 依瀏覽器時區顯示時間。
+- Shopping 的 `purchased_at` 已套用本地時區格式化顯示。
+- Expiration / Pantry 日期目前仍有 `YYYY-MM-DD` 顯示情境，列為後續 UX 統一項目。
+
+## 6. 共用元件與 UX
+
+- 已共用 `frontend/src/components/common/Pagination.tsx`。
+- Pantry / Expiration / Shopping 預設每頁 10，支援 10 / 20 / 50。
+- Pantry / Shopping Drawer 的 input 與 label spacing 已維持一致。
+- Mobile table-to-card 顯示欄位 label，操作欄不顯示「操作」label。
+- 刪除確認目前仍有 `window.confirm`，後續可改共用 ConfirmModal。
+- success/error 提示後續可再抽成共用 Toast/Alert 元件。
+
+## 7. 受影響檔案
 
 - `frontend/src/components/pantry/PantryTable.tsx`
 - `frontend/src/pages/PantryPage.tsx`
@@ -75,7 +96,7 @@
 - `frontend/src/styles/globals.css`
 - `README.md`
 
-## 6. 建置驗證
+## 8. 建置驗證
 
 - 指令：`cd frontend && npm run build`
 - 結果：通過（TypeScript + Vite build 成功）

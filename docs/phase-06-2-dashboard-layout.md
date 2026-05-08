@@ -38,13 +38,16 @@
 
 導覽項目（icon + 繁體中文文字）：
 
-- Dashboard（儀表板）
 - Pantry（食材庫存）
 - Expiration（到期提醒）
 - Shopping（購物清單）
 - Recipes（食譜建議）
 - OCR（OCR 匯入）
 - Nutrition（營養估算）
+
+補充（Phase 06-6B / 後續 UX 整理）：
+- `/dashboard` route 保留為未來總覽頁 placeholder。
+- MVP Sidebar 導航暫時隱藏「儀表板」項目，待總覽實作後再重新啟用。
 
 目前採用既有輕量 `pathname` routing，不引入 `react-router-dom`。
 `/settings` 路由仍保留，供 user menu 入口使用。
