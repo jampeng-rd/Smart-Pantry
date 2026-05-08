@@ -283,10 +283,14 @@ body {
 
 .collapsed-expand-btn {
   position: absolute;
-  inset: 0;
-  margin: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 32px;
   height: 32px;
+  margin: 0;
+  display: grid;
+  place-items: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast);
@@ -299,7 +303,7 @@ body {
   gap: 0.2rem;
 }
 
-.sidebar.collapsed .icon-btn {
+.sidebar.collapsed .icon-btn:not(.collapsed-expand-btn) {
   width: 1.85rem;
   height: 1.85rem;
 }
