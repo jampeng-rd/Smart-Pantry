@@ -133,13 +133,14 @@ class PantryRepository:
         return list(self.db.execute(statement).scalars().all())
 
     # DB 查詢篩選時算狀態- 過期/即將過期/正常 是那一種情況
+    # 修改即將到期設定天數，要一併修改 services/pantry_service.py 的天數
     def _build_status_condition(self, status: PantryItemStatus | None):
         """建立狀態對應的 SQLAlchemy 篩選條件。"""
         if status is None:
             return None
 
         today = date.today()
-        soon_end = today + timedelta(days=7)
+        soon_end = today + timedelta(days=3)
 
         if status == "expired":
             return PantryItem.expiration_date < today

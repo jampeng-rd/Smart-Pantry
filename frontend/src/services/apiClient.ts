@@ -1,4 +1,11 @@
 import type { ApiResponse, AuthTokenData, MeData, RegisterPayload } from "../features/auth/authTypes";
+import type {
+  PantryCreatePayload,
+  PantryItem,
+  PantryListData,
+  PantryListParams,
+  PantryUpdatePayload,
+} from "../features/pantry/pantryTypes";
 import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon, saveTokens } from "./tokenService";
 
 /** API 基底網址。 */
@@ -24,6 +31,40 @@ export const authApi = {
   refresh: (payload: RefreshPayload) => post<AuthTokenData>("/auth/refresh", payload),
   logout: (payload: LogoutPayload) => post<unknown>("/auth/logout", payload),
   me: () => requestWithAuth<MeData>("/auth/me", { method: "GET" }),
+};
+
+/** Pantry API 封裝。 */
+export const pantryApi = {
+  list: (params: PantryListParams) => {
+    const query = new URLSearchParams();
+
+    if (params.category) {
+      query.set("category", params.category);
+    }
+    if (params.status) {
+      query.set("status", params.status);
+    }
+    if (params.sort) {
+      query.set("sort", params.sort);
+    }
+    if (params.q) {
+      query.set("q", params.q);
+    }
+    if (params.page) {
+      query.set("page", String(params.page));
+    }
+    if (params.page_size) {
+      query.set("page_size", String(params.page_size));
+    }
+
+    const search = query.toString();
+    const path = search ? `/pantry/items?${search}` : "/pantry/items";
+    return requestWithAuth<PantryListData>(path, { method: "GET" });
+  },
+  create: (payload: PantryCreatePayload) => requestWithAuth<PantryItem>("/pantry/items", { method: "POST", body: JSON.stringify(payload) }),
+  update: (itemId: number, payload: PantryUpdatePayload) =>
+    requestWithAuth<PantryItem>(`/pantry/items/${itemId}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  remove: (itemId: number) => requestWithAuth<{ deleted: boolean }>(`/pantry/items/${itemId}`, { method: "DELETE" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

@@ -719,3 +719,299 @@ body {
     padding: 0.75rem;
   }
 }
+
+.workspace-pantry {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.pantry-headline {
+  margin-top: 0.1rem;
+}
+
+.pantry-toolbar {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) repeat(3, minmax(140px, 0.8fr)) auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.pantry-input-wrap,
+.pantry-field-wrap {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.86rem;
+}
+
+.pantry-input-wrap {
+  height: 40px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.65rem;
+  gap: 0.45rem;
+}
+
+.pantry-input-wrap input,
+.pantry-field-wrap input,
+.pantry-field-wrap select,
+.pantry-form input,
+.pantry-form textarea {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.6rem 0.72rem;
+  width: 100%;
+}
+
+.pantry-input-wrap input {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  outline: none;
+}
+
+.pantry-add-btn {
+  margin-top: 0;
+  justify-content: center;
+  height: 40px;
+}
+
+.pantry-table-card {
+  margin-top: 0;
+}
+
+.pantry-table-wrap {
+  overflow-x: auto;
+}
+
+.pantry-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+.pantry-table th,
+.pantry-table td {
+  text-align: left;
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  font-size: 0.92rem;
+}
+
+.pantry-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pantry-action-btn {
+  margin-top: 0;
+  padding: 0.45rem 0.65rem;
+}
+
+.pantry-danger-btn {
+  color: var(--color-error);
+}
+
+.pantry-status {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+  white-space: nowrap;
+}
+
+.pantry-status-normal {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: color-mix(in srgb, var(--color-success) 38%, var(--color-border));
+}
+
+.pantry-status-soon {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: color-mix(in srgb, var(--color-warning) 34%, var(--color-border));
+}
+
+.pantry-status-expired {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border-color: color-mix(in srgb, var(--color-error) 34%, var(--color-border));
+}
+
+.pantry-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.pantry-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pantry-pagination-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pantry-pagination-controls select {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.35rem 0.5rem;
+}
+
+.pantry-empty,
+.pantry-loading,
+.pantry-error {
+  margin-top: 0;
+}
+
+.pantry-empty {
+  text-align: center;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+  padding: 1.8rem 1rem;
+}
+
+.pantry-empty h3,
+.pantry-empty p {
+  margin: 0;
+}
+
+.pantry-loading {
+  color: var(--color-muted);
+}
+
+.pantry-error p {
+  margin: 0;
+  color: var(--color-error);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pantry-error-actions {
+  margin-top: 0.65rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(18, 22, 20, 0.38);
+  z-index: 70;
+}
+
+.pantry-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(460px, 94vw);
+  height: 100dvh;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  z-index: 80;
+  padding: 0.9rem;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.75rem;
+}
+
+.pantry-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.pantry-drawer-header h3 {
+  margin: 0;
+}
+
+.pantry-form {
+  display: grid;
+  gap: 0.6rem;
+  overflow-y: auto;
+  padding-right: 0.1rem;
+}
+
+.pantry-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.pantry-form textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+@media (max-width: 960px) {
+  .pantry-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pantry-add-btn {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .pantry-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .pantry-add-btn {
+    grid-column: span 1;
+  }
+
+  .pantry-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pantry-table {
+    min-width: 0;
+  }
+
+  .pantry-table thead {
+    display: none;
+  }
+
+  .pantry-table,
+  .pantry-table tbody,
+  .pantry-table tr,
+  .pantry-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .pantry-table tr {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.45rem;
+    margin-bottom: 0.55rem;
+    background: var(--color-surface);
+  }
+
+  .pantry-table td {
+    border: 0;
+    padding: 0.35rem 0.3rem;
+  }
+}

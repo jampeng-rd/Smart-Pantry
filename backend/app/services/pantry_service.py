@@ -107,13 +107,14 @@ class PantryService:
         return [self._to_item_data(item) for item in items]
 
     # 回傳資料時算狀態- 已過期/即將過期/正常 是那一種情況
+    # 修改即將到期設定天數，要一併修改 infra/repository/pantry_repository.py 的天數
     def get_item_status(self, expiration_date: date | None) -> PantryItemStatus:
         """依 expiration_date 計算食材狀態。"""
         if expiration_date is None:
             return "normal"
 
         today = date.today()
-        soon_end = today + timedelta(days=7)
+        soon_end = today + timedelta(days=3)
 
         if expiration_date < today:
             return "expired"

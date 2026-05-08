@@ -10,7 +10,7 @@ Phase 04：食材分類、過期提醒與狀態篩選 ✅
 Phase 05：購物清單 ✅
 Phase 06-1：Auth UI + Protected Layout ✅
 Phase 06-2：Dashboard + Sidebar + Theme ✅
-Phase 06-3：Pantry UI ⏳
+Phase 06-3：Pantry UI ✅
 Phase 06-4：Expiration UI ⏳
 Phase 06-5：Shopping UI ⏳
 Phase 06-6：前端整合與 UX 修正 ⏳
@@ -153,6 +153,23 @@ Route 行為：
 - Top toolbar（頁面標題 + 搜尋框佔位 + icon-only 更多操作按鈕）
 - 新增 8 個功能頁 placeholder（本階段不實作 CRUD）
 - 全部 layout/card/button/input/sidebar/toolbar 以 theme variables 套用（含 hover/active/transition）
+
+
+## Phase 06-3：Pantry UI
+
+已完成：
+- Pantry 專屬 Redux 狀態管理（filters/sort/page/pageSize/total/loading/error）
+- Pantry API 串接（`list/create/update/remove`，統一走 `requestWithAuth`）
+- Pantry 頁工具列（搜尋、分類篩選、狀態篩選、過期日排序、新增食材）
+- 食材列表與操作（編輯/刪除）
+- 新增/編輯 Drawer 表單（name/quantity 必填）
+- 刪除前確認（`window.confirm`）
+- Empty state、Loading、Error（含重試）
+- Pagination（頁碼切換與 page size 切換）
+
+測試方式：
+- `cd frontend && npm run build`
+- 啟動前後端後登入，進入 `/pantry` 手動測試 CRUD + 搜尋/篩選/排序/分頁。
 
 ## AI 功能限制
 
