@@ -891,8 +891,7 @@ body {
 }
 
 .shopping-input-wrap input,
-.shopping-field-wrap select,
-.shopping-form input {
+.shopping-field-wrap select {
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
@@ -1021,35 +1020,57 @@ body {
   overflow-y: auto;
   overflow-x: visible;
   padding: 0.15rem;
-  align-content: start;
+  grid-auto-rows: min-content;
 }
 
-.shopping-form label {
+.shopping-form label,
+.pantry-form label {
   display: grid;
   gap: 0.35rem;
   font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
-.shopping-field-error {
+.shopping-form input,
+.pantry-form input {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.6rem 0.72rem;
+  width: 100%;
+  min-height: 44px;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+.shopping-field-error,
+.pantry-field-error {
   margin: 0;
   color: var(--color-error);
   font-size: 0.82rem;
 }
 
 .shopping-form input:focus,
+.pantry-form input:focus,
+.pantry-form textarea:focus,
 .shopping-field-wrap select:focus {
   outline: none;
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 24%, transparent);
 }
 
-.shopping-form input[type="number"] {
+.shopping-form input[type="number"],
+.pantry-form input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
 
 .shopping-form input[type="number"]::-webkit-outer-spin-button,
-.shopping-form input[type="number"]::-webkit-inner-spin-button {
+.shopping-form input[type="number"]::-webkit-inner-spin-button,
+.pantry-form input[type="number"]::-webkit-outer-spin-button,
+.pantry-form input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -1088,7 +1109,6 @@ body {
 .pantry-input-wrap input,
 .pantry-field-wrap input,
 .pantry-field-wrap select,
-.pantry-form input,
 .pantry-form textarea {
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -1285,18 +1305,7 @@ body {
   overflow-y: auto;
   overflow-x: visible;
   padding: 0.15rem;
-}
-
-.pantry-form label {
-  display: grid;
-  gap: 0.35rem;
-  font-size: 0.88rem;
-}
-
-.pantry-field-error {
-  margin: 0;
-  color: var(--color-error);
-  font-size: 0.82rem;
+  grid-auto-rows: min-content;
 }
 
 .pantry-form textarea {
@@ -1304,24 +1313,11 @@ body {
   min-height: 88px;
 }
 
-.pantry-form input:focus,
-.pantry-form textarea:focus,
 .pantry-field-wrap input:focus,
 .pantry-field-wrap select:focus {
   outline: none;
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 24%, transparent);
-}
-
-.pantry-form input[type="number"] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.pantry-form input[type="number"]::-webkit-outer-spin-button,
-.pantry-form input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 @media (max-width: 960px) {
