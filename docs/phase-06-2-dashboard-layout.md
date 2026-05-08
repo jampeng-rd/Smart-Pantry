@@ -26,11 +26,12 @@
 ### 3.1 Logo 區
 
 - 展開狀態使用較短品牌文案：`智慧食材系統` / `Smart Pantry`
-- 收合狀態改為僅顯示主題對應 logo（不顯示文字）
+- 收合狀態改為僅顯示主題對應 logo（不顯示文字），logo 縮小為約 38px
   - `light-soft`：`light_soft_logo.png`
   - `dark-soft`：`Dark_Soft_logo.png`
 - 右側提供收合按鈕（icon button，具完整 `aria-label`）
 - 修正收合後 brand 區高度，避免 nav 圖示被過大空白往下推
+- 修正收合狀態 header 內按鈕位置，避免壓在側欄邊線上
 
 ### 3.2 導覽區
 
@@ -63,7 +64,7 @@ Sidebar 底部顯示：
 - Log out
 
 - 一般狀態：選單在 Sidebar 內向上展開。
-- 收合狀態（desktop）：選單改為右側浮動 popover（固定寬度、較高 z-index），不受 84px 側欄寬度擠壓。
+- 收合狀態（desktop）：選單改為 Sidebar 內 icon-only menu（不顯示文字），每項為方形 icon button。
 
 ## 4. Responsive Drawer
 
@@ -109,6 +110,7 @@ Sidebar 底部顯示：
 - Mobile 採 drawer + overlay 模式，toolbar 改為上下堆疊。
 - 全域持續維持 `overflow-x: hidden`，避免多餘水平捲軸。
 - Toolbar 右側 action 改為 icon-only more button（`aria-label="更多頁面操作"`），並與搜尋框高度對齊（40px）。
+- 收合 sidebar 的 nav/user/menu 全部改為方形 icon button（40x40）避免 hover/active 框外溢。
 
 ## 8. 涉及檔案
 

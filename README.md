@@ -141,11 +141,12 @@ Route 行為：
 - 正式 Dashboard 版型（`AppLayout + Sidebar + TopToolbar + Workspace`）
 - Sidebar 支援 desktop 收合（`260px/84px`）與 transition 動畫
 - Sidebar brand 文案簡化為「智慧食材系統 / Smart Pantry」
-- 收合狀態依 theme 顯示 logo（light-soft/dark-soft），僅顯示 icon 不顯示文字
+- 收合狀態依 theme 顯示 logo（light-soft/dark-soft），僅顯示 icon 不顯示文字，並縮小 logo 尺寸
 - Mobile/Tablet 改為 overlay drawer + 遮罩層，開啟時鎖定 `body` 捲動
 - Sidebar 主導覽移除 Settings，保留 Dashboard/Pantry/Expiration/Shopping/Recipes/OCR/Nutrition
 - Sidebar 底部使用者區與向上展開 user menu（Profile/Settings/Help/Theme Toggle/Log out）
-- 收合 sidebar 的 user menu 改為右側 popover，避免文字擠壓變形
+- 收合 sidebar 的 nav/user 改為 square icon button（40x40），修正 hover/active 框外溢
+- 收合 sidebar 的 user menu 改為 sidebar 內 icon-only menu（不浮到外側）
 - 使用者區不顯示 email，僅顯示 display_name，並預留 PRO badge（有 `subscription_tier === "PRO"` 才顯示）
 - Top toolbar（頁面標題 + 搜尋框佔位 + icon-only 更多操作按鈕）
 - 新增 8 個功能頁 placeholder（本階段不實作 CRUD）

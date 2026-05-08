@@ -24,22 +24,37 @@ export function UserMenu({
   onToggleTheme,
   onLogout,
 }: UserMenuProps) {
+  const themeLabel = themeMode === "light-soft" ? "切換至暗色主題" : "切換至亮色主題";
+  const logoutLabel = loading ? "登出中" : "登出";
+
   return (
-    <div className={`user-menu${collapsed ? " floating" : ""}`} role="menu" aria-label="使用者選單">
-      <button type="button" className="user-menu-item" role="menuitem" onClick={onProfile}>
-        <FiUser aria-hidden="true" /> Profile（個人資料）
+    <div className={`user-menu${collapsed ? " icon-only" : ""}`} role="menu" aria-label="使用者選單">
+      <button type="button" className="user-menu-item" role="menuitem" aria-label="個人資料" title="個人資料" onClick={onProfile}>
+        <FiUser aria-hidden="true" />
+        {collapsed ? null : "Profile（個人資料）"}
       </button>
-      <button type="button" className="user-menu-item" role="menuitem" onClick={onSettings}>
-        <FiSettings aria-hidden="true" /> Settings（設定）
+      <button type="button" className="user-menu-item" role="menuitem" aria-label="設定" title="設定" onClick={onSettings}>
+        <FiSettings aria-hidden="true" />
+        {collapsed ? null : "Settings（設定）"}
       </button>
-      <button type="button" className="user-menu-item" role="menuitem" onClick={onHelp}>
-        <FiHelpCircle aria-hidden="true" /> Help（說明）
+      <button type="button" className="user-menu-item" role="menuitem" aria-label="說明" title="說明" onClick={onHelp}>
+        <FiHelpCircle aria-hidden="true" />
+        {collapsed ? null : "Help（說明）"}
       </button>
-      <button type="button" className="user-menu-item" role="menuitem" onClick={onToggleTheme} aria-label="切換亮色與暗色主題">
-        {themeMode === "light-soft" ? <FiMoon aria-hidden="true" /> : <FiSun aria-hidden="true" />} Theme Toggle（主題切換）
+      <button
+        type="button"
+        className="user-menu-item"
+        role="menuitem"
+        onClick={onToggleTheme}
+        aria-label={themeLabel}
+        title={themeLabel}
+      >
+        {themeMode === "light-soft" ? <FiMoon aria-hidden="true" /> : <FiSun aria-hidden="true" />}
+        {collapsed ? null : "Theme Toggle（主題切換）"}
       </button>
-      <button type="button" className="user-menu-item danger" role="menuitem" onClick={onLogout}>
-        <FiLogOut aria-hidden="true" /> {loading ? "Log out..." : "Log out（登出）"}
+      <button type="button" className="user-menu-item danger" role="menuitem" aria-label={logoutLabel} title={logoutLabel} onClick={onLogout}>
+        <FiLogOut aria-hidden="true" />
+        {collapsed ? null : (loading ? "Log out..." : "Log out（登出）")}
       </button>
     </div>
   );
