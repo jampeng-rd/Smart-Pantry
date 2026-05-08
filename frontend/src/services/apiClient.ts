@@ -7,6 +7,13 @@ import type {
   PantryListParams,
   PantryUpdatePayload,
 } from "../features/pantry/pantryTypes";
+import type {
+  ShoppingCreatePayload,
+  ShoppingItem,
+  ShoppingListData,
+  ShoppingListParams,
+  ShoppingUpdatePayload,
+} from "../features/shopping/shoppingTypes";
 import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon, saveTokens } from "./tokenService";
 
 /** API 基底網址。 */
@@ -72,6 +79,37 @@ export const pantryApi = {
 export const expirationApi = {
   /** 取得到期提醒摘要。 */
   getSummary: () => requestWithAuth<ExpirationSummary>("/expiration/summary", { method: "GET" }),
+};
+
+/** Shopping API 封裝。 */
+export const shoppingApi = {
+  list: (params: ShoppingListParams) => {
+    const query = new URLSearchParams();
+
+    if (typeof params.is_purchased === "boolean") {
+      query.set("is_purchased", String(params.is_purchased));
+    }
+    if (params.sort) {
+      query.set("sort", params.sort);
+    }
+    if (params.q) {
+      query.set("q", params.q);
+    }
+    if (params.page) {
+      query.set("page", String(params.page));
+    }
+    if (params.page_size) {
+      query.set("page_size", String(params.page_size));
+    }
+
+    const search = query.toString();
+    const path = search ? `/shopping/items?${search}` : "/shopping/items";
+    return requestWithAuth<ShoppingListData>(path, { method: "GET" });
+  },
+  create: (payload: ShoppingCreatePayload) => requestWithAuth<ShoppingItem>("/shopping/items", { method: "POST", body: JSON.stringify(payload) }),
+  update: (itemId: number, payload: ShoppingUpdatePayload) =>
+    requestWithAuth<ShoppingItem>(`/shopping/items/${itemId}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  remove: (itemId: number) => requestWithAuth<{ deleted: boolean }>(`/shopping/items/${itemId}`, { method: "DELETE" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

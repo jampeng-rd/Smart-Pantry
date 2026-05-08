@@ -12,7 +12,7 @@ Phase 06-1：Auth UI + Protected Layout ✅
 Phase 06-2：Dashboard + Sidebar + Theme ✅
 Phase 06-3：Pantry UI ✅
 Phase 06-4：Expiration UI ✅
-Phase 06-5：Shopping UI ⏳
+Phase 06-5：Shopping UI ✅
 Phase 06-6：前端整合與 UX 修正 ⏳
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
@@ -196,6 +196,23 @@ Route 行為：
 測試方式：
 - `cd frontend && npm run build`
 - 啟動前後端後登入，進入 `/expiration` 手動測試摘要、篩選、RWD、error/retry。
+
+
+## Phase 06-5：Shopping UI
+
+已完成：
+- Shopping 專屬 Redux 狀態管理（`items/page/pageSize/total/loading/error/filters/sort`）
+- Shopping API 串接（`shoppingApi.list/create/update/remove`，統一走 `requestWithAuth`）
+- 購物清單頁（`/shopping`）搜尋、狀態篩選、排序
+- 購物項目新增、編輯、刪除
+- 標記已購買 / 設為未購買
+- 共用 Pagination 分頁（預設每頁 10，支援 10/20/50）
+- Loading、Error + Retry、Empty state
+- Desktop table + Mobile card-like（含欄位 label）
+
+測試方式：
+- `cd frontend && npm run build`
+- 啟動前後端後登入，進入 `/shopping` 手動測試 CRUD、篩選/排序、分頁、狀態切換。
 
 ## AI 功能限制
 
