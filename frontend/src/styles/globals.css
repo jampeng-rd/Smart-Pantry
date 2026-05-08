@@ -552,6 +552,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.9rem;
+  flex-wrap: nowrap;
 }
 
 .toolbar-title-row {
@@ -559,6 +560,8 @@ body {
   align-items: center;
   gap: 0.7rem;
   min-height: 40px;
+  min-width: 0;
+  flex: 1;
 }
 
 .toolbar-title-row h1 {
@@ -572,6 +575,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .toolbar-page-title-icon {
@@ -582,12 +586,16 @@ body {
 
 .toolbar-page-title-text {
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .toolbar-actions {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  flex-shrink: 0;
 }
 
 .toolbar-search {
@@ -712,21 +720,8 @@ body {
 
 @media (max-width: 720px) {
   .top-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar-actions {
-    width: 100%;
-  }
-
-  .toolbar-search {
-    width: 100%;
-  }
-
-  .toolbar-actions .btn {
-    margin-top: 0;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
   }
 }
 
@@ -976,6 +971,12 @@ body {
   font-size: 0.88rem;
 }
 
+.pantry-field-error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.82rem;
+}
+
 .pantry-form textarea {
   resize: vertical;
   min-height: 88px;
@@ -1052,5 +1053,24 @@ body {
   .pantry-table td {
     border: 0;
     padding: 0.35rem 0.3rem;
+    display: grid;
+    grid-template-columns: minmax(72px, 92px) 1fr;
+    gap: 0.45rem;
+    align-items: baseline;
+  }
+
+  .pantry-table td::before {
+    content: attr(data-label);
+    color: var(--color-muted);
+    font-size: 0.82rem;
+  }
+
+  .pantry-table td.pantry-table-actions-cell {
+    display: block;
+    padding-top: 0.5rem;
+  }
+
+  .pantry-table td.pantry-table-actions-cell::before {
+    content: none;
   }
 }

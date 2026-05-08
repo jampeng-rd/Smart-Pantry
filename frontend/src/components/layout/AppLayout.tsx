@@ -62,7 +62,7 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
 
   const currentTitle = useMemo(() => {
     if (pathname === "/pantry") {
-      return { icon: <FiArchive aria-hidden="true" />, text: "Pantry（食材庫存）" };
+      return { icon: <FiArchive aria-hidden="true" />, text: "食材庫存" };
     }
 
     const matched = navItems.find((item) => item.path === pathname);

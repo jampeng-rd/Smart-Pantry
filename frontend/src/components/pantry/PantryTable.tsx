@@ -29,16 +29,16 @@ export function PantryTable({ items, onEdit, onDelete }: PantryTableProps) {
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>{item.category}</td>
-                <td>{item.quantity}</td>
-                <td>{item.unit}</td>
-                <td>{item.storage_location || "-"}</td>
-                <td>{item.expiration_date || "-"}</td>
-                <td>
+                <td data-label="食材名稱">{item.name}</td>
+                <td data-label="分類">{item.category}</td>
+                <td data-label="數量">{item.quantity}</td>
+                <td data-label="單位">{item.unit}</td>
+                <td data-label="保存位置">{item.storage_location || "-"}</td>
+                <td data-label="過期日">{item.expiration_date || "-"}</td>
+                <td data-label="狀態">
                   <StatusBadge status={item.status} />
                 </td>
-                <td>
+                <td className="pantry-table-actions-cell">
                   <div className="pantry-actions">
                     <button type="button" className="btn ghost pantry-action-btn" onClick={() => onEdit(item)}>
                       <FiEdit2 aria-hidden="true" /> 編輯

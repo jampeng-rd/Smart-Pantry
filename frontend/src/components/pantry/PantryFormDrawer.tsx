@@ -34,13 +34,13 @@ const defaultFormState: PantryFormState = {
 /** 新增/編輯食材表單抽屜。 */
 export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit }: PantryFormDrawerProps) {
   const [form, setForm] = useState<PantryFormState>(defaultFormState);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ name?: string; quantity?: string }>({});
 
   const modeText = useMemo(() => (initialItem ? "編輯食材" : "新增食材"), [initialItem]);
 
   useEffect(() => {
     if (!open) {
-      setError(null);
+      setErrors({});
       return;
     }
 
@@ -66,17 +66,33 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null);
+    const nextErrors: { name?: string; quantity?: string } = {};
 
-    const quantity = Number(form.quantity);
     if (!form.name.trim()) {
-      setError("請輸入食材名稱");
+      nextErrors.name = "請輸入食材名稱";
+    }
+
+    const quantityRaw = form.quantity.trim();
+    if (!quantityRaw) {
+      nextErrors.quantity = "請輸入數量";
+    } else {
+      const quantity = Number(quantityRaw);
+      if (!Number.isFinite(quantity)) {
+        nextErrors.quantity = "數量必須是整數";
+      } else if (!Number.isInteger(quantity)) {
+        nextErrors.quantity = "數量必須是整數";
+      } else if (quantity < 1) {
+        nextErrors.quantity = "數量必須大於或等於 1";
+      }
+    }
+
+    if (nextErrors.name || nextErrors.quantity) {
+      setErrors(nextErrors);
       return;
     }
-    if (!Number.isFinite(quantity) || !Number.isInteger(quantity) || quantity < 1) {
-      setError("數量必須是大於等於 1 的整數");
-      return;
-    }
+
+    setErrors({});
+    const quantity = Number(form.quantity);
 
     await onSubmit({
       name: form.name.trim(),
@@ -100,15 +116,28 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
           </button>
         </header>
 
-        <form className="pantry-form" onSubmit={handleSubmit}>
+        <form className="pantry-form" noValidate onSubmit={handleSubmit}>
           <label>
             食材名稱 *
             <input
               type="text"
               value={form.name}
-              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-              required
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, name: value }));
+                if (errors.name && value.trim()) {
+                  setErrors((prev) => ({ ...prev, name: undefined }));
+                }
+              }}
+              aria-required="true"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? "pantry-name-error" : undefined}
             />
+            {errors.name ? (
+              <p id="pantry-name-error" className="pantry-field-error" role="alert">
+                {errors.name}
+              </p>
+            ) : null}
           </label>
 
           <label>
@@ -123,9 +152,22 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
               min={1}
               step={1}
               value={form.quantity}
-              onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
-              required
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, quantity: value }));
+                if (errors.quantity && value.trim()) {
+                  setErrors((prev) => ({ ...prev, quantity: undefined }));
+                }
+              }}
+              aria-required="true"
+              aria-invalid={Boolean(errors.quantity)}
+              aria-describedby={errors.quantity ? "pantry-quantity-error" : undefined}
             />
+            {errors.quantity ? (
+              <p id="pantry-quantity-error" className="pantry-field-error" role="alert">
+                {errors.quantity}
+              </p>
+            ) : null}
           </label>
 
           <label>
@@ -155,8 +197,6 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
             備註
             <textarea value={form.note} onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))} rows={4} />
           </label>
-
-          {error ? <p className="error-text">{error}</p> : null}
 
           <button type="submit" className="btn primary" disabled={loading}>
             <FiSave aria-hidden="true" />
