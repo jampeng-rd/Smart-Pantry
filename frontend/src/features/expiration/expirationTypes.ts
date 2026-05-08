@@ -33,6 +33,7 @@ export interface ExpirationSummaryStats {
 export interface ExpirationState {
   summary: ExpirationSummary | null;
   stats: ExpirationSummaryStats;
+  items: ExpirationItem[];
   loading: boolean;
   error: string | null;
   selectedStatusFilter: ExpirationStatusFilter;

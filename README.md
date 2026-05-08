@@ -178,9 +178,17 @@ Route 行為：
 - Expiration API 串接（`expirationApi.getSummary()`，統一走 `requestWithAuth`）
 - 到期提醒頁（`/expiration`）摘要卡片（已過期/即將到期/正常/全部）
 - 狀態篩選（全部/已過期/即將到期/正常）
-- 到期提醒列表（桌機表格 + 手機 card-like）
+- 到期提醒列表（桌機表格 + 手機 card-like），作為「所有食材到期狀態總覽」
 - Loading、Error + Retry、Empty state
 - 延續現有 Dashboard/TopToolbar/Sidebar 樣式與 light-soft/dark-soft 主題
+- 「全部」篩選會顯示 `expired + expiring_soon + normal`
+- 「正常」篩選會顯示 normal 食材明細（非空白）
+
+資料來源策略：
+- `GET /expiration/summary`：提供 `expired/expiring_soon` 摘要計數
+- `pantryApi.list({ status: "normal" })`：補齊 normal items
+- 前端再合併 `expired + expiring_soon + normal` 為 unified list，供列表與篩選顯示
+- 若後端未來提供完整 expiration list API，可改為單一 API 來源
 
 測試方式：
 - `cd frontend && npm run build`

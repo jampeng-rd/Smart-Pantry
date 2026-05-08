@@ -16,44 +16,37 @@ import type { ExpirationItem } from "../features/expiration/expirationTypes";
 /** 到期提醒主頁。 */
 export function ExpirationPage() {
   const dispatch = useAppDispatch();
-  const { summary, stats, loading, error, selectedStatusFilter } = useAppSelector((state) => state.expiration);
+  const { stats, items: unifiedItems, loading, error, selectedStatusFilter } = useAppSelector((state) => state.expiration);
 
   useEffect(() => {
     void dispatch(fetchExpirationSummary());
   }, [dispatch]);
 
   const items = useMemo(() => {
-    const expiredItems = summary?.expired_items ?? [];
-    const expiringSoonItems = summary?.expiring_soon_items ?? [];
-
     if (selectedStatusFilter === "expired") {
-      return expiredItems;
+      return sortExpirationItems(unifiedItems.filter((item) => item.status === "expired"));
     }
     if (selectedStatusFilter === "expiring_soon") {
-      return expiringSoonItems;
+      return sortExpirationItems(unifiedItems.filter((item) => item.status === "expiring_soon"));
     }
     if (selectedStatusFilter === "normal") {
-      return [] as ExpirationItem[];
+      return sortExpirationItems(unifiedItems.filter((item) => item.status === "normal"));
     }
 
-    return [...expiredItems, ...expiringSoonItems].sort((a, b) => {
-      const aDate = a.expiration_date ?? "9999-12-31";
-      const bDate = b.expiration_date ?? "9999-12-31";
-      return aDate.localeCompare(bDate);
-    });
-  }, [summary, selectedStatusFilter]);
+    return sortExpirationItems(unifiedItems);
+  }, [unifiedItems, selectedStatusFilter]);
 
-  const filterLabel = useMemo(() => {
+  const emptyMessage = useMemo(() => {
+    if (selectedStatusFilter === "all") {
+      return "目前沒有食材資料";
+    }
     if (selectedStatusFilter === "expired") {
-      return "已過期";
+      return "目前沒有已過期食材";
     }
     if (selectedStatusFilter === "expiring_soon") {
-      return "即將到期";
+      return "目前沒有即將到期食材";
     }
-    if (selectedStatusFilter === "normal") {
-      return "正常";
-    }
-    return "全部";
+    return "目前沒有正常食材";
   }, [selectedStatusFilter]);
 
   const showEmpty = !loading && !error && items.length === 0;
@@ -85,9 +78,35 @@ export function ExpirationPage() {
         </div>
       ) : null}
 
-      {showEmpty ? <ExpirationEmptyState statusLabel={filterLabel} /> : null}
+      {showEmpty ? <ExpirationEmptyState message={emptyMessage} /> : null}
 
       {!loading && !error && !showEmpty ? <ExpirationItemList items={items} /> : null}
     </section>
   );
+}
+
+function sortExpirationItems(items: ExpirationItem[]): ExpirationItem[] {
+  return [...items].sort((a, b) => {
+    const statusOrder: Record<ExpirationItem["status"], number> = {
+      expired: 0,
+      expiring_soon: 1,
+      normal: 2,
+    };
+
+    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    if (statusDiff !== 0) {
+      return statusDiff;
+    }
+
+    if (!a.expiration_date && !b.expiration_date) {
+      return a.id - b.id;
+    }
+    if (!a.expiration_date) {
+      return 1;
+    }
+    if (!b.expiration_date) {
+      return -1;
+    }
+    return a.expiration_date.localeCompare(b.expiration_date);
+  });
 }

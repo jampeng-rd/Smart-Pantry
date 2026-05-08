@@ -1,16 +1,16 @@
 import { FiInbox } from "react-icons/fi";
 
 interface ExpirationEmptyStateProps {
-  statusLabel: string;
+  message: string;
 }
 
 /** 到期提醒空狀態。 */
-export function ExpirationEmptyState({ statusLabel }: ExpirationEmptyStateProps) {
+export function ExpirationEmptyState({ message }: ExpirationEmptyStateProps) {
   return (
     <section className="card expiration-empty">
       <FiInbox aria-hidden="true" />
-      <h3>目前沒有符合條件的食材</h3>
-      <p>{statusLabel}暫時沒有需要顯示的到期提醒。</p>
+      <h3>{message}</h3>
+      <p>你可以先前往「食材庫存」新增食材後再回來查看狀態。</p>
     </section>
   );
 }

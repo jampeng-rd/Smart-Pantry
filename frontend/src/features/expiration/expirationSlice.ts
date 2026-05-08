@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 
 import { expirationApi, pantryApi } from "../../services/apiClient";
 import type {
+  ExpirationItem,
   ExpirationState,
   ExpirationStatusFilter,
   ExpirationSummary,
@@ -16,6 +17,7 @@ const initialState: ExpirationState = {
     normal: 0,
     total: 0,
   },
+  items: [],
   loading: false,
   error: null,
   selectedStatusFilter: "all",
@@ -23,25 +25,28 @@ const initialState: ExpirationState = {
 
 /** 取得到期提醒摘要與狀態統計。 */
 export const fetchExpirationSummary = createAsyncThunk<
-  { summary: ExpirationSummary; stats: ExpirationSummaryStats },
+  { summary: ExpirationSummary; stats: ExpirationSummaryStats; items: ExpirationItem[] },
   void,
   { rejectValue: string }
 >("expiration/fetchExpirationSummary", async (_, { rejectWithValue }) => {
   try {
-    const [summary, allList, normalList] = await Promise.all([
+    const [summary, expiredItems, expiringSoonItems, normalItems] = await Promise.all([
       expirationApi.getSummary(),
-      pantryApi.list({ page: 1, page_size: 1 }),
-      pantryApi.list({ status: "normal", page: 1, page_size: 1 }),
+      fetchPantryItemsByStatus("expired"),
+      fetchPantryItemsByStatus("expiring_soon"),
+      fetchPantryItemsByStatus("normal"),
     ]);
 
     const stats: ExpirationSummaryStats = {
       expired: summary.expired_count,
       expiringSoon: summary.expiring_soon_count,
-      normal: normalList.total,
-      total: allList.total,
+      normal: normalItems.length,
+      total: summary.expired_count + summary.expiring_soon_count + normalItems.length,
     };
 
-    return { summary, stats };
+    const items = [...expiredItems, ...expiringSoonItems, ...normalItems];
+
+    return { summary, stats, items };
   } catch (error) {
     return rejectWithValue(getErrorMessage(error));
   }
@@ -69,6 +74,7 @@ const expirationSlice = createSlice({
         state.loading = false;
         state.summary = action.payload.summary;
         state.stats = action.payload.stats;
+        state.items = action.payload.items;
       })
       .addCase(fetchExpirationSummary.rejected, (state, action) => {
         state.loading = false;
@@ -76,6 +82,41 @@ const expirationSlice = createSlice({
       });
   },
 });
+
+/** 依狀態分頁抓取 pantry items，合併為完整清單。 */
+async function fetchPantryItemsByStatus(status: "expired" | "expiring_soon" | "normal"): Promise<ExpirationItem[]> {
+  const pageSize = 100;
+  let page = 1;
+  let totalPages = 1;
+  const collected: ExpirationItem[] = [];
+
+  while (page <= totalPages) {
+    const data = await pantryApi.list({
+      status,
+      page,
+      page_size: pageSize,
+      sort: "expiration_date",
+    });
+
+    collected.push(
+      ...data.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        unit: item.unit,
+        expiration_date: item.expiration_date,
+        status: item.status ?? status,
+        storage_location: item.storage_location,
+        note: item.note,
+      })),
+    );
+    totalPages = Math.max(1, Math.ceil(data.total / pageSize));
+    page += 1;
+  }
+
+  return collected;
+}
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
