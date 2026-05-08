@@ -10,13 +10,19 @@
   - `summary`
   - `stats`（已過期 / 即將到期 / 正常 / 全部）
   - `items`（合併後 unified list）
+  - `page` / `pageSize`（列表分頁狀態，預設 `1 / 10`）
   - `loading`
   - `error`
   - `selectedStatusFilter`
 - 新增 thunk：`fetchExpirationSummary`。
 - 新增 reducers：
   - `setExpirationStatusFilter`
+  - `setExpirationPage`
+  - `setExpirationPageSize`
   - `clearExpirationError`
+- 抽出共用分頁元件：`frontend/src/components/common/Pagination.tsx`
+  - Pantry 既有分頁改為包裝共用元件
+  - Expiration 分頁直接使用共用元件
 - `apiClient` 新增 `expirationApi.getSummary()`，統一使用 `requestWithAuth`（含 pre-refresh 與 401 retry）。
 - 建立 Expiration 頁面與元件：
   - `ExpirationSummaryCards`
@@ -29,6 +35,11 @@
   - 已過期：僅顯示 `expired`
   - 即將到期：僅顯示 `expiring_soon`
   - 正常：僅顯示 `normal`
+- Expiration 列表支援 pagination：
+  - 預設每頁 `10` 筆，支援 `10 / 20 / 50`
+  - 分頁基於「filter 後、排序後」清單
+  - 切換 filter 會回到第 1 頁
+  - 切換 pageSize 會回到第 1 頁
 - 完成桌機/手機版 RWD：
   - 摘要卡片桌機橫向排列、手機改 2 欄/1 欄。
   - 列表手機版轉 card-like 顯示，保留欄位標題（`data-label`）。
@@ -57,6 +68,7 @@
 4. 驗證：
    - 摘要卡片顯示（已過期/即將到期/正常/全部）
    - 狀態篩選切換（全部/已過期/即將到期/正常）
+   - 分頁切換（page / pageSize）與重設邏輯
    - loading、error + retry、empty state
    - 桌機與手機版顯示
 5. 建置驗證：`cd frontend && npm run build`

@@ -34,6 +34,8 @@ export interface ExpirationState {
   summary: ExpirationSummary | null;
   stats: ExpirationSummaryStats;
   items: ExpirationItem[];
+  page: number;
+  pageSize: number;
   loading: boolean;
   error: string | null;
   selectedStatusFilter: ExpirationStatusFilter;

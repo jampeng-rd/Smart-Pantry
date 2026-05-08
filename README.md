@@ -174,15 +174,18 @@ Route 行為：
 ## Phase 06-4：Expiration UI
 
 已完成：
-- Expiration 專屬 Redux 狀態管理（`summary/stats/loading/error/selectedStatusFilter`）
+- Expiration 專屬 Redux 狀態管理（`summary/stats/items/page/pageSize/loading/error/selectedStatusFilter`）
 - Expiration API 串接（`expirationApi.getSummary()`，統一走 `requestWithAuth`）
 - 到期提醒頁（`/expiration`）摘要卡片（已過期/即將到期/正常/全部）
 - 狀態篩選（全部/已過期/即將到期/正常）
 - 到期提醒列表（桌機表格 + 手機 card-like），作為「所有食材到期狀態總覽」
+- 到期提醒列表支援 pagination（預設每頁 10，支援 10/20/50）
+- 切換 filter / pageSize 會自動回到第 1 頁
 - Loading、Error + Retry、Empty state
 - 延續現有 Dashboard/TopToolbar/Sidebar 樣式與 light-soft/dark-soft 主題
 - 「全部」篩選會顯示 `expired + expiring_soon + normal`
 - 「正常」篩選會顯示 normal 食材明細（非空白）
+- 新增共用分頁元件 `components/common/Pagination`，Pantry 與 Expiration 共用
 
 資料來源策略：
 - `GET /expiration/summary`：提供 `expired/expiring_soon` 摘要計數

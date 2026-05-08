@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { Pagination } from "../components/common/Pagination";
 import { ExpirationEmptyState } from "../components/expiration/ExpirationEmptyState";
 import { ExpirationFilters } from "../components/expiration/ExpirationFilters";
 import { ExpirationItemList } from "../components/expiration/ExpirationItemList";
@@ -9,6 +10,8 @@ import { ExpirationSummaryCards } from "../components/expiration/ExpirationSumma
 import {
   clearExpirationError,
   fetchExpirationSummary,
+  setExpirationPage,
+  setExpirationPageSize,
   setExpirationStatusFilter,
 } from "../features/expiration/expirationSlice";
 import type { ExpirationItem } from "../features/expiration/expirationTypes";
@@ -16,7 +19,7 @@ import type { ExpirationItem } from "../features/expiration/expirationTypes";
 /** 到期提醒主頁。 */
 export function ExpirationPage() {
   const dispatch = useAppDispatch();
-  const { stats, items: unifiedItems, loading, error, selectedStatusFilter } = useAppSelector((state) => state.expiration);
+  const { stats, items: unifiedItems, loading, error, selectedStatusFilter, page, pageSize } = useAppSelector((state) => state.expiration);
 
   useEffect(() => {
     void dispatch(fetchExpirationSummary());
@@ -50,6 +53,13 @@ export function ExpirationPage() {
   }, [selectedStatusFilter]);
 
   const showEmpty = !loading && !error && items.length === 0;
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const pagedItems = useMemo(() => {
+    const startIndex = (safePage - 1) * pageSize;
+    return items.slice(startIndex, startIndex + pageSize);
+  }, [items, pageSize, safePage]);
 
   return (
     <section className="workspace-expiration">
@@ -80,7 +90,18 @@ export function ExpirationPage() {
 
       {showEmpty ? <ExpirationEmptyState message={emptyMessage} /> : null}
 
-      {!loading && !error && !showEmpty ? <ExpirationItemList items={items} /> : null}
+      {!loading && !error && !showEmpty ? <ExpirationItemList items={pagedItems} /> : null}
+
+      {!loading && !error && !showEmpty ? (
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          total={total}
+          pageSizeOptions={[10, 20, 50]}
+          onPageChange={(nextPage) => dispatch(setExpirationPage(nextPage))}
+          onPageSizeChange={(nextPageSize) => dispatch(setExpirationPageSize(nextPageSize))}
+        />
+      ) : null}
     </section>
   );
 }

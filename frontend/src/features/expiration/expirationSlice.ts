@@ -18,6 +18,8 @@ const initialState: ExpirationState = {
     total: 0,
   },
   items: [],
+  page: 1,
+  pageSize: 10,
   loading: false,
   error: null,
   selectedStatusFilter: "all",
@@ -59,6 +61,14 @@ const expirationSlice = createSlice({
   reducers: {
     setExpirationStatusFilter: (state, action: PayloadAction<ExpirationStatusFilter>) => {
       state.selectedStatusFilter = action.payload;
+      state.page = 1;
+    },
+    setExpirationPage: (state, action: PayloadAction<number>) => {
+      state.page = action.payload;
+    },
+    setExpirationPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.page = 1;
     },
     clearExpirationError: (state) => {
       state.error = null;
@@ -125,5 +135,5 @@ function getErrorMessage(error: unknown): string {
   return "發生未知錯誤";
 }
 
-export const { setExpirationStatusFilter, clearExpirationError } = expirationSlice.actions;
+export const { setExpirationStatusFilter, setExpirationPage, setExpirationPageSize, clearExpirationError } = expirationSlice.actions;
 export default expirationSlice.reducer;
