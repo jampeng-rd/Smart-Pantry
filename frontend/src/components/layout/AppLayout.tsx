@@ -21,7 +21,7 @@ interface AppLayoutProps {
 const MOBILE_BREAKPOINT = 1024;
 
 const navItems: NavItem[] = [
-  { key: "dashboard", label: "儀表板", path: "/dashboard", icon: <FiGrid aria-hidden="true" /> },
+  // { key: "dashboard", label: "儀表板", path: "/dashboard", icon: <FiGrid aria-hidden="true" /> },
   { key: "pantry", label: "食材庫存", path: "/pantry", icon: <FiArchive aria-hidden="true" /> },
   { key: "expiration", label: "到期提醒", path: "/expiration", icon: <FiClock aria-hidden="true" /> },
   { key: "shopping", label: "購物清單", path: "/shopping", icon: <FiShoppingCart aria-hidden="true" /> },
