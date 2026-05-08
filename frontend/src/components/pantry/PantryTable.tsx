@@ -1,4 +1,4 @@
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiShoppingCart, FiTrash2 } from "react-icons/fi";
 
 import type { PantryItem } from "../../features/pantry/pantryTypes";
 
@@ -6,10 +6,11 @@ interface PantryTableProps {
   items: PantryItem[];
   onEdit: (item: PantryItem) => void;
   onDelete: (item: PantryItem) => void;
+  onAddToShopping: (item: PantryItem) => void;
 }
 
 /** Pantry 食材列表。 */
-export function PantryTable({ items, onEdit, onDelete }: PantryTableProps) {
+export function PantryTable({ items, onEdit, onDelete, onAddToShopping }: PantryTableProps) {
   return (
     <div className="card pantry-table-card">
       <div className="pantry-table-wrap">
@@ -40,6 +41,9 @@ export function PantryTable({ items, onEdit, onDelete }: PantryTableProps) {
                 </td>
                 <td className="pantry-table-actions-cell">
                   <div className="pantry-actions">
+                    <button type="button" className="btn ghost pantry-action-btn" onClick={() => onAddToShopping(item)}>
+                      <FiShoppingCart aria-hidden="true" /> 加入購物清單
+                    </button>
                     <button type="button" className="btn ghost pantry-action-btn" onClick={() => onEdit(item)}>
                       <FiEdit2 aria-hidden="true" /> 編輯
                     </button>

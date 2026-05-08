@@ -44,7 +44,7 @@ export const fetchPantryItems = createAsyncThunk<PantryListData, void, { rejectV
       });
       return data;
     } catch (error) {
-      return rejectWithValue(getErrorMessage(error));
+      return rejectWithValue(getErrorMessage(error, "fetch"));
     }
   },
 );
@@ -56,7 +56,7 @@ export const createPantryItem = createAsyncThunk<PantryItem, PantryCreatePayload
     try {
       return await pantryApi.create(payload);
     } catch (error) {
-      return rejectWithValue(getErrorMessage(error));
+      return rejectWithValue(getErrorMessage(error, "create"));
     }
   },
 );
@@ -68,7 +68,7 @@ export const updatePantryItem = createAsyncThunk<PantryItem, { itemId: number; p
     try {
       return await pantryApi.update(itemId, payload);
     } catch (error) {
-      return rejectWithValue(getErrorMessage(error));
+      return rejectWithValue(getErrorMessage(error, "update"));
     }
   },
 );
@@ -81,7 +81,7 @@ export const deletePantryItem = createAsyncThunk<number, number, { rejectValue: 
       await pantryApi.remove(itemId);
       return itemId;
     } catch (error) {
-      return rejectWithValue(getErrorMessage(error));
+      return rejectWithValue(getErrorMessage(error, "delete"));
     }
   },
 );
@@ -165,11 +165,29 @@ const pantrySlice = createSlice({
   },
 });
 
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, action: "fetch" | "create" | "update" | "delete"): string {
+  const fallback = "操作失敗，請稍後再試。";
   if (error instanceof Error) {
-    return error.message;
+    const text = error.message.toLowerCase();
+    if (action === "delete") {
+      if (
+        text.includes("networkerror") ||
+        text.includes("failed to fetch") ||
+        text.includes("load failed") ||
+        text.includes("constraint") ||
+        text.includes("foreign key")
+      ) {
+        return "此食材已加入購物清單，請先刪除購物清單中的相關項目，再刪除此食材。";
+      }
+      return fallback;
+    }
+
+    if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
+      return "網路連線異常，請稍後再試。";
+    }
+    return fallback;
   }
-  return "發生未知錯誤";
+  return fallback;
 }
 
 export const { setFilters, setPage, setPageSize, setSort, clearPantryError } = pantrySlice.actions;

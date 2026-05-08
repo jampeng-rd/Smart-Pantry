@@ -1,4 +1,4 @@
-import { FiCheckCircle, FiEdit2, FiRotateCcw, FiTrash2 } from "react-icons/fi";
+import { FiCheckCircle, FiEdit2, FiPackage, FiRotateCcw, FiTrash2 } from "react-icons/fi";
 
 import type { ShoppingItem } from "../../features/shopping/shoppingTypes";
 import { formatLocalDateTime } from "../../utils/dateTime";
@@ -8,10 +8,11 @@ interface ShoppingTableProps {
   onEdit: (item: ShoppingItem) => void;
   onDelete: (item: ShoppingItem) => void;
   onTogglePurchased: (item: ShoppingItem) => void;
+  onAddToPantry: (item: ShoppingItem) => void;
 }
 
 /** Shopping 購物清單列表。 */
-export function ShoppingTable({ items, onEdit, onDelete, onTogglePurchased }: ShoppingTableProps) {
+export function ShoppingTable({ items, onEdit, onDelete, onTogglePurchased, onAddToPantry }: ShoppingTableProps) {
   return (
     <div className="card shopping-table-card">
       <div className="shopping-table-wrap">
@@ -51,6 +52,11 @@ export function ShoppingTable({ items, onEdit, onDelete, onTogglePurchased }: Sh
                     <button type="button" className="btn ghost shopping-action-btn" onClick={() => onEdit(item)}>
                       <FiEdit2 aria-hidden="true" /> 編輯
                     </button>
+                    {item.is_purchased ? (
+                      <button type="button" className="btn ghost shopping-action-btn" onClick={() => onAddToPantry(item)}>
+                        <FiPackage aria-hidden="true" /> 加入庫存
+                      </button>
+                    ) : null}
                     <button type="button" className="btn ghost shopping-action-btn shopping-danger-btn" onClick={() => onDelete(item)}>
                       <FiTrash2 aria-hidden="true" /> 刪除
                     </button>

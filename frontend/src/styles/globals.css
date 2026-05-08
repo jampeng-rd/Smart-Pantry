@@ -988,6 +988,27 @@ body {
   gap: 0.5rem;
 }
 
+.integration-success {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success-bg) 70%, var(--color-surface));
+}
+
+.integration-success p {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.integration-tip {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--color-muted);
+}
+
 .shopping-drawer {
   position: fixed;
   top: 0;
@@ -1502,5 +1523,10 @@ body {
 
   .pantry-table td.pantry-table-actions-cell::before {
     content: none;
+  }
+
+  .integration-success {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

@@ -216,6 +216,28 @@ Route 行為：
 - `cd frontend && npm run build`
 - 啟動前後端後登入，進入 `/shopping` 手動測試 CRUD、篩選/排序、分頁、狀態切換。
 
+## Phase 06-6A：Pantry / Shopping 前端整合 UX 修正
+
+已完成：
+- Pantry 列表新增「加入購物清單」操作，使用既有 `shoppingApi.create()` 建立購物項目。
+- Pantry -> Shopping payload 會帶入：`name`、`quantity`、`unit`、`source_pantry_item_id`。
+- Pantry 成功提示不顯示 `source_pantry_item_id`，僅顯示「已加入購物清單」。
+- Shopping 列表新增「加入庫存」操作，僅在已購買項目顯示。
+- 「加入庫存」採 Drawer 人工確認流程（不自動寫入），預填 `name/quantity/unit`，使用者可補齊 `category/expiration_date/storage_location/note`。
+- 「加入庫存」的 `category` 前端必填，空白時顯示「請輸入分類」並阻擋送出。
+- 確認後呼叫既有 `pantryApi.create()` 新增 pantry item；成功後自動移除原購物清單項目。
+- 新增整合成功/失敗中文提示，並維持 light/dark theme 與 mobile RWD。
+- Pantry 刪除若因 shopping 關聯失敗，前端顯示友善中文提示，避免顯示原始 NetworkError。
+
+流程限制說明：
+- `source_pantry_item_id` 僅記錄 shopping 項目來源關聯，不代表自動更新 pantry。
+- `source_pantry_item_id` 只作內部關聯，不在 UI 顯示 ID。
+- 標記已購買僅更新 shopping item 的 `is_purchased/purchased_at`。
+- 要將已購買項目加入 pantry，必須由使用者在 Drawer 中確認後手動送出；新增成功後才會移除 shopping 項目。
+
+測試方式：
+- `cd frontend && npm run build`
+
 ## AI 功能限制
 
 AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。

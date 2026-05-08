@@ -7,6 +7,8 @@ import { ShoppingEmptyState } from "../components/shopping/ShoppingEmptyState";
 import { ShoppingFilters } from "../components/shopping/ShoppingFilters";
 import { ShoppingFormDrawer } from "../components/shopping/ShoppingFormDrawer";
 import { ShoppingTable } from "../components/shopping/ShoppingTable";
+import { ShoppingToPantryDrawer } from "../components/shopping/ShoppingToPantryDrawer";
+import type { PantryCreatePayload } from "../features/pantry/pantryTypes";
 import {
   clearShoppingError,
   createShoppingItem,
@@ -19,6 +21,7 @@ import {
   updateShoppingItem,
 } from "../features/shopping/shoppingSlice";
 import type { ShoppingCreatePayload, ShoppingItem } from "../features/shopping/shoppingTypes";
+import { pantryApi } from "../services/apiClient";
 
 /** Shopping 購物清單管理頁。 */
 export function ShoppingPage() {
@@ -27,6 +30,11 @@ export function ShoppingPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
+  const [toPantryDrawerOpen, setToPantryDrawerOpen] = useState(false);
+  const [toPantryItem, setToPantryItem] = useState<ShoppingItem | null>(null);
+  const [toPantryLoading, setToPantryLoading] = useState(false);
+  const [integrationMessage, setIntegrationMessage] = useState<string | null>(null);
+  const [integrationError, setIntegrationError] = useState<string | null>(null);
 
   useEffect(() => {
     void dispatch(fetchShoppingItems());
@@ -85,6 +93,42 @@ export function ShoppingPage() {
     await dispatch(fetchShoppingItems()).unwrap();
   };
 
+  const onOpenAddToPantry = (item: ShoppingItem) => {
+    if (!item.is_purchased) {
+      return;
+    }
+    setToPantryItem(item);
+    setToPantryDrawerOpen(true);
+  };
+
+  const onAddToPantrySubmit = async (payload: PantryCreatePayload) => {
+    if (!toPantryItem) {
+      return;
+    }
+
+    setIntegrationError(null);
+    setToPantryLoading(true);
+    try {
+      await pantryApi.create(payload);
+      try {
+        await dispatch(deleteShoppingItem(toPantryItem.id)).unwrap();
+        setToPantryDrawerOpen(false);
+        setToPantryItem(null);
+        await dispatch(fetchShoppingItems()).unwrap();
+        setIntegrationMessage("已加入庫存，並從購物清單移除。");
+      } catch {
+        setToPantryDrawerOpen(false);
+        setToPantryItem(null);
+        await dispatch(fetchShoppingItems()).unwrap();
+        setIntegrationError("已加入庫存，但購物清單項目移除失敗，請稍後手動刪除。");
+      }
+    } catch (error) {
+      setIntegrationError(getFriendlyShoppingMessage(error));
+    } finally {
+      setToPantryLoading(false);
+    }
+  };
+
   return (
     <section className="workspace-shopping">
       <ShoppingFilters
@@ -113,6 +157,28 @@ export function ShoppingPage() {
         </div>
       ) : null}
 
+      {integrationMessage ? (
+        <div className="card integration-success" role="status">
+          <p>{integrationMessage}</p>
+          <button type="button" className="btn ghost" onClick={() => setIntegrationMessage(null)}>
+            關閉
+          </button>
+        </div>
+      ) : null}
+
+      {integrationError ? (
+        <div className="card shopping-error" role="alert">
+          <p>
+            <FiAlertCircle aria-hidden="true" /> {integrationError}
+          </p>
+          <div className="shopping-error-actions">
+            <button type="button" className="btn ghost" onClick={() => setIntegrationError(null)}>
+              關閉
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {isEmpty ? <ShoppingEmptyState /> : null}
 
       {!isEmpty && !error ? (
@@ -121,6 +187,7 @@ export function ShoppingPage() {
           onEdit={onEditClick}
           onDelete={(item) => void onDeleteClick(item)}
           onTogglePurchased={(item) => void onTogglePurchased(item)}
+          onAddToPantry={onOpenAddToPantry}
         />
       ) : null}
 
@@ -141,6 +208,30 @@ export function ShoppingPage() {
         onClose={() => setDrawerOpen(false)}
         onSubmit={onDrawerSubmit}
       />
+
+      <ShoppingToPantryDrawer
+        open={toPantryDrawerOpen}
+        loading={toPantryLoading}
+        item={toPantryItem}
+        onClose={() => {
+          setToPantryDrawerOpen(false);
+          setToPantryItem(null);
+        }}
+        onSubmit={onAddToPantrySubmit}
+      />
     </section>
   );
+}
+
+function getFriendlyShoppingMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "操作失敗，請稍後再試。";
+  }
+
+  const text = error.message.toLowerCase();
+  if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
+    return "網路連線異常，請稍後再試。";
+  }
+
+  return "操作失敗，請稍後再試。";
 }

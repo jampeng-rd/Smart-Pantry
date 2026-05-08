@@ -19,6 +19,7 @@ import {
   updatePantryItem,
 } from "../features/pantry/pantrySlice";
 import type { PantryCreatePayload, PantryItem } from "../features/pantry/pantryTypes";
+import { shoppingApi } from "../services/apiClient";
 
 /** Pantry 食材庫存管理頁。 */
 export function PantryPage() {
@@ -27,6 +28,8 @@ export function PantryPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PantryItem | null>(null);
+  const [integrationMessage, setIntegrationMessage] = useState<string | null>(null);
+  const [integrationError, setIntegrationError] = useState<string | null>(null);
 
   useEffect(() => {
     void dispatch(fetchPantryItems());
@@ -49,8 +52,14 @@ export function PantryPage() {
     if (!confirmed) {
       return;
     }
-
-    await dispatch(deletePantryItem(item.id)).unwrap();
+    setIntegrationError(null);
+    try {
+      await dispatch(deletePantryItem(item.id)).unwrap();
+    } catch {
+      dispatch(clearPantryError());
+      setIntegrationError("此食材已加入購物清單，請先刪除購物清單中的相關項目，再刪除此食材。");
+      return;
+    }
 
     if (items.length === 1 && page > 1) {
       dispatch(setPage(page - 1));
@@ -68,6 +77,21 @@ export function PantryPage() {
     setDrawerOpen(false);
     setEditingItem(null);
     await dispatch(fetchPantryItems()).unwrap();
+  };
+
+  const onAddToShoppingClick = async (item: PantryItem) => {
+    setIntegrationError(null);
+    try {
+      await shoppingApi.create({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        source_pantry_item_id: item.id,
+      });
+      setIntegrationMessage(`已將「${item.name}」加入購物清單。`);
+    } catch (error) {
+      setIntegrationError(getFriendlyPantryMessage(error));
+    }
   };
 
   return (
@@ -98,9 +122,38 @@ export function PantryPage() {
         </div>
       ) : null}
 
+      {integrationMessage ? (
+        <div className="card integration-success" role="status">
+          <p>{integrationMessage}</p>
+          <button type="button" className="btn ghost" onClick={() => setIntegrationMessage(null)}>
+            關閉
+          </button>
+        </div>
+      ) : null}
+
+      {integrationError ? (
+        <div className="card pantry-error" role="alert">
+          <p>
+            <FiAlertCircle aria-hidden="true" /> {integrationError}
+          </p>
+          <div className="pantry-error-actions">
+            <button type="button" className="btn ghost" onClick={() => setIntegrationError(null)}>
+              關閉
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {isEmpty ? <PantryEmptyState /> : null}
 
-      {!isEmpty && !error ? <PantryTable items={items} onEdit={onEditClick} onDelete={(item) => void onDeleteClick(item)} /> : null}
+      {!isEmpty && !error ? (
+        <PantryTable
+          items={items}
+          onEdit={onEditClick}
+          onDelete={(item) => void onDeleteClick(item)}
+          onAddToShopping={(item) => void onAddToShoppingClick(item)}
+        />
+      ) : null}
 
       {!isEmpty && !error ? (
         <PantryPagination
@@ -121,4 +174,17 @@ export function PantryPage() {
       />
     </section>
   );
+}
+
+function getFriendlyPantryMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "操作失敗，請稍後再試。";
+  }
+
+  const text = error.message.toLowerCase();
+  if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
+    return "網路連線異常，請稍後再試。";
+  }
+
+  return "操作失敗，請稍後再試。";
 }
