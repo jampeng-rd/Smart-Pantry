@@ -56,7 +56,7 @@ function App() {
 
   useEffect(() => {
     if (auth.initialized && auth.isAuthenticated && pathname === "/") {
-      navigateTo("/dashboard", true, setPathname);
+      navigateTo("/pantry", true, setPathname);
     }
   }, [auth.initialized, auth.isAuthenticated, pathname]);
 
@@ -80,12 +80,12 @@ function App() {
     <main className="auth-shell">
       {authViewMode === "login" ? (
         <LoginPage
-          onLoggedIn={() => navigateTo("/dashboard", false, setPathname)}
+          onLoggedIn={() => navigateTo("/pantry", false, setPathname)}
           onShowRegister={() => setAuthViewMode("register")}
         />
       ) : (
         <RegisterPage
-          onRegistered={() => navigateTo("/dashboard", false, setPathname)}
+          onRegistered={() => navigateTo("/pantry", false, setPathname)}
           onShowLogin={() => setAuthViewMode("login")}
         />
       )}

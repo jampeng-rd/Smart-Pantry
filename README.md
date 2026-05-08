@@ -230,12 +230,19 @@ Route 行為：
 - Pantry 刪除若因 shopping 關聯失敗，前端顯示友善中文提示，避免顯示原始 NetworkError。
 - Pantry 新增/編輯 Drawer 的 `category` 已改為前端必填，空白時直接顯示「請輸入分類」，不送 API。
 - Pantry 新增/編輯表單先做中文驗證（name/category/quantity），避免只看到後端錯誤或模糊失敗提示。
+- Phase 06-6B 路由整理：登入成功、註冊成功、已登入進入首頁 `/`，皆導向 `/pantry`（食材庫存）。
+- Sidebar 保留「儀表板」入口，`/dashboard` 目前維持未來總覽 placeholder。
+- 已移除不再使用的 `DashboardPlaceholderPage.tsx`（Phase 06-1 舊佔位頁）。
 
 流程限制說明：
 - `source_pantry_item_id` 僅記錄 shopping 項目來源關聯，不代表自動更新 pantry。
 - `source_pantry_item_id` 只作內部關聯，不在 UI 顯示 ID。
 - 標記已購買僅更新 shopping item 的 `is_purchased/purchased_at`。
 - 要將已購買項目加入 pantry，必須由使用者在 Drawer 中確認後手動送出；新增成功後才會移除 shopping 項目。
+
+路由與導向（MVP）：
+- 預設登入後工作頁為 `/pantry`。
+- `/dashboard` 保留為未來總覽頁，現階段僅為 placeholder，不影響主流程。
 
 測試方式：
 - `cd frontend && npm run build`

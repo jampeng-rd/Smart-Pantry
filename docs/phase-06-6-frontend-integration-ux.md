@@ -8,6 +8,16 @@
 
 ## 2. 完成內容
 
+### 2.0 路由與登入導向整理（Phase 06-6B）
+
+- MVP 的登入後預設入口調整為 `/pantry`（食材庫存）。
+- 登入成功後導向 `/pantry`（不再導向 `/dashboard`）。
+- 註冊成功後導向 `/pantry`。
+- 已登入使用者若進入首頁 `/`，會自動導向 `/pantry`。
+- 未登入使用者進入受保護路由（包含 `/pantry`）仍會導回登入頁。
+- Sidebar 保留「儀表板」入口，`/dashboard` 目前維持為 placeholder（未來總覽頁）。
+- 已移除未使用的 `DashboardPlaceholderPage.tsx`（舊 Phase 06-1 佔位檔）。
+
 ### 2.1 Pantry -> Shopping：加入購物清單
 
 - Pantry 列表操作區新增「加入購物清單」按鈕。
