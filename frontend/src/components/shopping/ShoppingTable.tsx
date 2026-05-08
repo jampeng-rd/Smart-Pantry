@@ -1,6 +1,7 @@
 import { FiCheckCircle, FiEdit2, FiRotateCcw, FiTrash2 } from "react-icons/fi";
 
 import type { ShoppingItem } from "../../features/shopping/shoppingTypes";
+import { formatLocalDateTime } from "../../utils/dateTime";
 
 interface ShoppingTableProps {
   items: ShoppingItem[];
@@ -40,7 +41,7 @@ export function ShoppingTable({ items, onEdit, onDelete, onTogglePurchased }: Sh
                     <span className="pantry-status pantry-status-soon">未購買</span>
                   )}
                 </td>
-                <td data-label="購買時間">{item.purchased_at || "-"}</td>
+                <td data-label="購買時間">{formatLocalDateTime(item.purchased_at)}</td>
                 <td className="shopping-table-actions-cell">
                   <div className="shopping-actions">
                     <button type="button" className="btn ghost shopping-action-btn" onClick={() => onTogglePurchased(item)}>

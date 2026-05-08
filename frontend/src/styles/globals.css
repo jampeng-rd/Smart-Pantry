@@ -1021,6 +1021,7 @@ body {
   overflow-y: auto;
   overflow-x: visible;
   padding: 0.15rem;
+  align-content: start;
 }
 
 .shopping-form label {

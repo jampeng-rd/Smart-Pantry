@@ -209,6 +209,8 @@ Route 行為：
 - 共用 Pagination 分頁（預設每頁 10，支援 10/20/50）
 - Loading、Error + Retry、Empty state
 - Desktop table + Mobile card-like（含欄位 label）
+- `purchased_at` 以瀏覽器本地時區格式化顯示
+- Shopping Drawer 輸入框高度已調整為與 Pantry Drawer 一致
 
 測試方式：
 - `cd frontend && npm run build`

@@ -37,6 +37,8 @@
   - `ShoppingEmptyState`
 - 使用共用分頁元件 `components/common/Pagination`。
 - 支援購買狀態切換（已購買 / 未購買）。
+- `purchased_at` 以前端瀏覽器本地時區格式化顯示（`Intl.DateTimeFormat`）。
+- 修正 Shopping Drawer 單行輸入欄位高度，與 Pantry Drawer 一致。
 
 ## 3. API 串接說明
 
@@ -82,5 +84,4 @@
 ## 7. 已知限制
 
 - 後端 `sort` 目前僅支援 `created_at` / `purchased_at`；前端「名稱」排序先對當頁資料做本地排序。
-- 購買時間目前直接顯示 API datetime 字串；後續可統一用 `Intl API` 做本地時區格式化。
 - 刪除確認目前使用 `window.confirm`，後續可改成統一風格 modal。
