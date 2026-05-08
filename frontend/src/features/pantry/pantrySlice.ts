@@ -15,7 +15,7 @@ import type {
 const initialState: PantryState = {
   items: [],
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
   total: 0,
   loading: false,
   error: null,
