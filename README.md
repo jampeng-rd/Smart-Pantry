@@ -74,7 +74,7 @@ MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環�
 
 狀態規則：
 - `expired`：`expiration_date < 今天`
-- `expiring_soon`：`今天 <= expiration_date <= 今天 + 7 天`
+- `expiring_soon`：`今天 <= expiration_date <= 今天 + 3 天`
 - `normal`：其他情況，`expiration_date=null` 視為 `normal`
 
 所有 pantry/expiration 查詢都強制綁定目前登入 `user_id`，不可跨使用者讀寫。

@@ -8,11 +8,17 @@
 
 ```text
 Phase 01：專案初始化 ✅
-Phase 02：使用者註冊 / 登入 + Refresh Token ⏳
-Phase 03：手動食材庫存管理 ⏳
-Phase 04：食材分類、過期提醒與狀態篩選 ⏳
-Phase 05：購物清單 ⏳
-Phase 06：前端完整 UI + 主題切換 ⏳
+Phase 02：使用者註冊 / 登入 + Refresh Token ✅
+Phase 03：手動食材庫存管理 ✅
+Phase 04：食材分類、過期提醒與狀態篩選 ✅
+Phase 05：購物清單 ✅
+Phase 06-1：Auth UI + Protected Layout ✅
+Phase 06-2：Dashboard + Sidebar + Theme ✅
+Phase 06-3：Pantry UI ✅
+Phase 06-4：Expiration UI ✅
+Phase 06-5：Shopping UI ✅
+Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
+Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
