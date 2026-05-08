@@ -1,4 +1,4 @@
-import { FiMenu, FiPlus, FiSearch } from "react-icons/fi";
+import { FiMenu, FiMoreHorizontal, FiSearch } from "react-icons/fi";
 
 interface TopToolbarProps {
   pageTitle: string;
@@ -25,9 +25,8 @@ export function TopToolbar({ pageTitle, isMobile, onMobileMenuOpen }: TopToolbar
           <input type="text" placeholder="搜尋（Phase 06-2 佔位）" />
         </label>
 
-        <button type="button" className="btn">
-          <FiPlus aria-hidden="true" />
-          新增（佔位）
+        <button type="button" className="icon-btn toolbar-more-btn" aria-label="更多頁面操作">
+          <FiMoreHorizontal aria-hidden="true" />
         </button>
       </div>
     </header>

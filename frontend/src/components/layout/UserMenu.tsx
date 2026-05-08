@@ -3,6 +3,7 @@ import { FiHelpCircle, FiLogOut, FiMoon, FiSettings, FiSun, FiUser } from "react
 import type { ThemeMode } from "../../features/theme/themeTypes";
 
 interface UserMenuProps {
+  collapsed: boolean;
   themeMode: ThemeMode;
   loading: boolean;
   onProfile: () => void;
@@ -14,6 +15,7 @@ interface UserMenuProps {
 
 /** 使用者區塊向上展開選單。 */
 export function UserMenu({
+  collapsed,
   themeMode,
   loading,
   onProfile,
@@ -23,7 +25,7 @@ export function UserMenu({
   onLogout,
 }: UserMenuProps) {
   return (
-    <div className="user-menu" role="menu" aria-label="使用者選單">
+    <div className={`user-menu${collapsed ? " floating" : ""}`} role="menu" aria-label="使用者選單">
       <button type="button" className="user-menu-item" role="menuitem" onClick={onProfile}>
         <FiUser aria-hidden="true" /> Profile（個人資料）
       </button>

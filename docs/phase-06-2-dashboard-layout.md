@@ -25,9 +25,12 @@
 
 ### 3.1 Logo 區
 
-- 顯示中文系統名稱：智慧食材保存與膳食管理系統
-- 顯示英文副標：Smart Pantry & Nutritionist
+- 展開狀態使用較短品牌文案：`智慧食材系統` / `Smart Pantry`
+- 收合狀態改為僅顯示主題對應 logo（不顯示文字）
+  - `light-soft`：`light_soft_logo.png`
+  - `dark-soft`：`Dark_Soft_logo.png`
 - 右側提供收合按鈕（icon button，具完整 `aria-label`）
+- 修正收合後 brand 區高度，避免 nav 圖示被過大空白往下推
 
 ### 3.2 導覽區
 
@@ -40,16 +43,16 @@
 - Recipes（食譜建議）
 - OCR（OCR 匯入）
 - Nutrition（營養估算）
-- Settings（設定）
 
 目前採用既有輕量 `pathname` routing，不引入 `react-router-dom`。
+`/settings` 路由仍保留，供 user menu 入口使用。
 
 ### 3.3 使用者區 + User Menu
 
 Sidebar 底部顯示：
 
 - `display_name`
-- `email`
+- （預留）`PRO` badge：僅當 `subscription_tier === "PRO"` 時顯示
 
 點擊後在 Sidebar 內向上展開選單，包含：
 
@@ -59,7 +62,8 @@ Sidebar 底部顯示：
 - Theme Toggle
 - Log out
 
-選單定位於 Sidebar 內部並向上展開，不會溢出側欄。
+- 一般狀態：選單在 Sidebar 內向上展開。
+- 收合狀態（desktop）：選單改為右側浮動 popover（固定寬度、較高 z-index），不受 84px 側欄寬度擠壓。
 
 ## 4. Responsive Drawer
 
@@ -104,6 +108,7 @@ Sidebar 底部顯示：
 - Desktop 保持 sidebar + workspace 雙欄。
 - Mobile 採 drawer + overlay 模式，toolbar 改為上下堆疊。
 - 全域持續維持 `overflow-x: hidden`，避免多餘水平捲軸。
+- Toolbar 右側 action 改為 icon-only more button（`aria-label="更多頁面操作"`），並與搜尋框高度對齊（40px）。
 
 ## 8. 涉及檔案
 

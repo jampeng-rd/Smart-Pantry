@@ -8,7 +8,6 @@ import {
   FiChevronRight,
   FiClock,
   FiGrid,
-  FiSettings,
   FiShoppingCart,
   FiUser,
 } from "react-icons/fi";
@@ -17,6 +16,8 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { logout } from "../../features/auth/authSlice";
 import { toggleTheme } from "../../features/theme/themeSlice";
 import { UserMenu } from "./UserMenu";
+import darkSoftLogo from "../../../assets/dark_soft_logo.png";
+import lightSoftLogo from "../../../assets/light_soft_logo.png";
 
 export interface NavItem {
   key: string;
@@ -48,7 +49,6 @@ const iconMap: Record<string, ReactElement> = {
   recipes: <FiBookOpen aria-hidden="true" />,
   ocr: <FiCamera aria-hidden="true" />,
   nutrition: <FiActivity aria-hidden="true" />,
-  settings: <FiSettings aria-hidden="true" />,
 };
 
 /** Dashboard 側邊導覽。 */
@@ -69,6 +69,9 @@ export function Sidebar({
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
   const themeMode = useAppSelector((state) => state.theme.mode);
+  const subscriptionTier = (auth.user as { subscription_tier?: string } | null)?.subscription_tier;
+  const sidebarLogo = themeMode === "dark-soft" ? darkSoftLogo : lightSoftLogo;
+  const isCollapsedDesktop = collapsed && !isMobile;
 
   const handleNavigate = (path: string) => {
     onNavigate(path);
@@ -99,10 +102,14 @@ export function Sidebar({
 
       <aside className={`sidebar ${collapsed ? "collapsed" : "expanded"} ${isDrawerOpen ? "open" : ""}`}>
         <div className="sidebar-logo">
-          <div className="logo-text-wrap">
-            <p className="logo-zh">智慧食材保存與膳食管理系統</p>
-            <p className="logo-en">Smart Pantry & Nutritionist</p>
-          </div>
+          {isCollapsedDesktop ? (
+            <img src={sidebarLogo} className="logo-icon" alt="智慧食材系統 Logo" />
+          ) : (
+            <div className="logo-text-wrap">
+              <p className="logo-zh">智慧食材系統</p>
+              <p className="logo-en">Smart Pantry</p>
+            </div>
+          )}
 
           <button
             type="button"
@@ -135,6 +142,7 @@ export function Sidebar({
         <section className="sidebar-user-wrap" aria-label="使用者區塊">
           {userMenuOpen ? (
             <UserMenu
+              collapsed={isCollapsedDesktop}
               themeMode={themeMode}
               loading={auth.loading}
               onProfile={() => handleNavigate("/settings")}
@@ -151,7 +159,7 @@ export function Sidebar({
             </span>
             <span className={`user-meta${collapsed && !isMobile ? " hidden" : ""}`}>
               <strong>{auth.user?.display_name ?? "使用者"}</strong>
-              <small>{auth.user?.email ?? ""}</small>
+              {subscriptionTier === "PRO" ? <small className="pro-badge">PRO</small> : null}
             </span>
           </button>
         </section>

@@ -6,7 +6,6 @@ import {
   FiCamera,
   FiClock,
   FiGrid,
-  FiSettings,
   FiShoppingCart,
 } from "react-icons/fi";
 
@@ -29,7 +28,6 @@ const navItems: NavItem[] = [
   { key: "recipes", label: "食譜建議", path: "/recipes", icon: <FiBookOpen aria-hidden="true" /> },
   { key: "ocr", label: "OCR 匯入", path: "/ocr", icon: <FiCamera aria-hidden="true" /> },
   { key: "nutrition", label: "營養估算", path: "/nutrition", icon: <FiActivity aria-hidden="true" /> },
-  { key: "settings", label: "設定", path: "/settings", icon: <FiSettings aria-hidden="true" /> },
 ];
 
 /** Dashboard 主版型。 */
