@@ -1,7 +1,8 @@
-import { FiMenu, FiMoreHorizontal, FiSearch } from "react-icons/fi";
+import type { ReactNode } from "react";
+import { FiMoreHorizontal, FiMenu } from "react-icons/fi";
 
 interface TopToolbarProps {
-  pageTitle: string;
+  pageTitle: ReactNode;
   isMobile: boolean;
   onMobileMenuOpen: () => void;
 }
@@ -16,15 +17,10 @@ export function TopToolbar({ pageTitle, isMobile, onMobileMenuOpen }: TopToolbar
             <FiMenu aria-hidden="true" />
           </button>
         ) : null}
-        <h1>{pageTitle}</h1>
+        <h1 className="toolbar-page-title">{pageTitle}</h1>
       </div>
 
       <div className="toolbar-actions">
-        <label className="toolbar-search" aria-label="搜尋（佔位功能）">
-          <FiSearch aria-hidden="true" />
-          <input type="text" placeholder="搜尋（Phase 06-2 佔位）" />
-        </label>
-
         <button type="button" className="icon-btn toolbar-more-btn" aria-label="更多頁面操作">
           <FiMoreHorizontal aria-hidden="true" />
         </button>

@@ -24,7 +24,7 @@ interface PantryFormState {
 const defaultFormState: PantryFormState = {
   name: "",
   category: "",
-  quantity: "",
+  quantity: "1",
   unit: "",
   expiration_date: "",
   storage_location: "",
@@ -73,8 +73,8 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
       setError("請輸入食材名稱");
       return;
     }
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      setError("數量必須大於 0");
+    if (!Number.isFinite(quantity) || !Number.isInteger(quantity) || quantity < 1) {
+      setError("數量必須是大於等於 1 的整數");
       return;
     }
 
@@ -120,7 +120,8 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
             數量 *
             <input
               type="number"
-              step="0.01"
+              min={1}
+              step={1}
               value={form.quantity}
               onChange={(event) => setForm((prev) => ({ ...prev, quantity: event.target.value }))}
               required

@@ -61,8 +61,28 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
   }, [isMobile, mobileOpen]);
 
   const currentTitle = useMemo(() => {
+    if (pathname === "/pantry") {
+      return (
+        <>
+          <FiArchive aria-hidden="true" /> Pantry（食材庫存）
+        </>
+      );
+    }
+
     const matched = navItems.find((item) => item.path === pathname);
-    return matched?.label ?? "儀表板";
+    if (matched) {
+      return (
+        <>
+          {matched.icon} {matched.label}
+        </>
+      );
+    }
+
+    return (
+      <>
+        <FiGrid aria-hidden="true" /> 儀表板
+      </>
+    );
   }, [pathname]);
 
   return (

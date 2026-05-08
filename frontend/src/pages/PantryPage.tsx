@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiArchive } from "react-icons/fi";
+import { FiAlertCircle } from "react-icons/fi";
 
 import { PantryEmptyState } from "../components/pantry/PantryEmptyState";
 import { PantryFilters } from "../components/pantry/PantryFilters";
@@ -72,12 +72,6 @@ export function PantryPage() {
 
   return (
     <section className="workspace-pantry">
-      <header className="pantry-headline">
-        <h2 className="workspace-title">
-          <FiArchive aria-hidden="true" /> Pantry（食材庫存）
-        </h2>
-      </header>
-
       <PantryFilters
         filters={filters}
         sort={sort}
