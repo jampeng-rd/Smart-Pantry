@@ -9,7 +9,11 @@ Phase 03：手動食材庫存管理 ✅
 Phase 04：食材分類、過期提醒與狀態篩選 ✅
 Phase 05：購物清單 ✅
 Phase 06-1：Auth UI + Protected Layout ✅
-Phase 06-2：Pantry/Expiration/Shopping UI ⏳
+Phase 06-2：Dashboard + Sidebar + Theme ✅
+Phase 06-3：Pantry UI ⏳
+Phase 06-4：Expiration UI ⏳
+Phase 06-5：Shopping UI ⏳
+Phase 06-6：前端整合與 UX 修正 ⏳
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
@@ -130,6 +134,18 @@ Route 行為：
 - 登入成功：導向 `/dashboard`
 - 已登入重新整理：嘗試恢復登入狀態
 - 登出：清除 token 並回登入頁
+
+## Phase 06-2：Dashboard + Sidebar + Theme
+
+已完成：
+- 正式 Dashboard 版型（`AppLayout + Sidebar + TopToolbar + Workspace`）
+- Sidebar 支援 desktop 收合（`260px/84px`）與 transition 動畫
+- Mobile/Tablet 改為 overlay drawer + 遮罩層，開啟時鎖定 `body` 捲動
+- Sidebar 導覽項目（Dashboard/Pantry/Expiration/Shopping/Recipes/OCR/Nutrition/Settings）已接到 placeholder pages
+- Sidebar 底部使用者區與向上展開 user menu（Profile/Settings/Help/Theme Toggle/Log out）
+- Top toolbar（頁面標題 + 搜尋框佔位 + action button 佔位）
+- 新增 8 個功能頁 placeholder（本階段不實作 CRUD）
+- 全部 layout/card/button/input/sidebar/toolbar 以 theme variables 套用（含 hover/active/transition）
 
 ## AI 功能限制
 

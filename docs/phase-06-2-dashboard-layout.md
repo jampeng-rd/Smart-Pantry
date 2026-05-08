@@ -1,0 +1,131 @@
+# Phase 06-2：Dashboard + Sidebar + Theme
+
+## 1. 階段目標
+
+本階段聚焦完成 Dashboard 系統版型與導覽骨架，不進入 Pantry / Expiration / Shopping / Recipes / OCR / Nutrition 的 CRUD 功能。
+
+## 2. Dashboard Layout
+
+已建立正式版型：
+
+- `AppLayout`
+- `Sidebar`
+- `TopToolbar`
+- `Workspace`
+
+結構如下：
+
+- `<AppLayout>`
+- `<Sidebar />`
+- `<MainLayout>`
+- `<TopToolbar />`
+- `<Workspace />`
+
+## 3. Sidebar
+
+### 3.1 Logo 區
+
+- 顯示中文系統名稱：智慧食材保存與膳食管理系統
+- 顯示英文副標：Smart Pantry & Nutritionist
+- 右側提供收合按鈕（icon button，具完整 `aria-label`）
+
+### 3.2 導覽區
+
+導覽項目（icon + 繁體中文文字）：
+
+- Dashboard（儀表板）
+- Pantry（食材庫存）
+- Expiration（到期提醒）
+- Shopping（購物清單）
+- Recipes（食譜建議）
+- OCR（OCR 匯入）
+- Nutrition（營養估算）
+- Settings（設定）
+
+目前採用既有輕量 `pathname` routing，不引入 `react-router-dom`。
+
+### 3.3 使用者區 + User Menu
+
+Sidebar 底部顯示：
+
+- `display_name`
+- `email`
+
+點擊後在 Sidebar 內向上展開選單，包含：
+
+- Profile
+- Settings
+- Help
+- Theme Toggle
+- Log out
+
+選單定位於 Sidebar 內部並向上展開，不會溢出側欄。
+
+## 4. Responsive Drawer
+
+- Desktop（>1024px）：Sidebar 固定左側，支援 expanded/collapsed（約 260px / 84px）。
+- Tablet/Mobile（<=1024px）：Sidebar 轉為 overlay drawer。
+- 開啟 drawer 時會顯示背景 overlay。
+- 開啟 drawer 時鎖定 `body` 捲動（`overflow: hidden`），避免版面穿透與橫向捲動問題。
+- Mobile toolbar 顯示 hamburger button，並提供完整 `aria-label`。
+
+## 5. Theme Integration
+
+已全面套用 theme token：
+
+- Sidebar：`var(--color-surface)` + `var(--color-border)`
+- Nav hover：`var(--color-surface-hover)`
+- Nav active：以 accent 色系混合顯示
+- Card/Button/Input/Toolbar/Divider：全面改為 CSS variables
+- Transition：使用 `var(--transition-fast)` / `var(--transition-normal)`
+
+## 6. Placeholder Pages
+
+新增以下頁面骨架（統一卡片風格）：
+
+- `DashboardPage`
+- `PantryPage`
+- `ExpirationPage`
+- `ShoppingPage`
+- `RecipesPage`
+- `OCRPage`
+- `NutritionPage`
+- `SettingsPage`
+
+每頁包含：
+
+- 頁面名稱
+- `Phase 06-2 Placeholder`
+- 後續功能說明
+
+## 7. Responsive Strategy
+
+- 版型採用 CSS Grid。
+- Desktop 保持 sidebar + workspace 雙欄。
+- Mobile 採 drawer + overlay 模式，toolbar 改為上下堆疊。
+- 全域持續維持 `overflow-x: hidden`，避免多餘水平捲軸。
+
+## 8. 涉及檔案
+
+- `frontend/src/App.tsx`
+- `frontend/src/components/layout/AppLayout.tsx`
+- `frontend/src/components/layout/Sidebar.tsx`
+- `frontend/src/components/layout/TopToolbar.tsx`
+- `frontend/src/components/layout/UserMenu.tsx`
+- `frontend/src/pages/DashboardPage.tsx`
+- `frontend/src/pages/PantryPage.tsx`
+- `frontend/src/pages/ExpirationPage.tsx`
+- `frontend/src/pages/ShoppingPage.tsx`
+- `frontend/src/pages/RecipesPage.tsx`
+- `frontend/src/pages/OCRPage.tsx`
+- `frontend/src/pages/NutritionPage.tsx`
+- `frontend/src/pages/SettingsPage.tsx`
+- `frontend/src/styles/globals.css`
+- `docs/phase-06-2-dashboard-layout.md`
+- `README.md`
+
+## 9. 已知限制
+
+- 目前功能頁仍為 placeholder，尚未串接各 feature slice 的 CRUD。
+- 目前路由採用 pathname 手動切換，後續可再評估導入正式 router。
+- User menu 的 Profile / Settings / Help 目前導向設定頁佔位，尚未拆分獨立頁。

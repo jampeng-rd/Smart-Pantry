@@ -1,14 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import { ProtectedLayout } from "./components/ProtectedLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppLayout } from "./components/layout/AppLayout";
 import { initializeAuth } from "./features/auth/authSlice";
-import { DashboardPlaceholderPage } from "./pages/DashboardPlaceholderPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { ExpirationPage } from "./pages/ExpirationPage";
 import { LoginPage } from "./pages/LoginPage";
+import { NutritionPage } from "./pages/NutritionPage";
+import { OCRPage } from "./pages/OCRPage";
+import { PantryPage } from "./pages/PantryPage";
+import { RecipesPage } from "./pages/RecipesPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { ShoppingPage } from "./pages/ShoppingPage";
 
 type AuthViewMode = "login" | "register";
+type ProtectedPath =
+  | "/dashboard"
+  | "/pantry"
+  | "/expiration"
+  | "/shopping"
+  | "/recipes"
+  | "/ocr"
+  | "/nutrition"
+  | "/settings";
+
+const protectedRoutes: ProtectedPath[] = [
+  "/dashboard",
+  "/pantry",
+  "/expiration",
+  "/shopping",
+  "/recipes",
+  "/ocr",
+  "/nutrition",
+  "/settings",
+];
 
 /** 前端入口：處理 Auth UI 與受保護路由。 */
 function App() {
@@ -33,18 +60,18 @@ function App() {
     }
   }, [auth.initialized, auth.isAuthenticated, pathname]);
 
-  const isDashboardRoute = useMemo(() => pathname === "/dashboard", [pathname]);
+  const isProtectedRoute = useMemo(() => protectedRoutes.includes(pathname as ProtectedPath), [pathname]);
 
-  if (isDashboardRoute) {
+  if (isProtectedRoute) {
     return (
       <ProtectedRoute
         initialized={auth.initialized}
         isAuthenticated={auth.isAuthenticated}
         onUnauthorized={() => navigateTo("/", true, setPathname)}
       >
-        <ProtectedLayout onLoggedOut={() => navigateTo("/", true, setPathname)}>
-          <DashboardPlaceholderPage />
-        </ProtectedLayout>
+        <AppLayout pathname={pathname} onNavigate={(path) => navigateTo(path, false, setPathname)}>
+          <WorkspaceByPath pathname={pathname as ProtectedPath} />
+        </AppLayout>
       </ProtectedRoute>
     );
   }
@@ -64,6 +91,29 @@ function App() {
       )}
     </main>
   );
+}
+
+function WorkspaceByPath({ pathname }: { pathname: ProtectedPath }) {
+  switch (pathname) {
+    case "/dashboard":
+      return <DashboardPage />;
+    case "/pantry":
+      return <PantryPage />;
+    case "/expiration":
+      return <ExpirationPage />;
+    case "/shopping":
+      return <ShoppingPage />;
+    case "/recipes":
+      return <RecipesPage />;
+    case "/ocr":
+      return <OCRPage />;
+    case "/nutrition":
+      return <NutritionPage />;
+    case "/settings":
+      return <SettingsPage />;
+    default:
+      return <DashboardPage />;
+  }
 }
 
 function navigateTo(path: string, replace: boolean, setPathname: (path: string) => void): void {
