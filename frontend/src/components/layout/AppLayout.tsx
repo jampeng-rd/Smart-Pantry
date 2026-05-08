@@ -62,27 +62,15 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
 
   const currentTitle = useMemo(() => {
     if (pathname === "/pantry") {
-      return (
-        <>
-          <FiArchive aria-hidden="true" /> Pantry（食材庫存）
-        </>
-      );
+      return { icon: <FiArchive aria-hidden="true" />, text: "Pantry（食材庫存）" };
     }
 
     const matched = navItems.find((item) => item.path === pathname);
     if (matched) {
-      return (
-        <>
-          {matched.icon} {matched.label}
-        </>
-      );
+      return { icon: matched.icon, text: matched.label };
     }
 
-    return (
-      <>
-        <FiGrid aria-hidden="true" /> 儀表板
-      </>
-    );
+    return { icon: <FiGrid aria-hidden="true" />, text: "儀表板" };
   }, [pathname]);
 
   return (
@@ -103,7 +91,12 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
       />
 
       <section className="main-layout">
-        <TopToolbar pageTitle={currentTitle} isMobile={isMobile} onMobileMenuOpen={() => setMobileOpen(true)} />
+        <TopToolbar
+          pageIcon={currentTitle.icon}
+          pageTitleText={currentTitle.text}
+          isMobile={isMobile}
+          onMobileMenuOpen={() => setMobileOpen(true)}
+        />
         <div className="workspace">{children}</div>
       </section>
     </main>
