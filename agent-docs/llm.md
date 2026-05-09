@@ -65,3 +65,8 @@ LLM、OCR、Vision 可能很慢。Phase 08 起採 job-based API，backend 不同
 - Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker。
 - Phase 09～11：延用同一 `ai_jobs` 架構（OCR/Vision/Nutrition）。
 - Phase 12：首選升級 RQ + Redis；RabbitMQ 暫不採用，除非未來需要複雜 message routing 或多服務事件流。
+
+Recipe recommendation 食材來源策略（Phase 08 起）：
+- `selected_items`：使用者手動挑選 `selected_pantry_item_ids`，backend 建立 job 時需做 `user_id` 權限驗證。
+- `auto_from_pantry`：後續 worker 自動挑選「可烹煮」食材，本階段僅保留模式，不直接把全部 pantry items 當可烹煮候選。
+- 後續自動挑選應排除明顯不適合料理的項目（例如飲料、零食、保健品、調味品、已過期食材）。

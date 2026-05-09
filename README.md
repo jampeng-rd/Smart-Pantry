@@ -17,7 +17,7 @@ Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
 Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 06-6C：前端共用元件盤點與小幅整理 ✅
 Phase 07：CI/CD 與部署 ⏳
-Phase 08-0：AI Server / AI Job 架構初始化 ⏳
+Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）⏳
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
@@ -292,6 +292,22 @@ job-based 流程：
 
 job 狀態至少包含：`pending`、`running`、`success`、`failed`、`cancelled`。
 job 查詢必須驗證 `user_id`，不可跨使用者查詢。
+
+## Phase 08-0：AI Job 架構初始化（已完成）
+
+已完成：
+- backend 新增 `ai_jobs` 基礎資料結構（含 user/job_type/status/input_snapshot/result/error_message/時間欄位）。
+- backend 新增 recipe recommendation job API：
+  - `POST /recipes/recommendation-jobs`
+  - `GET /recipes/recommendation-jobs/{job_id}`
+- API 僅建立/查詢 job，不同步等待 AI 推論。
+- `selected_items` 模式會驗證 `selected_pantry_item_ids` 皆屬於目前使用者，且不可為空。
+- `auto_from_pantry` 模式本階段僅建立 job，`input_snapshot` 會標示 `pending_auto_selection=true`。
+- 新增 `ai_server/ai_worker` 骨架與 DB polling loop placeholder（Phase 08-1 再接 fake handler）。
+
+本階段限制：
+- 不呼叫真實 Ollama。
+- 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
 
 ## AI Queue 階段策略
 

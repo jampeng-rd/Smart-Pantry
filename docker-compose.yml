@@ -32,5 +32,23 @@ services:
     depends_on:
       - smartpantry-db
 
+  ai-worker:
+    build:
+      context: .
+      dockerfile: ai_server/Dockerfile
+    container_name: smartpantry-ai-worker
+    environment:
+      DATABASE_URL: postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+      AI_SERVER_HOST: 0.0.0.0
+      AI_SERVER_PORT: 8100
+      AI_WORKER_POLL_INTERVAL_SECONDS: 5
+      AI_WORKER_BATCH_SIZE: 1
+      AI_JOB_TIMEOUT_SECONDS: 300
+      OLLAMA_BASE_URL: http://localhost:11434
+      LLM_TEXT_MODEL: qwen2.5:7b
+      LLM_VISION_MODEL: qwen3-vl:8b
+    depends_on:
+      - smartpantry-db
+
 volumes:
   smartpantry_postgres_data:

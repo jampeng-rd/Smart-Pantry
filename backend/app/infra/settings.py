@@ -24,6 +24,16 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     vite_api_base_url: str = "http://localhost:8000"
 
+    # Phase 08 AI job/worker 共用設定（backend 需能讀取，避免 .env 驗證失敗）
+    ai_server_host: str = "0.0.0.0"
+    ai_server_port: int = 8100
+    ai_worker_poll_interval_seconds: int = 5
+    ai_worker_batch_size: int = 1
+    ai_job_timeout_seconds: int = 300
+    ollama_base_url: str = "http://localhost:11434"
+    llm_text_model: str = "qwen2.5:7b"
+    llm_vision_model: str = "qwen3-vl:8b"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
     @field_validator("cors_origins")

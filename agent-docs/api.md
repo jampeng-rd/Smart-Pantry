@@ -135,6 +135,12 @@ Phase 08 起改為 job-based API。frontend 只呼叫 backend，backend 建立 j
 {"selected_pantry_item_ids":[1,2,3],"prioritize_expiring_soon":true,"cooking_time_minutes":30,"cooking_tools":["電鍋","平底鍋"],"diet_preference":"高蛋白","allergies":["花生"]}
 ```
 
+request 補充：
+- `recommendation_mode` 必填：`selected_items` 或 `auto_from_pantry`
+- `selected_items` 模式必須提供 `selected_pantry_item_ids`，且不可為空
+- `selected_pantry_item_ids` 必須屬於目前使用者（backend 建立 job 前驗證）
+- `auto_from_pantry` 模式本階段只建立 job，不立即做自動挑選
+
 建立 job 回應（範例）：
 
 ```json
@@ -156,6 +162,7 @@ Phase 08 起改為 job-based API。frontend 只呼叫 backend，backend 建立 j
 規則：
 - `pending/running` 時 `result` 可為 `null`。
 - `failed` 時需回傳可理解錯誤訊息，不可暴露 raw traceback。
+- job 查詢需驗證 `user_id`，不可跨使用者讀取。
 
 ### （未來可類推）POST /ocr/receipt/jobs
 

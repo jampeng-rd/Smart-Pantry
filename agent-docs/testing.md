@@ -28,6 +28,9 @@ AI job 測試原則（Phase 08～11）：
 - 測試 `failed` 狀態與 `error_message`。
 - 測試跨使用者不可查詢 job。
 - 測試 worker 不處理其他使用者不相干資料（僅處理被 claim 的 pending job）。
+- recipe recommendation 需測兩種模式：
+  - `selected_items`：建立成功、空陣列錯誤、跨使用者 pantry item 驗證失敗
+  - `auto_from_pantry`：可建立 pending job，且 input snapshot 記錄 recommendation_mode
 
 ## API 測試
 
