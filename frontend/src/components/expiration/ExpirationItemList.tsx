@@ -1,5 +1,6 @@
 import { FiAlertTriangle, FiCheckCircle, FiClock } from "react-icons/fi";
 
+import { StatusBadge } from "../common/StatusBadge";
 import type { ExpirationItem } from "../../features/expiration/expirationTypes";
 
 interface ExpirationItemListProps {
@@ -46,24 +47,12 @@ export function ExpirationItemList({ items }: ExpirationItemListProps) {
 
 function ExpirationStatusBadge({ status }: { status: ExpirationItem["status"] }) {
   if (status === "expired") {
-    return (
-      <span className="pantry-status pantry-status-expired">
-        <FiAlertTriangle aria-hidden="true" /> 已過期
-      </span>
-    );
+    return <StatusBadge label="已過期" tone="expired" icon={<FiAlertTriangle aria-hidden="true" />} />;
   }
 
   if (status === "expiring_soon") {
-    return (
-      <span className="pantry-status pantry-status-soon">
-        <FiClock aria-hidden="true" /> 即將到期
-      </span>
-    );
+    return <StatusBadge label="即將到期" tone="soon" icon={<FiClock aria-hidden="true" />} />;
   }
 
-  return (
-    <span className="pantry-status pantry-status-normal">
-      <FiCheckCircle aria-hidden="true" /> 正常
-    </span>
-  );
+  return <StatusBadge label="正常" tone="normal" icon={<FiCheckCircle aria-hidden="true" />} />;
 }

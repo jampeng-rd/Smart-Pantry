@@ -1,5 +1,6 @@
 import { FiCheckCircle, FiEdit2, FiPackage, FiRotateCcw, FiTrash2 } from "react-icons/fi";
 
+import { StatusBadge } from "../common/StatusBadge";
 import type { ShoppingItem } from "../../features/shopping/shoppingTypes";
 import { formatLocalDateTime } from "../../utils/dateTime";
 
@@ -35,11 +36,9 @@ export function ShoppingTable({ items, onEdit, onDelete, onTogglePurchased, onAd
                 <td data-label="單位">{item.unit || "-"}</td>
                 <td data-label="狀態">
                   {item.is_purchased ? (
-                    <span className="pantry-status pantry-status-normal">
-                      <FiCheckCircle aria-hidden="true" /> 已購買
-                    </span>
+                    <StatusBadge label="已購買" tone="normal" icon={<FiCheckCircle aria-hidden="true" />} />
                   ) : (
-                    <span className="pantry-status pantry-status-soon">未購買</span>
+                    <StatusBadge label="未購買" tone="soon" />
                   )}
                 </td>
                 <td data-label="購買時間">{formatLocalDateTime(item.purchased_at)}</td>

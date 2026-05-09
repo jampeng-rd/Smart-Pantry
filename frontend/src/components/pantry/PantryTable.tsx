@@ -1,5 +1,6 @@
 import { FiEdit2, FiShoppingCart, FiTrash2 } from "react-icons/fi";
 
+import { StatusBadge as CommonStatusBadge } from "../common/StatusBadge";
 import type { PantryItem } from "../../features/pantry/pantryTypes";
 
 interface PantryTableProps {
@@ -63,16 +64,16 @@ export function PantryTable({ items, onEdit, onDelete, onAddToShopping }: Pantry
 
 function StatusBadge({ status }: { status: PantryItem["status"] }) {
   if (status === "expired") {
-    return <span className="pantry-status pantry-status-expired">已過期</span>;
+    return <CommonStatusBadge label="已過期" tone="expired" />;
   }
 
   if (status === "expiring_soon") {
-    return <span className="pantry-status pantry-status-soon">即將到期</span>;
+    return <CommonStatusBadge label="即將到期" tone="soon" />;
   }
 
   if (status === "normal") {
-    return <span className="pantry-status pantry-status-normal">正常</span>;
+    return <CommonStatusBadge label="正常" tone="normal" />;
   }
 
-  return <span className="pantry-status">未分類</span>;
+  return <CommonStatusBadge label="未分類" tone="normal" />;
 }

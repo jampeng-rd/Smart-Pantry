@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiAlertCircle } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { ErrorState } from "../components/common/ErrorState";
+import { LoadingState } from "../components/common/LoadingState";
 import { Pagination } from "../components/common/Pagination";
 import { ShoppingEmptyState } from "../components/shopping/ShoppingEmptyState";
 import { ShoppingFilters } from "../components/shopping/ShoppingFilters";
@@ -139,22 +140,16 @@ export function ShoppingPage() {
         onCreateClick={onCreateClick}
       />
 
-      {loading ? <div className="card shopping-loading">載入中...</div> : null}
+      {loading ? <LoadingState className="card shopping-loading" text="載入中..." /> : null}
 
       {error ? (
-        <div className="card shopping-error" role="alert">
-          <p>
-            <FiAlertCircle aria-hidden="true" /> {error}
-          </p>
-          <div className="shopping-error-actions">
-            <button type="button" className="btn ghost" onClick={() => void dispatch(fetchShoppingItems())}>
-              重試
-            </button>
-            <button type="button" className="btn ghost" onClick={() => dispatch(clearShoppingError())}>
-              關閉
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          message={error}
+          className="card shopping-error"
+          actionsClassName="shopping-error-actions"
+          onRetry={() => void dispatch(fetchShoppingItems())}
+          onClose={() => dispatch(clearShoppingError())}
+        />
       ) : null}
 
       {integrationMessage ? (
@@ -167,16 +162,12 @@ export function ShoppingPage() {
       ) : null}
 
       {integrationError ? (
-        <div className="card shopping-error" role="alert">
-          <p>
-            <FiAlertCircle aria-hidden="true" /> {integrationError}
-          </p>
-          <div className="shopping-error-actions">
-            <button type="button" className="btn ghost" onClick={() => setIntegrationError(null)}>
-              關閉
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          message={integrationError}
+          className="card shopping-error"
+          actionsClassName="shopping-error-actions"
+          onClose={() => setIntegrationError(null)}
+        />
       ) : null}
 
       {isEmpty ? <ShoppingEmptyState /> : null}

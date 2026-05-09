@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiAlertCircle } from "react-icons/fi";
 
+import { ErrorState } from "../components/common/ErrorState";
+import { LoadingState } from "../components/common/LoadingState";
 import { PantryEmptyState } from "../components/pantry/PantryEmptyState";
 import { PantryFilters } from "../components/pantry/PantryFilters";
 import { PantryFormDrawer } from "../components/pantry/PantryFormDrawer";
@@ -104,22 +105,16 @@ export function PantryPage() {
         onCreateClick={onCreateClick}
       />
 
-      {loading ? <div className="card pantry-loading">載入中...</div> : null}
+      {loading ? <LoadingState className="card pantry-loading" text="載入中..." /> : null}
 
       {error ? (
-        <div className="card pantry-error" role="alert">
-          <p>
-            <FiAlertCircle aria-hidden="true" /> {error}
-          </p>
-          <div className="pantry-error-actions">
-            <button type="button" className="btn ghost" onClick={() => void dispatch(fetchPantryItems())}>
-              重試
-            </button>
-            <button type="button" className="btn ghost" onClick={() => dispatch(clearPantryError())}>
-              關閉
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          message={error}
+          className="card pantry-error"
+          actionsClassName="pantry-error-actions"
+          onRetry={() => void dispatch(fetchPantryItems())}
+          onClose={() => dispatch(clearPantryError())}
+        />
       ) : null}
 
       {integrationMessage ? (
@@ -132,16 +127,12 @@ export function PantryPage() {
       ) : null}
 
       {integrationError ? (
-        <div className="card pantry-error" role="alert">
-          <p>
-            <FiAlertCircle aria-hidden="true" /> {integrationError}
-          </p>
-          <div className="pantry-error-actions">
-            <button type="button" className="btn ghost" onClick={() => setIntegrationError(null)}>
-              關閉
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          message={integrationError}
+          className="card pantry-error"
+          actionsClassName="pantry-error-actions"
+          onClose={() => setIntegrationError(null)}
+        />
       ) : null}
 
       {isEmpty ? <PantryEmptyState /> : null}

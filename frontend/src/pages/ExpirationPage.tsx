@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { FiAlertCircle, FiRefreshCw } from "react-icons/fi";
+import { FiRefreshCw } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { ErrorState } from "../components/common/ErrorState";
+import { LoadingState } from "../components/common/LoadingState";
 import { Pagination } from "../components/common/Pagination";
 import { ExpirationEmptyState } from "../components/expiration/ExpirationEmptyState";
 import { ExpirationFilters } from "../components/expiration/ExpirationFilters";
@@ -70,22 +72,17 @@ export function ExpirationPage() {
         onFilterChange={(status) => dispatch(setExpirationStatusFilter(status))}
       />
 
-      {loading ? <div className="card expiration-loading">載入到期提醒中...</div> : null}
+      {loading ? <LoadingState className="card expiration-loading" text="載入到期提醒中..." /> : null}
 
       {error ? (
-        <div className="card pantry-error" role="alert">
-          <p>
-            <FiAlertCircle aria-hidden="true" /> {error}
-          </p>
-          <div className="pantry-error-actions">
-            <button type="button" className="btn ghost" onClick={() => void dispatch(fetchExpirationSummary())}>
-              <FiRefreshCw aria-hidden="true" /> 重試
-            </button>
-            <button type="button" className="btn ghost" onClick={() => dispatch(clearExpirationError())}>
-              關閉
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          message={error}
+          className="card pantry-error"
+          actionsClassName="pantry-error-actions"
+          onRetry={() => void dispatch(fetchExpirationSummary())}
+          onClose={() => dispatch(clearExpirationError())}
+          retryIcon={<FiRefreshCw aria-hidden="true" />}
+        />
       ) : null}
 
       {showEmpty ? <ExpirationEmptyState message={emptyMessage} /> : null}

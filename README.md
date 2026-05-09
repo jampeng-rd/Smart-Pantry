@@ -15,6 +15,7 @@ Phase 06-4：Expiration UI ✅
 Phase 06-5：Shopping UI ✅
 Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
 Phase 06-6B：前端路由與登入導向整理 ✅
+Phase 06-6C：前端共用元件盤點與小幅整理 ✅
 Phase 07：CI/CD 與部署 ⏳
 Phase 08：AI 食譜推薦 ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
@@ -223,7 +224,7 @@ Route 行為：
 - `cd frontend && npm run build`
 - 啟動前後端後登入，進入 `/shopping` 手動測試 CRUD、篩選/排序、分頁、狀態切換。
 
-## Phase 06-6A / 06-6B：前端整合與 UX 修正
+## Phase 06-6A / 06-6B / 06-6C：前端整合與 UX 修正
 
 已完成：
 - Pantry 列表新增「加入購物清單」操作，使用既有 `shoppingApi.create()` 建立購物項目。
@@ -258,6 +259,8 @@ Route 行為：
 - Pantry / Shopping Drawer 的 input 與 label spacing 保持一致。
 - icon-only button 皆需 `aria-label`。
 - mobile table-to-card 需顯示欄位 label，操作欄不顯示「操作」label。
+- 已新增共用元件：`EmptyState`、`LoadingState`、`ErrorState`、`StatusBadge`（維持既有視覺與行為）。
+- Drawer 共用骨架（例如 CommonDrawer）暫未抽離：欄位與驗證流程差異較大，本輪依 MVP 穩定優先。
 - 刪除確認目前仍可能使用 `window.confirm`，後續可改共用 ConfirmModal。
 - success/error 提示後續可再抽成共用 Toast/Alert 元件。
 

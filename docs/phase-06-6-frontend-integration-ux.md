@@ -1,4 +1,4 @@
-# Phase 06-6A / 06-6B：Pantry / Shopping 整合與前端導向 UX 修正
+# Phase 06-6A / 06-6B / 06-6C：Pantry / Shopping 整合、前端導向與共用元件小幅整理
 
 ## 1. 階段目標
 
@@ -100,3 +100,48 @@
 
 - 指令：`cd frontend && npm run build`
 - 結果：通過（TypeScript + Vite build 成功）
+
+## 9. Phase 06-6C：前端共用元件盤點與小幅整理
+
+### 9.1 盤點範圍
+
+- `frontend/src/components/common/`
+- `frontend/src/components/pantry/*`
+- `frontend/src/components/expiration/*`
+- `frontend/src/components/shopping/*`
+- `frontend/src/pages/*`
+- `frontend/src/styles/globals.css`
+
+### 9.2 已確認共用與使用狀態
+
+- Pagination：`components/common/Pagination.tsx` 已被 Pantry / Expiration / Shopping 使用。
+- table-to-card mobile pattern：PantryTable / ShoppingTable / ExpirationItemList 皆採 `td[data-label]` 轉 card 方案，維持一致。
+
+### 9.3 本輪新增 common components（不改功能行為）
+
+- `frontend/src/components/common/EmptyState.tsx`
+  - PantryEmptyState / ExpirationEmptyState / ShoppingEmptyState 改為包裝此共用元件。
+  - 保留原本各自 class name 與文案，維持既有視覺。
+- `frontend/src/components/common/LoadingState.tsx`
+  - Pantry / Expiration / Shopping 頁面載入卡片改用共用元件。
+  - 仍使用既有 `.pantry-loading`、`.shopping-loading`、`.expiration-loading` class。
+- `frontend/src/components/common/ErrorState.tsx`
+  - Pantry / Expiration / Shopping 頁面錯誤卡片改用共用元件。
+  - 保留既有 class 與按鈕行為（重試/關閉）；Expiration 的重試 icon (`FiRefreshCw`) 也保留。
+- `frontend/src/components/common/StatusBadge.tsx`
+  - Pantry status、Expiration status、Shopping purchase status 改用共用 Badge 呈現。
+  - 沿用既有 `.pantry-status-*` style class，不改視覺風格。
+
+### 9.4 暫時不抽的項目與原因
+
+- Drawer Form 結構（PantryFormDrawer / ShoppingFormDrawer / ShoppingToPantryDrawer）：
+  - 有明顯共用骨架（overlay/header/form），但欄位結構、驗證規則、提交流程差異較大。
+  - 本輪依要求避免大改表單邏輯，先維持現況，後續可評估抽 `CommonDrawer` + `FormSection`。
+- Mobile responsive table helper：
+  - 三個列表皆使用 `data-label`，但欄位與操作欄差異仍高。
+  - 本輪先維持現有 CSS 寫法，後續可評估抽共用 class utility。
+
+### 9.5 後續可整理項目（僅建議）
+
+- 將 integration success 訊息（Pantry/Shopping）整理為共用 Alert/Toast 元件。
+- 評估將 delete confirm（目前 `window.confirm`）改為共用 ConfirmDialog。
