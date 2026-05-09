@@ -28,6 +28,8 @@ const initialState: PantryState = {
 };
 
 /** 取得食材列表（含搜尋、篩選、排序、分頁）。 */
+/** createAsyncThunk<ReturnType, ArgumentType, ThunkApiConfig> 
+ * 固定格式 => 1.成功後 return 的資料型別, 2.要傳的參數, 3.定義 thunk API 的型別 */
 export const fetchPantryItems = createAsyncThunk<PantryListData, void, { rejectValue: string; state: { pantry: PantryState } }>(
   "pantry/fetchPantryItems",
   async (_, { getState, rejectWithValue }) => {
