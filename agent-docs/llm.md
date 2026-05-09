@@ -28,6 +28,11 @@ Vision 模型：`qwen3-vl:8b`，用於食材照片與餐點照片內容辨識。
 
 `ChatOllama` 只能在 `backend/app/infra/llm_client.py`。OCR provider 只能在 `backend/app/infra/ocr_client.py`。API route 不可直接呼叫 LLM / OCR。Service 只能依賴 protocol / interface。
 
+AI server 分工補充：
+- frontend 不可直接連 `ai_server`，只透過 backend job API。
+- backend 不可同步等待 LLM/OCR/Vision 任務完成。
+- `ai_server/ai_worker` 可在背景任務內同步呼叫 Ollama（單一 job 執行期間），但整體流程仍是 job-based 非同步 API。
+
 ## AI 食譜推薦
 
 輸入包含現有食材、即將過期食材、使用者選擇的食材、料理設備、料理時間、飲食偏好、過敏原。輸出包含食譜名稱、使用食材、缺少食材、步驟、時間估計、注意事項。
@@ -46,7 +51,7 @@ Vision 模型：`qwen3-vl:8b`，用於食材照片與餐點照片內容辨識。
 
 ## AI / OCR 效能注意事項
 
-LLM、OCR、Vision 可能很慢。MVP 可同步呼叫，但需標示限制。若任務處理時間長，後續應改為 background job。
+LLM、OCR、Vision 可能很慢。Phase 08 起採 job-based API，backend 不同步等待；AI worker 內可同步執行模型推論。
 
 建議背景任務流程：
 
@@ -55,3 +60,8 @@ LLM、OCR、Vision 可能很慢。MVP 可同步呼叫，但需標示限制。若
 ```
 
 可選工具：Celery / RQ / Dramatiq。AI 服務建議與一般 API server 分離。
+
+階段策略：
+- Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 09～11：延用同一 `ai_jobs` 架構（OCR/Vision/Nutrition）。
+- Phase 12：首選升級 RQ + Redis；RabbitMQ 暫不採用，除非未來需要複雜 message routing 或多服務事件流。

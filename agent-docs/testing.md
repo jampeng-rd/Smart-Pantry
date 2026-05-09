@@ -20,6 +20,15 @@
 
 不可在單元測試直接呼叫真實 Ollama 或外部 OCR。使用 fake client / stub client。
 
+AI job 測試原則（Phase 08～11）：
+- 不可在單元測試中呼叫真實 Ollama。
+- 使用 fake AI client / fake worker。
+- 測試 job 建立。
+- 測試狀態轉換：`pending -> running -> success`。
+- 測試 `failed` 狀態與 `error_message`。
+- 測試跨使用者不可查詢 job。
+- 測試 worker 不處理其他使用者不相干資料（僅處理被 claim 的 pending job）。
+
 ## API 測試
 
 使用 FastAPI TestClient 或 httpx。測試成功與失敗案例，並確認 response 格式符合 `agent-docs/api.md`。
@@ -53,7 +62,8 @@ npm run build
 
 - 圖片上傳需測試超過 5MB 時拒絕。
 - 測試 DB 僅保存 image_path / image_url，不保存圖片 blob/base64。
-- AI / OCR MVP 可測同步流程；若加入 background job，需測 job 建立、狀態查詢、成功與失敗案例。
+- Phase 08～11 以 job-based 為主：需測 job 建立、狀態查詢、成功與失敗案例。
+- Phase 12 若導入 RQ + Redis，需補測 enqueue、worker process、retry、失敗重試策略。
 
 ## Shopping 與 Pantry 關係測試補充
 

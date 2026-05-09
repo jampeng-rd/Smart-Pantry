@@ -84,6 +84,47 @@ id、user_id unique indexed、diet_preference、allergies、cooking_tools、disl
 
 id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text、created_at indexed。
 
+### ai_jobs（Phase 08 起）
+
+建議欄位：
+- id
+- user_id
+- job_type
+- status
+- input_snapshot JSON/JSONB
+- result JSON/JSONB 或 result_text
+- error_message
+- created_at
+- started_at
+- finished_at
+- updated_at
+
+`job_type` 建議 enum/固定值：
+- `recipe_recommendation`
+- `receipt_ocr`
+- `ingredient_photo`
+- `nutrition_estimate`
+
+`status` 至少包含：
+- `pending`
+- `running`
+- `success`
+- `failed`
+- `cancelled`
+
+索引建議：
+- `user_id`
+- `status`
+- `job_type`
+- `created_at`
+- `(user_id, created_at)`
+- `(status, created_at)`
+
+規則：
+- backend 建立 job 時先寫入 `pending` 並立即回傳 `job_id`，不可同步等待 AI 推論結果。
+- worker 先將 job 狀態改為 `running` 後執行，完成後寫入 `success/failed` 與結果/錯誤訊息。
+- job 查詢必須驗證 `user_id`，禁止跨使用者讀取。
+
 ### receipt_imports / ingredient_photo_imports
 
 id、user_id indexed、image_path 或 image_url、raw_ocr_text 或 candidate_items json/jsonb、status indexed、created_at indexed。

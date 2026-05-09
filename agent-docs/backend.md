@@ -16,6 +16,15 @@ langchain-ollama>=1.0,<2.0
 
 ## 分層責任
 
+## Server 分工
+
+- `backend/`：Web API server。負責 auth、pantry、expiration、shopping、AI job API、使用者驗證、資料權限。
+- `ai_server/`（或 `ai_worker`）：AI runtime/worker。負責 LangChain、Ollama、OCR、Vision、Nutrition 長任務。
+- frontend 不直接呼叫 `ai_server/`，只呼叫 `backend/`。
+- `ai_server/` 不作為一般使用者公開 API。
+- backend 不可同步等待長時間 AI 推論。
+- API route 不可直接呼叫 LangChain / ChatOllama。
+
 ### API Layer
 
 `backend/app/api/` 只接收 request、驗證 schema、呼叫 service、回傳 response、管理 dependency。禁止直接操作 DB、直接呼叫 LLM/OCR、直接寫商業邏輯。
@@ -66,6 +75,9 @@ backend/app/infra/{database,repository,settings,security,llm_client,ocr_client,s
 - Repository 查詢不可一次讀取所有使用者資料。
 - 列表 API 必須支援 page / page_size。
 - Dashboard summary 避免 N+1 query。
-- AI / OCR / 圖片處理 MVP 可同步呼叫；後續應可改為背景任務。
-- Background job 可使用 Celery / RQ / Dramatiq。
+- AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend request 不可同步等待 AI 任務完成。
+- Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker（非 Redis queue）。
+- Phase 09～11：若延遲可接受，持續沿用 DB polling worker。
+- Phase 12：任務量明顯增加時，升級為 RQ + Redis（首選）；Dramatiq + Redis 為備選。
+- RabbitMQ 非 MVP 與 Phase 08～11 預設方案，僅在複雜 routing/事件流需求時評估。
 - DB engine / session factory 集中管理，不可每次 request 重新建立 engine。

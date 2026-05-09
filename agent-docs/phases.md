@@ -58,11 +58,23 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 
 文件：`docs/phase-07-ci-cd.md`
 
-## Phase 08：AI 食譜推薦
+## Phase 08-0：AI Server / AI Job 架構初始化
 
-建立 recipe_recommendations；根據庫存、即將過期、設備、偏好、過敏原產生料理建議；本機 Ollama + LangChain；mock 測試；記錄延遲限制。
+建立 `ai_jobs` 基礎結構、backend job API 骨架、ai_worker DB polling 流程與狀態機（pending/running/success/failed/cancelled）。
 
-文件：`docs/phase-08-ai-recipes.md`
+文件：`docs/phase-08-0-ai-job-architecture.md`
+
+## Phase 08-1：AI 食譜推薦 Mock（job-based）
+
+使用 `ai_jobs` + fake worker 完成食譜推薦非同步流程，不呼叫真實 Ollama。
+
+文件：`docs/phase-08-1-ai-recipes-mock.md`
+
+## Phase 08-2：AI 食譜推薦 LangChain + Ollama
+
+在既有 job-based 架構接入 LangChain + Ollama。
+
+文件：`docs/phase-08-2-ai-recipes-ollama.md`
 
 ## Phase 09：發票 / 收據 OCR 匯入
 
@@ -81,6 +93,22 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 上傳餐點照片；AI 粗估菜色與熱量/蛋白質/碳水/脂肪；建立 meal_logs 與 nutrition_estimates；明確生活參考聲明。
 
 文件：`docs/phase-11-nutrition-estimate.md`
+
+## Phase 12：AI Queue / Worker Scaling（視需要）
+
+當 job 延遲與數量增加，再由 DB polling 升級正式 queue。
+
+- 首選：RQ + Redis
+- 備選：Dramatiq + Redis
+- Celery + RabbitMQ：僅在複雜 routing、多服務事件流或更高階 broker 需求時評估
+
+文件：`docs/phase-12-ai-queue-worker-scaling.md`
+
+## AI Queue 策略補充
+
+- Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker，不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- Phase 09～11：若 DB polling worker 可接受，持續沿用，OCR/Vision/Nutrition 共用 `ai_jobs`。
+- 任務量與延遲明顯上升時才進入 Phase 12 升級。
 
 ## Phase 06 子階段規劃
 

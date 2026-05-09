@@ -38,6 +38,7 @@ backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ocr,nutrition}.p
 backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,ocr_import_service,nutrition_service}.py
 backend/app/domain/{schemas,models,enums}.py
 backend/app/infra/{database,repository,settings,security,llm_client,ocr_client,storage}.py
+ai_server/{app,workers,clients}
 frontend/src/app/{store,hooks}.ts
 frontend/src/features/{auth,pantry,expiration,shopping,recipes,ocr,nutrition,theme}/
 frontend/src/services/{apiClient,tokenService}.ts
@@ -79,18 +80,21 @@ frontend/src/styles/{theme.css,globals.css}
 
 ## 6. AI / OCR 效能規範
 
-- MVP 階段 AI / OCR / Vision 可先同步呼叫。
-- 若任務處理時間長、超時或阻塞 API，後續必須改為 background job。
-- Background job 可使用 Celery / RQ / Dramatiq。
-- 建議流程：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢或查詢 job 狀態。
-- AI 服務後續可與一般 API server 分離，避免 LLM 推論阻塞一般 CRUD API。
+- `backend/` 是 Web API server，只負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限，不可同步等待長時間 AI 推論。
+- `ai_server/`（或 `ai_worker`）負責 LangChain、Ollama、OCR、Vision、Nutrition 等長任務執行；不作為一般使用者公開 API。
+- frontend 不可直接呼叫 `ai_server/`，只能呼叫 `backend/`。
+- API route 不可直接 import 或呼叫 LangChain / ChatOllama。
+- AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
+- Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 08～11 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- 若任務量成長，再於 Phase 12 升級正式 queue（首選 RQ + Redis）。
 
 ## 7. LangChain 與 AI 套件規範
 
 - AI 階段使用 LangChain 1.x 系列。
 - 建議使用：`langchain>=1.0,<2.0`、`langchain-core>=1.0,<2.0`、`langchain-ollama>=1.0,<2.0`。
 - Codex 實作時需以當時 pip 可安裝且相容的版本為準。
-- LLM client 必須封裝在 `backend/app/infra/llm_client.py`。
+- LLM client 可封裝於 `ai_server/clients/`（或過渡期封裝在 `backend/app/infra/llm_client.py`，但 route 不可直接呼叫）。
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - Service 層只能依賴 protocol / interface，不可直接依賴 LangChain 類別。
 
@@ -170,3 +174,17 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - 更新 docs
 - 更新 README
 - 維持 frontend build 可通過
+
+## 12. AI 階段拆分與 Queue 策略
+
+- Phase 08-0：AI Server / AI Job 架構初始化
+- Phase 08-1：AI 食譜推薦 Mock（`ai_jobs` + fake worker，不呼叫真實 Ollama）
+- Phase 08-2：AI 食譜推薦 LangChain + Ollama
+- Phase 09：發票 / 收據 OCR 匯入（沿用 `ai_jobs`）
+- Phase 10：食材照片辨識（沿用 `ai_jobs`）
+- Phase 11：餐點營養粗估（沿用 `ai_jobs`）
+- Phase 12：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
+
+策略：
+- Phase 08～11 不將 RabbitMQ 作為預設方案。
+- 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。

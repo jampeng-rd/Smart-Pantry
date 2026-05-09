@@ -17,10 +17,13 @@ Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
 Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 06-6C：前端共用元件盤點與小幅整理 ✅
 Phase 07：CI/CD 與部署 ⏳
-Phase 08：AI 食譜推薦 ⏳
+Phase 08-0：AI Server / AI Job 架構初始化 ⏳
+Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）⏳
+Phase 08-2：AI 食譜推薦 LangChain + Ollama ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
 Phase 10：食材照片辨識 ⏳
 Phase 11：餐點營養粗估 ⏳
+Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
 ## 環境需求
@@ -271,6 +274,60 @@ Route 行為：
 
 AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。
 
+## AI Server / Worker 與 Job 架構（Phase 08 前置規範）
+
+- `backend/` 是 Web API server：負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限。
+- `ai_server/`（或 `ai_worker`）是 AI runtime：負責 LangChain、Ollama、OCR、Vision、Nutrition 長任務。
+- frontend 不直接呼叫 `ai_server/`，只呼叫 backend。
+- `ai_server/` 不直接暴露為一般使用者公開 API。
+- backend 不同步等待 AI 推論結果。
+- API route 不可直接呼叫 LangChain / ChatOllama。
+
+job-based 流程：
+1. frontend 呼叫 backend 建立 job。
+2. backend 驗證 user、整理 input、建立 `ai_jobs` 記錄，立即回 `job_id`。
+3. ai_worker 背景處理 `pending` job，先改 `running` 再執行。
+4. 成功寫入 `result` 與 `success`；失敗寫入 `error_message` 與 `failed`。
+5. frontend 透過 backend job status API 輪詢結果。
+
+job 狀態至少包含：`pending`、`running`、`success`、`failed`、`cancelled`。
+job 查詢必須驗證 `user_id`，不可跨使用者查詢。
+
+## AI Queue 階段策略
+
+- Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 08～11：不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- Phase 09～11：OCR / Vision / Nutrition 先共用 `ai_jobs`。
+- 若任務延遲或數量增加，再進入 Phase 12。
+- Phase 12 首選：RQ + Redis；備選：Dramatiq + Redis。
+- RabbitMQ 暫不採用，除非未來有複雜 message routing、多服務事件流或更高階 broker 需求。
+
+選 RQ + Redis 的原因：
+- Python 生態簡單，導入成本低。
+- 適合中小型 background jobs。
+- 相較 Celery / RabbitMQ 組合更容易理解與維護。
+
+## AI 相關環境變數與 Compose 規劃（本次僅文件）
+
+建議 `.env`：
+
+```env
+AI_SERVER_HOST=0.0.0.0
+AI_SERVER_PORT=8100
+AI_WORKER_POLL_INTERVAL_SECONDS=5
+AI_WORKER_BATCH_SIZE=1
+AI_JOB_TIMEOUT_SECONDS=300
+OLLAMA_BASE_URL=http://localhost:11434
+LLM_TEXT_MODEL=qwen2.5:7b
+LLM_VISION_MODEL=qwen3-vl:8b
+```
+
+docker-compose 後續規劃：
+- 新增 `ai-server` 或 `ai-worker` service。
+- 共用同一個 PostgreSQL。
+- Phase 08～11 暫不新增 `redis` service。
+- Phase 12 若導入 RQ + Redis，再新增 `redis` service。
+
 ## 效能與擴充性
 
-開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index，AI / OCR / 圖片處理 MVP 可同步呼叫，後續可改 Celery / RQ / Dramatiq background job。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
+開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～11 先採 `ai_jobs` + DB polling worker，Phase 12 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。

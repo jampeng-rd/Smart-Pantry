@@ -20,10 +20,13 @@ feature/phase-04-expiration-status
 feature/phase-05-shopping-list
 feature/phase-06-web-ui-theme
 feature/phase-07-ci-cd
-feature/phase-08-ai-recipes
+feature/phase-08-0-ai-job-architecture
+feature/phase-08-1-ai-recipes-mock
+feature/phase-08-2-ai-recipes-ollama
 feature/phase-09-ocr-import
 feature/phase-10-ingredient-photo
 feature/phase-11-nutrition-estimate
+feature/phase-12-ai-queue-worker-scaling
 ```
 
 ## 最小 CI
@@ -76,8 +79,34 @@ jobs:
 
 ## Background Job 規劃
 
-MVP 的 AI / OCR / Vision 可同步呼叫。若任務處理時間長，後續改用 Celery / RQ / Dramatiq：
+Phase 08～11 採 job-based 流程，backend 不同步等待 AI 任務：
 
 ```text
 POST 建立任務 → 回傳 job_id → worker 執行 → GET 查詢狀態 → 前端顯示結果
 ```
+
+階段策略：
+- Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker，不新增 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+- Phase 09～11：OCR/Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
+- Phase 12：再升級 queue（首選 RQ + Redis，備選 Dramatiq + Redis）。
+- RabbitMQ 暫不採用，僅在未來需要複雜 message routing/事件流時評估。
+
+## AI 服務與環境變數規劃（本次僅文件）
+
+建議 `.env` 增補：
+
+```env
+AI_SERVER_HOST=0.0.0.0
+AI_SERVER_PORT=8100
+AI_WORKER_POLL_INTERVAL_SECONDS=5
+AI_WORKER_BATCH_SIZE=1
+AI_JOB_TIMEOUT_SECONDS=300
+OLLAMA_BASE_URL=http://localhost:11434
+LLM_TEXT_MODEL=qwen2.5:7b
+LLM_VISION_MODEL=qwen3-vl:8b
+```
+
+docker-compose 後續規劃：
+- 新增 `ai-server` 或 `ai-worker` service（共用同一個 PostgreSQL）。
+- Phase 08～11 不新增 `redis` service。
+- Phase 12 若採 RQ + Redis，再新增 `redis` service。

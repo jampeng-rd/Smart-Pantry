@@ -125,26 +125,58 @@ category=蔬菜&status=expiring_soon&sort=expiration_date&q=番茄&page=1&page_s
 
 ## AI
 
-### POST /recipes/recommendations
+Phase 08 起改為 job-based API。frontend 只呼叫 backend，backend 建立 job 後立即回應，不同步等待 AI 結果。
 
-AI 食譜推薦。
+### POST /recipes/recommendation-jobs
+
+建立食譜推薦任務。
 
 ```json
 {"selected_pantry_item_ids":[1,2,3],"prioritize_expiring_soon":true,"cooking_time_minutes":30,"cooking_tools":["電鍋","平底鍋"],"diet_preference":"高蛋白","allergies":["花生"]}
 ```
 
-### POST /ocr/receipt/preview
+建立 job 回應（範例）：
 
-上傳發票 / 收據並產生候選食材，不直接寫入庫存。圖片大小限制預設 5MB，DB 只存 image_path / image_url。
+```json
+{"job_id":"uuid-or-int","status":"pending","created_at":"2026-05-09T12:00:00Z"}
+```
 
-### POST /ocr/receipt/confirm
+### GET /recipes/recommendation-jobs/{job_id}
 
-使用者確認候選食材後加入庫存。
+查詢任務狀態。必須驗證 user_id，使用者不可查詢他人的 job。
 
-### POST /ingredients/photo/preview
+查詢 job 回應欄位：
+- `status`
+- `result`
+- `error_message`
+- `created_at`
+- `started_at`
+- `finished_at`
 
-上傳單一或少量食材照片，AI 回傳候選食材，不直接寫入庫存。圖片大小限制預設 5MB，DB 只存 image_path / image_url。
+規則：
+- `pending/running` 時 `result` 可為 `null`。
+- `failed` 時需回傳可理解錯誤訊息，不可暴露 raw traceback。
 
-### POST /nutrition/estimate
+### （未來可類推）POST /ocr/receipt/jobs
 
-餐點營養粗估，僅供生活參考。
+上傳發票 / 收據並建立 OCR job，不直接寫入庫存。
+
+### （未來可類推）GET /ocr/receipt/jobs/{job_id}
+
+查詢 OCR job 狀態與結果。
+
+### （未來可類推）POST /ingredients/photo/jobs
+
+上傳食材照片並建立 Vision job，不直接寫入庫存。
+
+### （未來可類推）GET /ingredients/photo/jobs/{job_id}
+
+查詢食材照片辨識 job 狀態與結果。
+
+### （未來可類推）POST /nutrition/estimate-jobs
+
+建立營養粗估 job，僅供生活參考。
+
+### （未來可類推）GET /nutrition/estimate-jobs/{job_id}
+
+查詢營養粗估 job 狀態與結果。
