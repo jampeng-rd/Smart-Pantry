@@ -18,7 +18,7 @@ Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 06-6C：前端共用元件盤點與小幅整理 ✅
 Phase 07：CI/CD 與部署 ⏳
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
-Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）⏳
+Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ⏳
 Phase 09：發票 / 收據 OCR 匯入 ⏳
 Phase 10：食材照片辨識 ⏳
@@ -278,6 +278,18 @@ AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認�
 
 - `backend/` 是 Web API server：負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限。
 - `ai_server/`（或 `ai_worker`）是 AI runtime：負責 LangChain、Ollama、OCR、Vision、Nutrition 長任務。
+
+## Phase 08-1：AI 食譜推薦 Mock（job-based）
+
+已完成：
+- `ai_worker` DB polling 可執行 `poll_once()` 與 `run_forever()`。
+- worker 會 claim `pending` 的 `recipe_recommendation` job，狀態流轉為 `pending -> running -> success/failed`。
+- `selected_items` 模式只使用 `input_snapshot.resolved_pantry_items` 產生 mock recipe。
+- `auto_from_pantry` 模式從該使用者 pantry 選 `normal/expiring_soon`，排除 `expired`。
+- 無可用食材時，job 會標記 `failed`，並回中文友善 `error_message`。
+- 成功時 `result` 會寫入 `recipe_name/ingredients_used/missing_ingredients/steps/cooking_time_minutes/note`。
+- frontend 仍只透過 backend 查詢 `GET /recipes/recommendation-jobs/{job_id}`，不直連 `ai_server`。
+- 本階段未呼叫 Ollama、未接 LangChain。
 - frontend 不直接呼叫 `ai_server/`，只呼叫 backend。
 - `ai_server/` 不直接暴露為一般使用者公開 API。
 - backend 不同步等待 AI 推論結果。
