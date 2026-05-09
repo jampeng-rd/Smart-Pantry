@@ -282,6 +282,8 @@ AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認�
 - `ai_server/` 不直接暴露為一般使用者公開 API。
 - backend 不同步等待 AI 推論結果。
 - API route 不可直接呼叫 LangChain / ChatOllama。
+- Phase 08-0 使用 DB polling worker：backend 建立 job 後立即返回，worker 另行處理並寫回資料庫。
+- 本階段不是 frontend 直接呼叫 ai_server，也不是 backend 同步呼叫 ai_server 等待結果。
 
 job-based 流程：
 1. frontend 呼叫 backend 建立 job。
@@ -343,6 +345,13 @@ docker-compose 後續規劃：
 - 共用同一個 PostgreSQL。
 - Phase 08～11 暫不新增 `redis` service。
 - Phase 12 若導入 RQ + Redis，再新增 `redis` service。
+
+目前設定檔策略：
+- backend 與 ai_server 共用同一份 `.env`。
+- backend Settings 明確支援 AI env。
+- ai_server Settings 只宣告 AI worker 必要欄位，並忽略 backend/frontend 專用 env（`extra="ignore"`）。
+- ai_server 不需要 frontend CORS；CORS 僅適用於 browser frontend → backend。
+- 後續若部署拆分，可改為 `backend.env` 與 `ai_server.env` 分開管理。
 
 ## 效能與擴充性
 

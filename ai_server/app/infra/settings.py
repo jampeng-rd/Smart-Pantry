@@ -22,7 +22,10 @@ class AiServerSettings(BaseSettings):
     llm_text_model: str = "qwen2.5:7b"
     llm_vision_model: str = "qwen3-vl:8b"
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
+    # ai_server 與 backend 目前共用同一份 .env。
+    # 為避免 backend/frontend 專用變數（例如 JWT、CORS）造成啟動失敗，
+    # ai_server settings 僅定義自身需要欄位，並忽略其餘 env。
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
 
 @lru_cache

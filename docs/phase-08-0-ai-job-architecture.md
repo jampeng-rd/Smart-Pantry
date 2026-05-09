@@ -11,6 +11,7 @@
 - `backend/`：Web API server，負責使用者驗證、資料權限、建立/查詢 AI job。
 - `ai_server/ai_worker`：背景 worker runtime，負責後續長任務執行（本階段僅骨架）。
 - frontend 只呼叫 backend，不直接呼叫 ai_server。
+- Phase 08-0 為 DB polling worker 流程，不是 frontend 直接呼叫 ai_server，也不是 backend 同步等待 ai_server 回應。
 
 ### 2.2 ai_jobs 資料模型
 
@@ -94,6 +95,13 @@
 - `AI_WORKER_POLL_INTERVAL_SECONDS`
 - `AI_WORKER_BATCH_SIZE`
 - `AI_JOB_TIMEOUT_SECONDS`
+
+設定相容策略：
+- backend 與 ai_server 目前共用同一份 `.env`。
+- backend Settings 明確定義 backend 與 AI 相關 env。
+- ai_server Settings 只定義自身所需欄位，對 backend/frontend 專用 env 採 `extra="ignore"`，避免 `ValidationError`。
+- ai_server 不需要 frontend CORS（CORS 僅適用於瀏覽器 frontend → backend）。
+- 未來部署拆分可改為 `backend.env` 與 `ai_server.env` 分開管理。
 
 ## 4. 佇列策略
 
