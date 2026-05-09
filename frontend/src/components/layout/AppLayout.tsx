@@ -25,9 +25,9 @@ const navItems: NavItem[] = [
   { key: "pantry", label: "食材庫存", path: "/pantry", icon: <FiArchive aria-hidden="true" /> },
   { key: "expiration", label: "到期提醒", path: "/expiration", icon: <FiClock aria-hidden="true" /> },
   { key: "shopping", label: "購物清單", path: "/shopping", icon: <FiShoppingCart aria-hidden="true" /> },
-  { key: "recipes", label: "食譜建議", path: "/recipes", icon: <FiBookOpen aria-hidden="true" /> },
-  { key: "ocr", label: "OCR 匯入", path: "/ocr", icon: <FiCamera aria-hidden="true" /> },
-  { key: "nutrition", label: "營養估算", path: "/nutrition", icon: <FiActivity aria-hidden="true" /> },
+  // { key: "recipes", label: "食譜建議", path: "/recipes", icon: <FiBookOpen aria-hidden="true" /> },
+  // { key: "ocr", label: "OCR 匯入", path: "/ocr", icon: <FiCamera aria-hidden="true" /> },
+  // { key: "nutrition", label: "營養估算", path: "/nutrition", icon: <FiActivity aria-hidden="true" /> },
 ];
 
 /** Dashboard 主版型。 */

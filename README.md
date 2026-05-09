@@ -1,5 +1,28 @@
 # 智慧食材保存與膳食管理系統（Smart Pantry & Nutritionist）
 
+## Preview
+
+<table width="100%">
+    <tr>
+    <td width="50%">
+    &nbsp;
+    <br>
+    <p align="center">
+    Web Workspace
+    </p>
+    <img src="assets/web.png" alt="Web Workspace">
+    </td>
+    <td width="21%"
+    <br>
+    <p align="center">
+    Mobile Workspace
+    </p>
+    <img src="assets/mobile.png" alt="Mobile Workspace">
+    </td>
+    </tr>
+</table>
+
+
 ## 專案狀態
 
 ```text
@@ -32,7 +55,7 @@ Python 3.10+、Node.js 20+、Docker、PostgreSQL、Ollama（AI 階段）。
 
 ## 環境變數
 
-請先複製 `.env.example` 為 `.env`，並填入本機設定。`.env` 不可提交到版本控制，`.env.example` 僅放範例值，不可放真實 secret。
+請先複製 `.env.example` 為 `.env`，並填入本機設定。
 
 ## 後端啟動
 
