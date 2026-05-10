@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from ai_server.workers.job_worker import _claim_pending_jobs, _process_ingredient_photo_job, _process_recipe_job
+from ai_server.app.clients.ingredient_vision_client import IngredientVisionTimeoutError
+from ai_server.workers.job_worker import _claim_pending_jobs, _fail_stale_running_jobs, _process_ingredient_photo_job, _process_recipe_job
+from ai_server.app.services.ingredient_photo_recognition_service import IngredientPhotoRecognitionService
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationService
 from backend.app.domain.models import AiJob, Base, PantryItem, User
 
@@ -25,9 +28,38 @@ class FakeRecipeLlmClient:
         return self.response_text
 
 
+class FakeIngredientVisionClient:
+    """測試用假 Vision client。"""
+
+    def __init__(self, response_text: str):
+        """設定固定回傳內容。"""
+        self.response_text = response_text
+
+    def recognize_ingredient_candidates(self, prompt: str, image_path: str) -> str:
+        """回傳預設字串。"""
+        _ = prompt
+        _ = image_path
+        return self.response_text
+
+
+class FakeIngredientVisionTimeoutClient:
+    """測試用逾時 Vision client。"""
+
+    def recognize_ingredient_candidates(self, prompt: str, image_path: str) -> str:
+        """模擬 Vision timeout。"""
+        _ = prompt
+        _ = image_path
+        raise IngredientVisionTimeoutError("timeout")
+
+
 def _make_recipe_service(response_text: str) -> RecipeRecommendationService:
     """建立可注入固定回傳的 recipe service。"""
     return RecipeRecommendationService(llm_client=FakeRecipeLlmClient(response_text=response_text))
+
+
+def _make_ingredient_recognition_service(response_text: str) -> IngredientPhotoRecognitionService:
+    """建立可注入固定回傳的 ingredient recognition service。"""
+    return IngredientPhotoRecognitionService(vision_client=FakeIngredientVisionClient(response_text=response_text))
 
 
 def _make_session() -> Session:
@@ -303,22 +335,28 @@ def test_worker_claims_ingredient_photo_when_enabled() -> None:
 
 
 def test_mock_ingredient_photo_job_success_and_no_pantry_write() -> None:
-    """ingredient_photo mock job 成功寫入候選，不可直接寫入 pantry。"""
+    """ingredient_photo job 成功寫入候選，不可直接寫入 pantry。"""
     db = _make_session()
     _create_user(db, user_id=1, email="u1@example.com")
+    image_path = "uploads/ingredient_photos/mock.jpg"
+    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(image_path).write_bytes(b"fake")
     db.add(
         AiJob(
             user_id=1,
             job_type="ingredient_photo",
             status="pending",
-            input_snapshot={"image_path": "uploads/ingredient_photos/mock.jpg"},
+            input_snapshot={"image_path": image_path},
         )
     )
     db.commit()
 
     claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
     assert len(claimed) == 1
-    _process_ingredient_photo_job(db=db, job=claimed[0])
+    recognition_service = _make_ingredient_recognition_service(
+        '{"candidate_items":[{"name":"番茄","category":"蔬菜","quantity":1,"unit":"顆","expiration_date":null,"storage_location":"fridge","note":"AI 辨識候選，請確認"}],"note":"AI 食材照片辨識結果，請使用者確認後再加入庫存。"}'
+    )
+    _process_ingredient_photo_job(db=db, job=claimed[0], recognition_service=recognition_service)
 
     job = db.get(AiJob, claimed[0].id)
     assert job is not None
@@ -329,3 +367,85 @@ def test_mock_ingredient_photo_job_success_and_no_pantry_write() -> None:
 
     pantry_count = db.query(PantryItem).count()
     assert pantry_count == 0
+    Path(image_path).unlink(missing_ok=True)
+
+
+def test_ingredient_photo_job_failed_with_chinese_error_message() -> None:
+    """ingredient_photo 辨識失敗時應標記 failed 並回中文錯誤。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    image_path = "uploads/ingredient_photos/mock_failed.jpg"
+    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(image_path).write_bytes(b"fake")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={"image_path": image_path},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    recognition_service = _make_ingredient_recognition_service("???")
+    _process_ingredient_photo_job(db=db, job=claimed[0], recognition_service=recognition_service)
+
+    job = db.get(AiJob, claimed[0].id)
+    assert job is not None
+    assert job.status == "failed"
+    assert "無法解析" in (job.error_message or "")
+    Path(image_path).unlink(missing_ok=True)
+
+
+def test_ingredient_photo_job_timeout_failed_with_friendly_message() -> None:
+    """ingredient_photo timeout 時應標記 failed 並回中文逾時訊息。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    image_path = "uploads/ingredient_photos/mock_timeout.jpg"
+    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(image_path).write_bytes(b"fake")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={"image_path": image_path},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    recognition_service = IngredientPhotoRecognitionService(vision_client=FakeIngredientVisionTimeoutClient())
+    _process_ingredient_photo_job(db=db, job=claimed[0], recognition_service=recognition_service)
+
+    job = db.get(AiJob, claimed[0].id)
+    assert job is not None
+    assert job.status == "failed"
+    assert job.error_message == "食材照片辨識逾時，請稍後再試。"
+    Path(image_path).unlink(missing_ok=True)
+
+
+def test_stale_running_job_should_be_marked_failed() -> None:
+    """超過 timeout 的 running ingredient job 應被回收為 failed。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    stale_started_at = datetime.now(timezone.utc) - timedelta(seconds=301)
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="running",
+            input_snapshot={"image_path": "uploads/ingredient_photos/stale.jpg"},
+            started_at=stale_started_at,
+        )
+    )
+    db.commit()
+
+    changed = _fail_stale_running_jobs(db=db, enabled_job_types=["ingredient_photo"], timeout_seconds=300)
+    assert changed == 1
+
+    job = db.query(AiJob).one()
+    assert job.status == "failed"
+    assert job.finished_at is not None
+    assert job.error_message == "食材照片辨識逾時，請稍後再試。"

@@ -17,6 +17,7 @@ class AiServerSettings(BaseSettings):
     ai_worker_poll_interval_seconds: int = 5
     ai_worker_batch_size: int = 1
     ai_job_timeout_seconds: int = 300
+    ai_vision_timeout_seconds: int = 60
     ai_worker_job_types: str = "recipe_recommendation"
 
     ollama_base_url: str = "http://localhost:11434"

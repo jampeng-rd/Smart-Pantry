@@ -8,11 +8,13 @@ import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import asc, or_, select
+from sqlalchemy import and_, asc, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from ai_server.app.clients.ingredient_vision_client import OllamaIngredientVisionClient
 from ai_server.app.clients.recipe_llm_client import OllamaRecipeLlmClient
 from ai_server.app.infra.settings import get_settings
+from ai_server.app.services.ingredient_photo_recognition_service import IngredientPhotoRecognitionError, IngredientPhotoRecognitionService
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationError, RecipeRecommendationService
 from backend.app.domain.models.ai_job_model import AiJob
 from backend.app.domain.models.pantry_item_model import PantryItem
@@ -74,6 +76,35 @@ def _claim_pending_jobs(db: Session, batch_size: int, enabled_job_types: list[st
     return AiJobRepository(db).claim_pending_jobs(batch_size=batch_size, job_types=enabled_job_types)
 
 
+def _fail_stale_running_jobs(db: Session, enabled_job_types: list[str], timeout_seconds: int) -> int:
+    """將超過逾時門檻的 running jobs 標記為 failed，避免永久卡住。"""
+    if not enabled_job_types or timeout_seconds <= 0:
+        return 0
+
+    stale_before = datetime.now(timezone.utc) - timedelta(seconds=timeout_seconds)
+    statement = select(AiJob).where(
+        and_(
+            AiJob.status == "running",
+            AiJob.job_type.in_(enabled_job_types),
+            AiJob.started_at.is_not(None),
+            AiJob.started_at <= stale_before,
+        )
+    )
+    stale_jobs = list(db.execute(statement).scalars().all())
+    if not stale_jobs:
+        return 0
+
+    now = datetime.now(timezone.utc)
+    for job in stale_jobs:
+        job.status = "failed"
+        job.error_message = "食材照片辨識逾時，請稍後再試。"
+        job.finished_at = now
+        db.add(job)
+    db.commit()
+    LOGGER.warning("marked stale running jobs as failed count=%s enabled_job_types=%s", len(stale_jobs), enabled_job_types)
+    return len(stale_jobs)
+
+
 def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommendationService) -> None:
     """處理單筆 recipe_recommendation job，並寫回 success/failed。"""
     try:
@@ -121,39 +152,31 @@ def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommend
         db.commit()
 
 
-def _process_ingredient_photo_job(db: Session, job: AiJob) -> None:
-    """處理單筆 ingredient_photo mock job，並寫回 success/failed。"""
+def _process_ingredient_photo_job(db: Session, job: AiJob, recognition_service: IngredientPhotoRecognitionService) -> None:
+    """處理單筆 ingredient_photo job，並寫回 success/failed。"""
+    started_at = time.monotonic()
+    LOGGER.info("start ingredient_photo job processing job_id=%s", job.id)
     try:
         snapshot = job.input_snapshot or {}
         image_path = snapshot.get("image_path")
-        if not image_path:
-            raise ValueError("缺少圖片路徑，請重新上傳後再試。")
-
-        job.result = {
-            "candidate_items": [
-                {
-                    "name": "番茄",
-                    "category": "蔬菜",
-                    "quantity": 1,
-                    "unit": "顆",
-                    "expiration_date": None,
-                    "storage_location": "fridge",
-                    "note": "AI mock 辨識候選，請確認",
-                }
-            ],
-            "note": "這是 mock 食材辨識結果，請使用者確認後再加入庫存。",
-        }
+        LOGGER.info("calling vision model for ingredient_photo job_id=%s", job.id)
+        job.result = recognition_service.recognize(image_path=image_path or "")
+        elapsed = time.monotonic() - started_at
+        LOGGER.info("vision completed for ingredient_photo job_id=%s elapsed_seconds=%.2f", job.id, elapsed)
         job.status = "success"
         job.error_message = None
         job.finished_at = datetime.now(timezone.utc)
         db.add(job)
         db.commit()
-    except ValueError as exc:
+        LOGGER.info("ingredient_photo job commit success job_id=%s", job.id)
+    except IngredientPhotoRecognitionError as exc:
+        LOGGER.warning("ingredient_photo recognition failed job_id=%s error=%s", job.id, str(exc))
         job.status = "failed"
         job.error_message = str(exc)
         job.finished_at = datetime.now(timezone.utc)
         db.add(job)
         db.commit()
+        LOGGER.info("ingredient_photo job commit failed job_id=%s", job.id)
     except Exception:
         LOGGER.exception("ingredient photo job processing failed unexpectedly, job_id=%s", job.id)
         job.status = "failed"
@@ -161,6 +184,7 @@ def _process_ingredient_photo_job(db: Session, job: AiJob) -> None:
         job.finished_at = datetime.now(timezone.utc)
         db.add(job)
         db.commit()
+        LOGGER.info("ingredient_photo job commit failed job_id=%s", job.id)
 
 
 def _parse_job_types_arg() -> list[str] | None:
@@ -187,7 +211,13 @@ def poll_once(enabled_job_types: list[str] | None = None) -> None:
     settings = get_settings()
     resolved_job_types = enabled_job_types if enabled_job_types is not None else settings.get_ai_worker_job_types()
     recipe_service = RecipeRecommendationService(llm_client=OllamaRecipeLlmClient())
+    recognition_service = IngredientPhotoRecognitionService(vision_client=OllamaIngredientVisionClient())
     with SessionLocal() as db:
+        _fail_stale_running_jobs(
+            db=db,
+            enabled_job_types=resolved_job_types,
+            timeout_seconds=settings.ai_job_timeout_seconds,
+        )
         jobs = _claim_pending_jobs(
             db=db,
             batch_size=settings.ai_worker_batch_size,
@@ -201,7 +231,7 @@ def poll_once(enabled_job_types: list[str] | None = None) -> None:
                 _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
                 continue
             if job.job_type == "ingredient_photo":
-                _process_ingredient_photo_job(db=db, job=job)
+                _process_ingredient_photo_job(db=db, job=job, recognition_service=recognition_service)
                 continue
 
             job.status = "failed"

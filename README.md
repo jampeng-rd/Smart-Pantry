@@ -23,7 +23,7 @@ Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 08-3：Recipes 前端 UI 串接 ✅
 Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
-Phase 09-2：Vision Model 食材候選辨識 ⏳
+Phase 09-2：Vision Model 食材候選辨識 ✅
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
 Phase 10-1：營養粗估 Job API + Mock Worker ⏳
 Phase 10-2：Vision/Text Model 營養粗估 ⏳
@@ -393,6 +393,20 @@ job 查詢必須驗證 `user_id`，不可跨使用者查詢。
 
 worker 啟動示例：
 - `python -m ai_server.workers.job_worker --job-types ingredient_photo`
+
+## Phase 09-2：Vision Model 食材候選辨識（已完成）
+
+已完成：
+- `ingredient_photo` worker 從固定 mock 候選改為 Vision 推論流程。
+- 新增 `ai_server/app/clients/ingredient_vision_client.py`（LangChain + Ollama Vision 封裝）。
+- 新增 `ai_server/app/services/ingredient_photo_recognition_service.py`（prompt、JSON parsing、欄位驗證、中文錯誤轉換）。
+- worker 讀取 `input_snapshot.image_path`，經 service 產生 `candidate_items + note` 相容格式。
+- Vision 輸出錯誤（非 JSON/缺欄位/圖片不存在/模型異常）時，job 會 `failed` 且回中文友善訊息。
+
+仍維持：
+- 不直接寫入 `pantry_items`（使用者確認流程留在 Phase 09-3）。
+- `job_type` 隔離策略，`ingredient_photo` worker 不應拖慢 `recipe_recommendation` worker。
+- backend 不同步等待 Vision、frontend 不直連 `ai_server`。
 
 ## AI Queue 階段策略
 
