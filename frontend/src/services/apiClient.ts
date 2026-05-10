@@ -14,6 +14,11 @@ import type {
   ShoppingListParams,
   ShoppingUpdatePayload,
 } from "../features/shopping/shoppingTypes";
+import type {
+  RecipeRecommendationJobCreateData,
+  RecipeRecommendationJobCreatePayload,
+  RecipeRecommendationJobStatusData,
+} from "../features/recipes/recipeTypes";
 import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon, saveTokens } from "./tokenService";
 
 /** API 基底網址。 */
@@ -110,6 +115,16 @@ export const shoppingApi = {
   update: (itemId: number, payload: ShoppingUpdatePayload) =>
     requestWithAuth<ShoppingItem>(`/shopping/items/${itemId}`, { method: "PATCH", body: JSON.stringify(payload) }),
   remove: (itemId: number) => requestWithAuth<{ deleted: boolean }>(`/shopping/items/${itemId}`, { method: "DELETE" }),
+};
+
+/** Recipes AI Job API 封裝。 */
+export const recipesApi = {
+  /** 建立食譜推薦任務。 */
+  createRecommendationJob: (payload: RecipeRecommendationJobCreatePayload) =>
+    requestWithAuth<RecipeRecommendationJobCreateData>("/recipes/recommendation-jobs", { method: "POST", body: JSON.stringify(payload) }),
+  /** 查詢食譜推薦任務狀態。 */
+  getRecommendationJobStatus: (jobId: number) =>
+    requestWithAuth<RecipeRecommendationJobStatusData>(`/recipes/recommendation-jobs/${jobId}`, { method: "GET" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

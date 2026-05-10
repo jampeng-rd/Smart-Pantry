@@ -20,7 +20,7 @@ Phase 07：CI/CD 與部署 ⏳
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
-Phase 08-3：Recipes 前端 UI 串接 ⏳
+Phase 08-3：Recipes 前端 UI 串接 ✅
 Phase 09-1：OCR Job API + Storage + Mock Worker ⏳
 Phase 09-2：OCR / LLM 候選食材整理 ⏳
 Phase 09-3：OCR 前端 UI + 使用者確認寫入 Pantry ⏳
@@ -315,6 +315,33 @@ AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認�
 - API route 不可直接呼叫 LangChain / ChatOllama。
 - Phase 08-0 使用 DB polling worker：backend 建立 job 後立即返回，worker 另行處理並寫回資料庫。
 - 本階段不是 frontend 直接呼叫 ai_server，也不是 backend 同步呼叫 ai_server 等待結果。
+
+## Phase 08-3：Recipes 前端 UI 串接
+
+已完成：
+- `/recipes` 從 placeholder 改為可操作的 AI 食譜推薦頁。
+- 前端透過 backend job API 建立/查詢任務：
+  - `POST /recipes/recommendation-jobs`
+  - `GET /recipes/recommendation-jobs/{job_id}`
+- 支援 `recommendation_mode`：
+  - `selected_items`（可從 pantry 多選食材）
+  - `auto_from_pantry`（由 backend/worker 自動挑選）
+- 支援表單欄位：
+  - `cooking_time_minutes`（正整數驗證）
+  - `cooking_tools`（逗號分隔）
+  - `diet_preference`
+  - `allergies`（逗號分隔）
+  - `prioritize_expiring_soon`
+- UI 顯示完整 job 狀態：`pending` / `running` / `success` / `failed` / `cancelled`。
+- success 顯示結果欄位：
+  - `recipe_name`
+  - `ingredients_used`
+  - `missing_ingredients`
+  - `steps`
+  - `cooking_time_minutes`
+  - `note`
+- failed 顯示中文友善錯誤，不顯示 traceback 或技術細節。
+- polling 間隔約 2.5 秒；job 完成與 component unmount 都會停止 polling，避免 memory leak。
 
 job-based 流程：
 1. frontend 呼叫 backend 建立 job。

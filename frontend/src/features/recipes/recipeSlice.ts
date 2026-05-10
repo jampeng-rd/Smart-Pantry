@@ -1,21 +1,160 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import type { RecipeState } from "./recipeTypes";
+import type {
+  RecipeRecommendationJobCreateData,
+  RecipeRecommendationJobCreatePayload,
+  RecipeRecommendationJobStatusData,
+} from "./recipeTypes";
+import type { PantryListData } from "../pantry/pantryTypes";
+import { pantryApi, recipesApi } from "../../services/apiClient";
 
 const initialState: RecipeState = {
-  items: [],
-  page: 1,
-  pageSize: 10,
-  total: 0,
-  loading: false,
-  error: null,
+  pantryItems: [],
+  pantryLoading: false,
+  pantryError: null,
+  creatingJob: false,
+  polling: false,
+  currentJobId: null,
+  jobStatus: null,
+  jobError: null,
+  result: null,
 };
 
-/** 食譜建議狀態 Slice（Phase 01 僅保留骨架）。 */
+/** 載入 Recipes 頁用的 pantry 清單（僅取第一頁大量資料供多選）。 */
+export const fetchPantryItemsForRecipes = createAsyncThunk<PantryListData, void, { rejectValue: string }>(
+  "recipes/fetchPantryItemsForRecipes",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await pantryApi.list({ page: 1, page_size: 200, sort: "expiration_date" });
+    } catch (error) {
+      return rejectWithValue(toFriendlyRecipeError(error, "目前無法載入食材清單，請稍後再試。"));
+    }
+  },
+);
+
+/** 建立食譜推薦 job。 */
+export const createRecipeRecommendationJob = createAsyncThunk<
+  RecipeRecommendationJobCreateData,
+  RecipeRecommendationJobCreatePayload,
+  { rejectValue: string }
+>("recipes/createRecipeRecommendationJob", async (payload, { rejectWithValue }) => {
+  try {
+    return await recipesApi.createRecommendationJob(payload);
+  } catch (error) {
+    return rejectWithValue(toFriendlyRecipeError(error, "建立食譜任務失敗，請稍後再試。"));
+  }
+});
+
+/** 查詢食譜推薦 job 狀態。 */
+export const fetchRecipeRecommendationJobStatus = createAsyncThunk<
+  RecipeRecommendationJobStatusData,
+  number,
+  { rejectValue: string }
+>("recipes/fetchRecipeRecommendationJobStatus", async (jobId, { rejectWithValue }) => {
+  try {
+    return await recipesApi.getRecommendationJobStatus(jobId);
+  } catch (error) {
+    return rejectWithValue(toFriendlyRecipeError(error, "目前無法查詢任務狀態，請稍後再試。"));
+  }
+});
+
+/** 食譜建議狀態 Slice。 */
 const recipeSlice = createSlice({
   name: "recipes",
   initialState,
-  reducers: {},
+  reducers: {
+    clearRecipeState: (state) => {
+      state.creatingJob = false;
+      state.polling = false;
+      state.currentJobId = null;
+      state.jobStatus = null;
+      state.jobError = null;
+      state.result = null;
+    },
+    clearRecipeJobError: (state) => {
+      state.jobError = null;
+    },
+    clearRecipePantryError: (state) => {
+      state.pantryError = null;
+    },
+    stopRecipePolling: (state) => {
+      state.polling = false;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPantryItemsForRecipes.pending, (state) => {
+        state.pantryLoading = true;
+        state.pantryError = null;
+      })
+      .addCase(fetchPantryItemsForRecipes.fulfilled, (state, action) => {
+        state.pantryLoading = false;
+        state.pantryItems = action.payload.items;
+      })
+      .addCase(fetchPantryItemsForRecipes.rejected, (state, action) => {
+        state.pantryLoading = false;
+        state.pantryError = action.payload ?? "載入食材清單失敗，請稍後再試。";
+      })
+      .addCase(createRecipeRecommendationJob.pending, (state) => {
+        state.creatingJob = true;
+        state.jobError = null;
+        state.result = null;
+      })
+      .addCase(createRecipeRecommendationJob.fulfilled, (state, action) => {
+        state.creatingJob = false;
+        state.polling = true;
+        state.currentJobId = action.payload.job_id;
+        state.jobStatus = action.payload.status;
+      })
+      .addCase(createRecipeRecommendationJob.rejected, (state, action) => {
+        state.creatingJob = false;
+        state.polling = false;
+        state.jobError = action.payload ?? "建立食譜任務失敗，請稍後再試。";
+      })
+      .addCase(fetchRecipeRecommendationJobStatus.fulfilled, (state, action) => {
+        state.currentJobId = action.payload.job_id;
+        state.jobStatus = action.payload.status;
+        if (action.payload.status === "success") {
+          state.result = action.payload.result;
+          state.jobError = null;
+          state.polling = false;
+          return;
+        }
+        if (action.payload.status === "failed") {
+          state.jobError = action.payload.error_message ?? "食譜產生失敗，請稍後再試。";
+          state.result = null;
+          state.polling = false;
+          return;
+        }
+        if (action.payload.status === "cancelled") {
+          state.jobError = "任務已取消，請重新送出需求。";
+          state.result = null;
+          state.polling = false;
+          return;
+        }
+        state.polling = true;
+      })
+      .addCase(fetchRecipeRecommendationJobStatus.rejected, (state, action) => {
+        state.polling = false;
+        state.jobError = action.payload ?? "目前無法查詢任務狀態，請稍後再試。";
+      });
+  },
 });
 
+function toFriendlyRecipeError(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+  const text = error.message.toLowerCase();
+  if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
+    return "網路連線異常，請確認後再試。";
+  }
+  if (text.includes("not found")) {
+    return "找不到任務資料，請重新送出。";
+  }
+  return fallback;
+}
+
+export const { clearRecipeState, clearRecipeJobError, clearRecipePantryError, stopRecipePolling } = recipeSlice.actions;
 export default recipeSlice.reducer;

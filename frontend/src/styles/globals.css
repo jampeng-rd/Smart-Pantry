@@ -746,6 +746,178 @@ body {
   gap: 0.8rem;
 }
 
+.workspace-recipes {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.recipes-form-card,
+.recipes-result-card,
+.recipes-job-status {
+  margin-top: 0;
+}
+
+.recipes-header p {
+  margin: 0.45rem 0 0;
+  color: var(--color-muted);
+}
+
+.recipes-mode-switch {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.recipes-mode-btn {
+  margin-top: 0;
+}
+
+.recipes-mode-btn.active {
+  color: var(--color-accent-active);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
+}
+
+.recipes-section {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.recipes-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.recipes-section-title h3 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.recipes-inline-card {
+  padding: 0.9rem 1rem;
+}
+
+.recipes-pantry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.recipes-pantry-item {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.32rem;
+  cursor: pointer;
+}
+
+.recipes-pantry-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.recipes-pantry-item.checked {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+
+.recipes-pantry-name {
+  font-weight: 600;
+}
+
+.recipes-pantry-meta {
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.recipes-auto-tip {
+  margin-top: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+}
+
+.recipes-auto-tip p {
+  margin: 0;
+}
+
+.recipes-form-grid {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.recipes-form-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.recipes-form-grid input[type="text"],
+.recipes-form-grid input[type="number"] {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.6rem 0.72rem;
+}
+
+.recipes-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recipes-actions {
+  margin-top: 0.25rem;
+}
+
+.recipes-job-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+}
+
+.recipes-job-status p {
+  margin: 0;
+}
+
+.recipes-result-time {
+  color: var(--color-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.recipes-result-card h3,
+.recipes-result-card h4 {
+  margin-top: 0;
+}
+
+.recipes-result-card section + section {
+  margin-top: 0.45rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .expiration-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1360,6 +1532,11 @@ body {
 
   .pantry-add-btn {
     grid-column: span 2;
+  }
+
+  .recipes-pantry-grid,
+  .recipes-form-grid {
+    grid-template-columns: 1fr;
   }
 }
 
