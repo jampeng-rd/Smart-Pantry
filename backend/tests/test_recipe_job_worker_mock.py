@@ -8,7 +8,26 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from ai_server.workers.job_worker import _claim_pending_jobs, _process_recipe_job
+from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationService
 from backend.app.domain.models import AiJob, Base, PantryItem, User
+
+
+class FakeRecipeLlmClient:
+    """測試用假 LLM client。"""
+
+    def __init__(self, response_text: str):
+        """設定固定回傳內容。"""
+        self.response_text = response_text
+
+    def generate_recipe_json(self, prompt: str) -> str:
+        """回傳預設字串。"""
+        _ = prompt
+        return self.response_text
+
+
+def _make_recipe_service(response_text: str) -> RecipeRecommendationService:
+    """建立可注入固定回傳的 recipe service。"""
+    return RecipeRecommendationService(llm_client=FakeRecipeLlmClient(response_text=response_text))
 
 
 def _make_session() -> Session:
@@ -46,7 +65,10 @@ def test_selected_items_job_processed_to_success() -> None:
 
     jobs = _claim_pending_jobs(db=db, batch_size=5)
     assert len(jobs) == 1
-    _process_recipe_job(db=db, job=jobs[0])
+    recipe_service = _make_recipe_service(
+        '{"recipe_name":"雞蛋豆腐","ingredients_used":["雞蛋"],"missing_ingredients":["鹽"],"steps":["攪拌","拌炒"],"cooking_time_minutes":15,"note":"僅供生活參考"}'
+    )
+    _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
 
     job = db.get(AiJob, jobs[0].id)
     assert job is not None
@@ -90,7 +112,10 @@ def test_auto_from_pantry_job_processed_to_success() -> None:
     db.commit()
 
     jobs = _claim_pending_jobs(db=db, batch_size=5)
-    _process_recipe_job(db=db, job=jobs[0])
+    recipe_service = _make_recipe_service(
+        '{"recipe_name":"豆腐家常料理","ingredients_used":["豆腐"],"missing_ingredients":["蒜頭"],"steps":["切塊","拌炒"],"cooking_time_minutes":25,"note":"僅供生活參考"}'
+    )
+    _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
 
     job = db.get(AiJob, jobs[0].id)
     assert job is not None
@@ -126,7 +151,10 @@ def test_auto_from_pantry_failed_when_no_available_items_with_chinese_message() 
     db.commit()
 
     jobs = _claim_pending_jobs(db=db, batch_size=5)
-    _process_recipe_job(db=db, job=jobs[0])
+    recipe_service = _make_recipe_service(
+        '{"recipe_name":"測試","ingredients_used":[],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":10,"note":"僅供生活參考"}'
+    )
+    _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
 
     job = db.get(AiJob, jobs[0].id)
     assert job is not None
@@ -164,7 +192,10 @@ def test_worker_does_not_cross_user_use_pantry_data() -> None:
     db.commit()
 
     jobs = _claim_pending_jobs(db=db, batch_size=5)
-    _process_recipe_job(db=db, job=jobs[0])
+    recipe_service = _make_recipe_service(
+        '{"recipe_name":"測試","ingredients_used":[],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":10,"note":"僅供生活參考"}'
+    )
+    _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
 
     job = db.get(AiJob, jobs[0].id)
     assert job is not None
@@ -172,9 +203,28 @@ def test_worker_does_not_cross_user_use_pantry_data() -> None:
     assert "目前沒有可用食材" in (job.error_message or "")
 
 
-def test_worker_module_has_no_ollama_usage() -> None:
-    """本階段 worker 模組不應呼叫 Ollama。"""
-    source_text = open("ai_server/workers/job_worker.py", "r", encoding="utf-8").read()
-    assert "ollama" not in source_text.lower()
-    assert "chatollama" not in source_text.lower()
+def test_invalid_llm_payload_should_fail_with_chinese_error_message() -> None:
+    """LLM 回傳非 JSON 時，job 應 failed 並帶中文錯誤。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="recipe_recommendation",
+            status="pending",
+            input_snapshot={
+                "recommendation_mode": "selected_items",
+                "resolved_pantry_items": [{"id": 10, "name": "雞蛋", "status": "normal"}],
+            },
+        )
+    )
+    db.commit()
 
+    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    recipe_service = _make_recipe_service("這不是 JSON")
+    _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
+
+    job = db.get(AiJob, jobs[0].id)
+    assert job is not None
+    assert job.status == "failed"
+    assert "無法解析" in (job.error_message or "")

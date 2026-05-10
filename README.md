@@ -19,7 +19,7 @@ Phase 06-6C：前端共用元件盤點與小幅整理 ✅
 Phase 07：CI/CD 與部署 ⏳
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
-Phase 08-2：AI 食譜推薦 LangChain + Ollama ⏳
+Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 09：發票 / 收據 OCR 匯入 ⏳
 Phase 10：食材照片辨識 ⏳
 Phase 11：餐點營養粗估 ⏳
@@ -290,6 +290,18 @@ AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認�
 - 成功時 `result` 會寫入 `recipe_name/ingredients_used/missing_ingredients/steps/cooking_time_minutes/note`。
 - frontend 仍只透過 backend 查詢 `GET /recipes/recommendation-jobs/{job_id}`，不直連 `ai_server`。
 - 本階段未呼叫 Ollama、未接 LangChain。
+
+## Phase 08-2：AI 食譜推薦 LangChain + Ollama
+
+已完成：
+- `ai_worker` 在處理 `recipe_recommendation` job 時，改由 `RecipeRecommendationService` + `OllamaRecipeLlmClient` 產生推薦結果。
+- `ChatOllama` 呼叫集中在 `ai_server/app/clients/recipe_llm_client.py`，API route 與 backend service 未直接呼叫 LangChain/Ollama。
+- worker 維持 job-based 非同步流程：`pending -> running -> success/failed`。
+- `selected_items` 仍只使用 `input_snapshot.resolved_pantry_items`。
+- `auto_from_pantry` 仍僅查 job 所屬 `user_id` 的 pantry，排除 expired。
+- result 格式維持相容：`recipe_name/ingredients_used/missing_ingredients/steps/cooking_time_minutes/note`。
+- LLM 回傳非 JSON、缺欄位、型別錯誤或解析失敗時，job 會 `failed` 並回中文友善錯誤訊息。
+- frontend 仍沿用既有建立 job / 查詢 job API，沒有新增 frontend 直連 ai_server。
 - frontend 不直接呼叫 `ai_server/`，只呼叫 backend。
 - `ai_server/` 不直接暴露為一般使用者公開 API。
 - backend 不同步等待 AI 推論結果。

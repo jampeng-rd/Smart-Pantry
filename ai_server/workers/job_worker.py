@@ -1,4 +1,4 @@
-"""AI job DB polling worker（Phase 08-1 mock recipe handler）。"""
+"""AI job DB polling worker（Phase 08-2 LangChain + Ollama）。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,9 @@ from typing import Any
 from sqlalchemy import and_, asc, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from ai_server.app.clients.recipe_llm_client import OllamaRecipeLlmClient
 from ai_server.app.infra.settings import get_settings
+from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationError, RecipeRecommendationService
 from backend.app.domain.models.ai_job_model import AiJob
 from backend.app.domain.models.pantry_item_model import PantryItem
 from backend.app.infra.database import engine as backend_engine
@@ -44,28 +46,6 @@ def _to_pantry_snapshot(item: PantryItem) -> dict[str, Any]:
         "unit": item.unit,
         "expiration_date": item.expiration_date.isoformat() if item.expiration_date else None,
         "status": _get_item_status(item.expiration_date),
-    }
-
-
-def _build_mock_recipe_result(job: AiJob, pantry_items: list[dict[str, Any]]) -> dict[str, Any]:
-    """建立 mock recipe recommendation 結果。"""
-    item_names = [item["name"] for item in pantry_items]
-    picked_ingredients = item_names[: min(3, len(item_names))]
-
-    cooking_time_minutes = job.input_snapshot.get("cooking_time_minutes") or 20
-    missing_ingredients = ["鹽", "食用油"]
-
-    return {
-        "recipe_name": f"{picked_ingredients[0] if picked_ingredients else '家常'}快炒",
-        "ingredients_used": picked_ingredients,
-        "missing_ingredients": missing_ingredients,
-        "steps": [
-            "將主要食材清洗並切成適合入口大小。",
-            "熱鍋後加入少量食用油，先下較耐炒食材。",
-            "加入其餘食材與調味料拌炒至熟，起鍋即可。",
-        ],
-        "cooking_time_minutes": cooking_time_minutes,
-        "note": "此為 Phase 08-1 Mock 結果，僅供流程驗證與 UI 串接測試。",
     }
 
 
@@ -112,7 +92,7 @@ def _claim_pending_jobs(db: Session, batch_size: int) -> list[AiJob]:
     return claimed
 
 
-def _process_recipe_job(db: Session, job: AiJob) -> None:
+def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommendationService) -> None:
     """處理單筆 recipe_recommendation job，並寫回 success/failed。"""
     try:
         snapshot = job.input_snapshot or {}
@@ -132,9 +112,15 @@ def _process_recipe_job(db: Session, job: AiJob) -> None:
         else:
             raise ValueError("不支援的食譜推薦模式，請重新建立任務。")
 
-        job.result = _build_mock_recipe_result(job=job, pantry_items=candidates)
+        job.result = recipe_service.recommend(input_snapshot=snapshot, pantry_items=candidates)
         job.status = "success"
         job.error_message = None
+        job.finished_at = datetime.now(timezone.utc)
+        db.add(job)
+        db.commit()
+    except RecipeRecommendationError as exc:
+        job.status = "failed"
+        job.error_message = str(exc)
         job.finished_at = datetime.now(timezone.utc)
         db.add(job)
         db.commit()
@@ -156,13 +142,14 @@ def _process_recipe_job(db: Session, job: AiJob) -> None:
 def poll_once() -> None:
     """執行一次 polling 週期並處理一批 pending recipe jobs。"""
     settings = get_settings()
+    recipe_service = RecipeRecommendationService(llm_client=OllamaRecipeLlmClient())
     with SessionLocal() as db:
         jobs = _claim_pending_jobs(db=db, batch_size=settings.ai_worker_batch_size)
         if not jobs:
             return
         LOGGER.info("poll once claimed %s recipe jobs", len(jobs))
         for job in jobs:
-            _process_recipe_job(db=db, job=job)
+            _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
 
 
 def run_forever() -> None:
