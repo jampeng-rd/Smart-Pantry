@@ -26,9 +26,9 @@ export const fetchPantryItemsForRecipes = createAsyncThunk<PantryListData, void,
   "recipes/fetchPantryItemsForRecipes",
   async (_, { rejectWithValue }) => {
     try {
-      return await pantryApi.list({ page: 1, page_size: 200, sort: "expiration_date" });
+      return await pantryApi.list({ page: 1, page_size: 100, sort: "expiration_date" });
     } catch (error) {
-      return rejectWithValue(toFriendlyRecipeError(error, "目前無法載入食材清單，請稍後再試。"));
+      return rejectWithValue(toFriendlyRecipeError(error, "目前無法載入食材清單，請稍後再試。", "pantry_list"));
     }
   },
 );
@@ -42,7 +42,7 @@ export const createRecipeRecommendationJob = createAsyncThunk<
   try {
     return await recipesApi.createRecommendationJob(payload);
   } catch (error) {
-    return rejectWithValue(toFriendlyRecipeError(error, "建立食譜任務失敗，請稍後再試。"));
+    return rejectWithValue(toFriendlyRecipeError(error, "建立食譜任務失敗，請稍後再試。", "recipe_job_create"));
   }
 });
 
@@ -55,7 +55,7 @@ export const fetchRecipeRecommendationJobStatus = createAsyncThunk<
   try {
     return await recipesApi.getRecommendationJobStatus(jobId);
   } catch (error) {
-    return rejectWithValue(toFriendlyRecipeError(error, "目前無法查詢任務狀態，請稍後再試。"));
+    return rejectWithValue(toFriendlyRecipeError(error, "目前無法查詢任務狀態，請稍後再試。", "recipe_job_status"));
   }
 });
 
@@ -142,16 +142,31 @@ const recipeSlice = createSlice({
   },
 });
 
-function toFriendlyRecipeError(error: unknown, fallback: string): string {
+function toFriendlyRecipeError(error: unknown, fallback: string, scope: "pantry_list" | "recipe_job_create" | "recipe_job_status"): string {
   if (!(error instanceof Error)) {
     return fallback;
   }
   const text = error.message.toLowerCase();
   if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
-    return "網路連線異常，請確認後再試。";
+    return "網路連線異常，請檢查後端服務或網路後重試。";
   }
-  if (text.includes("not found")) {
+  if (text.includes("not found") && scope !== "pantry_list") {
     return "找不到任務資料，請重新送出。";
+  }
+  if (text.includes("page_size") || text.includes("validation") || text.includes("422")) {
+    if (scope === "pantry_list") {
+      return "食材清單參數不符合後端限制，請重新整理後再試。";
+    }
+    return "輸入條件格式不正確，請檢查後再送出。";
+  }
+  if (text.includes("401") || text.includes("token") || text.includes("未登入")) {
+    return "登入狀態已失效，請重新登入後再試。";
+  }
+  if (text.includes("403")) {
+    return "你沒有權限執行此操作。";
+  }
+  if (text.includes("500") || text.includes("internal")) {
+    return "伺服器暫時忙碌，請稍後再試。";
   }
   return fallback;
 }

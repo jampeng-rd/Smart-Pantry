@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { FiAlertCircle, FiBookOpen, FiCheckCircle, FiClock, FiLoader, FiRefreshCw, FiSend, FiTag } from "react-icons/fi";
+import { FiAlertCircle, FiBookOpen, FiCheckCircle, FiClock, FiLoader, FiMinus, FiPlus, FiRefreshCw, FiSend, FiTag } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { EmptyState } from "../components/common/EmptyState";
@@ -110,6 +110,18 @@ export function RecipesPage() {
     ).unwrap();
   };
 
+  const onDecreaseCookingTime = () => {
+    const parsed = Number.parseInt(cookingTimeMinutes, 10);
+    const safeValue = Number.isInteger(parsed) ? parsed : 1;
+    setCookingTimeMinutes(String(Math.max(1, safeValue - 1)));
+  };
+
+  const onIncreaseCookingTime = () => {
+    const parsed = Number.parseInt(cookingTimeMinutes, 10);
+    const safeValue = Number.isInteger(parsed) ? parsed : 0;
+    setCookingTimeMinutes(String(Math.max(1, safeValue + 1)));
+  };
+
   return (
     <section className="workspace-recipes">
       <form className="card recipes-form-card" noValidate onSubmit={(event) => void onSubmit(event)}>
@@ -197,14 +209,22 @@ export function RecipesPage() {
         <div className="recipes-form-grid">
           <label>
             料理時間（分鐘）*
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={cookingTimeMinutes}
-              onChange={(event) => setCookingTimeMinutes(event.target.value)}
-              placeholder="例如 30"
-            />
+            <div className="recipes-time-control">
+              <button type="button" className="btn ghost recipes-time-btn" aria-label="減少料理時間" onClick={onDecreaseCookingTime}>
+                <FiMinus aria-hidden="true" />
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={cookingTimeMinutes}
+                onChange={(event) => setCookingTimeMinutes(event.target.value.replace(/[^\d]/g, ""))}
+                placeholder="例如 30"
+              />
+              <button type="button" className="btn ghost recipes-time-btn" aria-label="增加料理時間" onClick={onIncreaseCookingTime}>
+                <FiPlus aria-hidden="true" />
+              </button>
+            </div>
           </label>
           <label>
             料理工具（逗號分隔）
