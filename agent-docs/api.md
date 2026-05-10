@@ -187,3 +187,17 @@ request 補充：
 ### （未來可類推）GET /nutrition/estimate-jobs/{job_id}
 
 查詢營養粗估 job 狀態與結果。
+
+
+## AI Job API 共通規則
+
+Phase 08～11 AI 功能統一採 job-based API：
+
+- POST 建立 job
+- GET 查詢 job status/result
+- backend 建立 job 後立即回傳
+- frontend 只呼叫 backend
+- job 查詢必須驗證 user_id
+- pending/running 時 result 可為 null
+- failed 必須回中文友善 error_message
+- 不可暴露 traceback

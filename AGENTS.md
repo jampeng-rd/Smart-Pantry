@@ -188,3 +188,43 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 策略：
 - Phase 08～11 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
+
+
+## 12.1 AI 功能階段完成門檻（Phase 08～11）
+
+Phase 08～11 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。
+
+每個 AI 功能階段至少需包含：
+1. backend job API：建立 job、查詢 job status/result，並驗證 user_id 權限。
+2. ai_worker：claim pending job、執行 AI/mock、寫回 success/failed。
+3. frontend feature UI：建立 job、輪詢 job、顯示 pending/running/success/failed。
+4. 使用者確認流程：AI/OCR/Vision 候選資料不可直接寫入正式資料。
+5. 測試：backend 單元測試、fake worker 測試、frontend build。
+6. 文件：更新 docs/phase-xx-*.md 與 README。
+7. 手動整合驗收：backend + frontend + ai_worker + Ollama 可完整操作。
+8. 通過上述驗收後，才能進入下一個 Phase。
+
+### Phase 08：AI 食譜推薦完整功能
+
+- Phase 08-0：AI Server / AI Job 架構初始化
+- Phase 08-1：AI 食譜推薦 Mock Worker
+- Phase 08-2：AI 食譜推薦 LangChain + Ollama
+- Phase 08-3：Recipes 前端 UI 串接
+
+### Phase 09：OCR 完整功能
+
+- Phase 09-1：OCR Job API + Storage + Mock Worker
+- Phase 09-2：OCR / LLM 候選食材整理
+- Phase 09-3：OCR 前端 UI + 使用者確認後寫入 Pantry
+
+### Phase 10：食材照片辨識完整功能
+
+- Phase 10-1：Ingredient Photo Job API + Mock Worker
+- Phase 10-2：Vision Model 候選食材辨識
+- Phase 10-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
+
+### Phase 11：營養粗估完整功能
+
+- Phase 11-1：Nutrition Job API + Mock Worker
+- Phase 11-2：Vision/Text Model 營養粗估
+- Phase 11-3：Nutrition 前端 UI + 生活參考聲明

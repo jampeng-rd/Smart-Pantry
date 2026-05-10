@@ -217,3 +217,32 @@ Phase 06 必須拆分：
 - timezone display
 - responsive fixes
 - 路由整理（登入/註冊/已登入首頁導向 `/pantry`）
+
+
+## AI 功能前端完成標準（Phase 08～11）
+
+Recipes、OCR、Nutrition 頁不可只保留 placeholder。進行對應 AI 階段時，必須完成實際 UI 與 backend job API 串接。
+
+AI job frontend 共通流程：
+1. frontend 呼叫 backend 建立 job
+2. 顯示 pending/running
+3. 前端 polling backend job status
+4. success 後顯示 result
+5. failed 後顯示中文友善錯誤
+6. component unmount 時停止 polling
+7. frontend 不可直接呼叫 ai_server
+
+Recipes UI：
+- selected_items
+- auto_from_pantry
+- recipe result UI
+- cooking tools / allergies / diet preference
+
+OCR UI：
+- receipt upload
+- OCR candidate items
+- 使用者確認後寫入 pantry
+
+Nutrition UI：
+- nutrition estimate result
+- AI 生活參考聲明

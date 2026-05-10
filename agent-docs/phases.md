@@ -180,3 +180,61 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 
 文件：
 - docs/phase-06-6-frontend-integration-ux.md
+
+## Phase 08：AI 食譜推薦完整功能
+
+### Phase 08-0：AI Server / AI Job 架構初始化
+
+建立 ai_jobs、backend job API、ai_worker skeleton。
+
+### Phase 08-1：AI 食譜推薦 Mock Worker
+
+使用 fake worker 驗證 job-based 流程。
+
+### Phase 08-2：AI 食譜推薦 LangChain + Ollama
+
+worker 改用 LangChain + Ollama 產生推薦結果。
+
+### Phase 08-3：Recipes 前端 UI 串接
+
+完成：
+- Recipes 頁面
+- 建立 recommendation job
+- frontend polling
+- pending/running/success/failed UI
+- result 顯示
+- 中文友善錯誤
+- selected_items / auto_from_pantry UI
+- 不直連 ai_server
+
+完成標準：backend + worker + frontend UI + 手動驗收皆完成。
+
+## Phase 09：OCR 完整功能
+
+### Phase 09-1：OCR Job API + Storage + Mock Worker
+
+### Phase 09-2：OCR / LLM 候選食材整理
+
+### Phase 09-3：OCR 前端 UI + 使用者確認寫入 Pantry
+
+完成標準：
+- 上傳圖片
+- frontend polling
+- 顯示候選食材
+- 使用者確認後才寫入 pantry
+
+## Phase 10：食材照片辨識完整功能
+
+### Phase 10-1：Ingredient Photo Job API + Mock Worker
+
+### Phase 10-2：Vision Model 食材辨識
+
+### Phase 10-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
+
+## Phase 11：營養粗估完整功能
+
+### Phase 11-1：Nutrition Job API + Mock Worker
+
+### Phase 11-2：Vision/Text Model 營養粗估
+
+### Phase 11-3：Nutrition 前端 UI + 生活參考聲明

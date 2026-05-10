@@ -20,9 +20,16 @@ Phase 07：CI/CD 與部署 ⏳
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
-Phase 09：發票 / 收據 OCR 匯入 ⏳
-Phase 10：食材照片辨識 ⏳
-Phase 11：餐點營養粗估 ⏳
+Phase 08-3：Recipes 前端 UI 串接 ⏳
+Phase 09-1：OCR Job API + Storage + Mock Worker ⏳
+Phase 09-2：OCR / LLM 候選食材整理 ⏳
+Phase 09-3：OCR 前端 UI + 使用者確認寫入 Pantry ⏳
+Phase 10-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
+Phase 10-2：Vision Model 食材候選辨識 ⏳
+Phase 10-3：食材照片前端 UI + 使用者確認寫入 Pantry ⏳
+Phase 11-1：營養粗估 Job API + Mock Worker ⏳
+Phase 11-2：Vision/Text Model 營養粗估 ⏳
+Phase 11-3：Nutrition 前端 UI + 生活參考聲明 ⏳
 Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
@@ -380,3 +387,21 @@ docker-compose 後續規劃：
 ## 效能與擴充性
 
 開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～11 先採 `ai_jobs` + DB polling worker，Phase 12 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
+
+
+## AI 階段完成門檻（Phase 08～11）
+
+Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必須達成「前後端完整可操作」後，才能進入下一階段。
+
+每個 AI 階段至少需完成：
+
+1. backend job API
+2. ai_worker / LangChain / Vision / OCR 流程
+3. frontend UI 與 polling
+4. pending/running/success/failed 狀態 UI
+5. 使用者確認流程
+6. backend 測試 + frontend build
+7. docs 與 README 更新
+8. 手動整合驗收（backend + frontend + worker + Ollama）
+
+frontend 不可直接呼叫 ai_server，只能透過 backend job API。

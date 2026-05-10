@@ -73,3 +73,26 @@ npm run build
 - 測試 `source_pantry_item_id` 僅做來源關聯，不會自動更新 pantry。
 - 測試標記 `is_purchased=true` 只更新 shopping item 狀態與 `purchased_at`。
 - 若未來新增 convert-to-pantry API，需測必填欄位確認流程（`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`）。
+
+
+## Phase 08～11 全端驗收要求
+
+Backend / Worker：
+- job 建立
+- pending -> running -> success
+- failed + 中文 error_message
+- user_id 權限隔離
+- fake worker / fake AI client 測試
+
+Frontend：
+- npm run build
+- 可建立 job
+- 顯示 pending/running/success/failed
+- 停止 polling
+- 中文友善錯誤
+- 不直連 ai_server
+
+Manual E2E：
+- backend + frontend + ai_worker + Ollama 啟動
+- 成功流程驗證
+- 失敗流程驗證
