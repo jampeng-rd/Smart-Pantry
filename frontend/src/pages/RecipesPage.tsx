@@ -56,6 +56,11 @@ export function RecipesPage() {
       return;
     }
 
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     intervalRef.current = window.setInterval(() => {
       void dispatch(fetchRecipeRecommendationJobStatus(currentJobId));
     }, POLLING_INTERVAL_MS);
@@ -67,6 +72,15 @@ export function RecipesPage() {
       }
     };
   }, [dispatch, polling, currentJobId]);
+
+  useEffect(() => {
+    if (!currentJobId) {
+      return;
+    }
+    if (jobStatus === "pending" || jobStatus === "running") {
+      void dispatch(fetchRecipeRecommendationJobStatus(currentJobId));
+    }
+  }, [dispatch, currentJobId, jobStatus]);
 
   useEffect(() => {
     const workspace = sectionRef.current?.closest(".workspace");
