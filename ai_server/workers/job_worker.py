@@ -14,7 +14,11 @@ from sqlalchemy.orm import Session, sessionmaker
 from ai_server.app.clients.ingredient_vision_client import OllamaIngredientVisionClient
 from ai_server.app.clients.recipe_llm_client import OllamaRecipeLlmClient
 from ai_server.app.infra.settings import get_settings
-from ai_server.app.services.ingredient_photo_recognition_service import IngredientPhotoRecognitionError, IngredientPhotoRecognitionService
+from ai_server.app.services.ingredient_photo_recognition_service import (
+    INGREDIENT_PHOTO_TIMEOUT_MESSAGE,
+    IngredientPhotoRecognitionError,
+    IngredientPhotoRecognitionService,
+)
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationError, RecipeRecommendationService
 from backend.app.domain.models.ai_job_model import AiJob
 from backend.app.domain.models.pantry_item_model import PantryItem
@@ -97,7 +101,7 @@ def _fail_stale_running_jobs(db: Session, enabled_job_types: list[str], timeout_
     now = datetime.now(timezone.utc)
     for job in stale_jobs:
         job.status = "failed"
-        job.error_message = "食材照片辨識逾時，請稍後再試。"
+        job.error_message = INGREDIENT_PHOTO_TIMEOUT_MESSAGE
         job.finished_at = now
         db.add(job)
     db.commit()

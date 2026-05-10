@@ -11,6 +11,7 @@ from typing import Any
 from ai_server.app.clients.ingredient_vision_client import IngredientVisionClientProtocol, IngredientVisionTimeoutError
 
 LOGGER = logging.getLogger(__name__)
+INGREDIENT_PHOTO_TIMEOUT_MESSAGE = "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
 
 
 class IngredientPhotoRecognitionError(Exception):
@@ -38,7 +39,7 @@ class IngredientPhotoRecognitionService:
             raw_text = self.vision_client.recognize_ingredient_candidates(prompt=prompt, image_path=image_path)
             LOGGER.info("ingredient photo vision raw_text length=%s", len(raw_text))
         except IngredientVisionTimeoutError as exc:
-            raise IngredientPhotoRecognitionError("食材照片辨識逾時，請稍後再試。") from exc
+            raise IngredientPhotoRecognitionError(INGREDIENT_PHOTO_TIMEOUT_MESSAGE) from exc
         except FileNotFoundError as exc:
             raise IngredientPhotoRecognitionError("找不到要辨識的圖片，請重新上傳後再試。") from exc
         except Exception as exc:

@@ -422,7 +422,7 @@ def test_ingredient_photo_job_timeout_failed_with_friendly_message() -> None:
     job = db.get(AiJob, claimed[0].id)
     assert job is not None
     assert job.status == "failed"
-    assert job.error_message == "食材照片辨識逾時，請稍後再試。"
+    assert job.error_message == "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
     Path(image_path).unlink(missing_ok=True)
 
 
@@ -448,4 +448,4 @@ def test_stale_running_job_should_be_marked_failed() -> None:
     job = db.query(AiJob).one()
     assert job.status == "failed"
     assert job.finished_at is not None
-    assert job.error_message == "食材照片辨識逾時，請稍後再試。"
+    assert job.error_message == "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"

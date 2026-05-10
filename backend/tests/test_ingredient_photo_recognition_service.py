@@ -115,7 +115,7 @@ def test_recognition_timeout_should_fail_with_friendly_message(tmp_path: Path) -
     with pytest.raises(IngredientPhotoRecognitionError) as exc:
         service.recognize(str(image_path))
 
-    assert str(exc.value) == "食材照片辨識逾時，請稍後再試。"
+    assert str(exc.value) == "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
 
 
 def test_recognition_empty_content_should_fail(tmp_path: Path) -> None:

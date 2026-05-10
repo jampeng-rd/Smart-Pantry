@@ -398,15 +398,23 @@ worker 啟動示例：
 
 已完成：
 - `ingredient_photo` worker 從固定 mock 候選改為 Vision 推論流程。
-- 新增 `ai_server/app/clients/ingredient_vision_client.py`（LangChain + Ollama Vision 封裝）。
-- 新增 `ai_server/app/services/ingredient_photo_recognition_service.py`（prompt、JSON parsing、欄位驗證、中文錯誤轉換）。
+- 新增 `ai_server/app/clients/ingredient_vision_client.py`（Ollama Python client Vision 封裝）。
+- 新增 `ai_server/app/services/ingredient_photo_recognition_service.py`（輕量 prompt、JSON optional + 文字 fallback 解析、中文錯誤轉換）。
 - worker 讀取 `input_snapshot.image_path`，經 service 產生 `candidate_items + note` 相容格式。
-- Vision 輸出錯誤（非 JSON/缺欄位/圖片不存在/模型異常）時，job 會 `failed` 且回中文友善訊息。
+- Vision timeout/stale running job 會標記 `failed`，訊息為：
+  `食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。`
 
 仍維持：
 - 不直接寫入 `pantry_items`（使用者確認流程留在 Phase 09-3）。
 - `job_type` 隔離策略，`ingredient_photo` worker 不應拖慢 `recipe_recommendation` worker。
 - backend 不同步等待 Vision、frontend 不直連 `ai_server`。
+
+MVP 使用範圍與注意事項：
+- 本階段主要支援單一或少量未加工食材辨識。
+- 複雜場景可能增加 Vision 推論時間與 timeout 風險。
+- 不建議使用整桌料理、冰箱全景、多人餐點、過多品項照片做食材庫存匯入。
+- `candidate_items` 是 AI 候選結果，需在 Phase 09-3 使用者確認後才可寫入 pantry。
+- 整桌料理/餐點照片更適合後續 Nutrition 階段，非本階段主要目標。
 
 ## AI Queue 階段策略
 
@@ -433,6 +441,7 @@ AI_WORKER_POLL_INTERVAL_SECONDS=5
 AI_WORKER_BATCH_SIZE=1
 AI_WORKER_JOB_TYPES=recipe_recommendation
 AI_JOB_TIMEOUT_SECONDS=300
+AI_VISION_TIMEOUT_SECONDS=60
 OLLAMA_BASE_URL=http://localhost:11434
 LLM_TEXT_MODEL=qwen2.5:7b
 LLM_VISION_MODEL=qwen3-vl:8b
