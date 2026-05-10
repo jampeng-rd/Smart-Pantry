@@ -34,6 +34,11 @@ export function RecipesPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const intervalRef = useRef<number | null>(null);
+  const statusRef = useRef<HTMLDivElement | null>(null);
+  const feedbackRef = useRef<HTMLDivElement | null>(null);
+  const previousJobStatusRef = useRef<string | null>(null);
+  const previousHasResultRef = useRef(false);
+  const previousHasErrorRef = useRef(false);
 
   useEffect(() => {
     void dispatch(fetchPantryItemsForRecipes());
@@ -68,6 +73,23 @@ export function RecipesPage() {
       dispatch(stopRecipePolling());
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    if ((jobStatus === "pending" || jobStatus === "running") && previousJobStatusRef.current !== jobStatus) {
+      statusRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    previousJobStatusRef.current = jobStatus;
+  }, [jobStatus]);
+
+  useEffect(() => {
+    const hasResult = Boolean(result);
+    const hasError = Boolean(jobError);
+    if ((hasResult && !previousHasResultRef.current) || (hasError && !previousHasErrorRef.current)) {
+      feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    previousHasResultRef.current = hasResult;
+    previousHasErrorRef.current = hasError;
+  }, [result, jobError]);
 
   const isPantryEmpty = useMemo(() => !pantryLoading && !pantryError && pantryItems.length === 0, [pantryItems.length, pantryLoading, pantryError]);
   const pendingMessage = useMemo(() => {
@@ -174,21 +196,24 @@ export function RecipesPage() {
               />
             ) : null}
             {!pantryLoading && !pantryError && pantryItems.length > 0 ? (
-              <div className="recipes-pantry-grid">
+              <div className="recipes-pantry-scroll">
+                <div className="recipes-pantry-grid">
                 {pantryItems.map((item) => {
                   const checked = selectedItemIds.includes(item.id);
                   return (
                     <label key={item.id} className={`recipes-pantry-item ${checked ? "checked" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(event) => {
-                          setSelectedItemIds((prev) =>
-                            event.target.checked ? [...prev, item.id] : prev.filter((selectedId) => selectedId !== item.id),
-                          );
-                        }}
-                      />
-                      <span className="recipes-pantry-name">{item.name}</span>
+                      <span className="recipes-pantry-item-header">
+                        <span className="recipes-pantry-name">{item.name}</span>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(event) => {
+                            setSelectedItemIds((prev) =>
+                              event.target.checked ? [...prev, item.id] : prev.filter((selectedId) => selectedId !== item.id),
+                            );
+                          }}
+                        />
+                      </span>
                       <span className="recipes-pantry-meta">
                         {item.category} | {item.quantity} {item.unit}
                       </span>
@@ -196,6 +221,7 @@ export function RecipesPage() {
                     </label>
                   );
                 })}
+                </div>
               </div>
             ) : null}
           </div>
@@ -210,9 +236,6 @@ export function RecipesPage() {
           <label>
             料理時間（分鐘）*
             <div className="recipes-time-control">
-              <button type="button" className="btn ghost recipes-time-btn" aria-label="減少料理時間" onClick={onDecreaseCookingTime}>
-                <FiMinus aria-hidden="true" />
-              </button>
               <input
                 type="text"
                 inputMode="numeric"
@@ -221,9 +244,14 @@ export function RecipesPage() {
                 onChange={(event) => setCookingTimeMinutes(event.target.value.replace(/[^\d]/g, ""))}
                 placeholder="例如 30"
               />
-              <button type="button" className="btn ghost recipes-time-btn" aria-label="增加料理時間" onClick={onIncreaseCookingTime}>
-                <FiPlus aria-hidden="true" />
-              </button>
+              <span className="recipes-time-buttons">
+                <button type="button" className="btn ghost recipes-time-btn" aria-label="減少料理時間" onClick={onDecreaseCookingTime}>
+                  <FiMinus aria-hidden="true" />
+                </button>
+                <button type="button" className="btn ghost recipes-time-btn" aria-label="增加料理時間" onClick={onIncreaseCookingTime}>
+                  <FiPlus aria-hidden="true" />
+                </button>
+              </span>
             </div>
           </label>
           <label>
@@ -253,14 +281,14 @@ export function RecipesPage() {
               placeholder="例如 花生, 蝦"
             />
           </label>
-          <label className="recipes-checkbox-label">
+          <div className="recipes-priority-row">
+            <span>優先使用即將過期食材</span>
             <input
               type="checkbox"
               checked={prioritizeExpiringSoon}
               onChange={(event) => setPrioritizeExpiringSoon(event.target.checked)}
             />
-            優先使用即將過期食材
-          </label>
+          </div>
         </div>
 
         {formError ? <p className="pantry-field-error">{formError}</p> : null}
@@ -274,23 +302,25 @@ export function RecipesPage() {
       </form>
 
       {pendingMessage ? (
-        <div className="card recipes-job-status" role="status">
+        <div className="card recipes-job-status" role="status" ref={statusRef}>
           <FiClock aria-hidden="true" />
           <p>{pendingMessage}</p>
         </div>
       ) : null}
 
       {jobError ? (
-        <ErrorState
-          message={jobError}
-          className="card pantry-error"
-          actionsClassName="pantry-error-actions"
-          onClose={() => dispatch(clearRecipeJobError())}
-        />
+        <div ref={feedbackRef}>
+          <ErrorState
+            message={jobError}
+            className="card pantry-error"
+            actionsClassName="pantry-error-actions"
+            onClose={() => dispatch(clearRecipeJobError())}
+          />
+        </div>
       ) : null}
 
       {result ? (
-        <article className="card recipes-result-card">
+        <article className="card recipes-result-card" ref={feedbackRef}>
           <h3>{result.recipe_name}</h3>
           <p className="recipes-result-time">
             <FiClock aria-hidden="true" /> 估計料理時間：{result.cooking_time_minutes} 分鐘
