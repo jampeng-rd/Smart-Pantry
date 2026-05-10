@@ -39,6 +39,7 @@ export function RecipesPage() {
   const previousJobStatusRef = useRef<string | null>(null);
   const previousHasResultRef = useRef(false);
   const previousHasErrorRef = useRef(false);
+  const previousResetStatusRef = useRef<string | null>(null);
 
   useEffect(() => {
     void dispatch(fetchPantryItemsForRecipes());
@@ -90,6 +91,20 @@ export function RecipesPage() {
     previousHasResultRef.current = hasResult;
     previousHasErrorRef.current = hasError;
   }, [result, jobError]);
+
+  useEffect(() => {
+    if (jobStatus === "success" && previousResetStatusRef.current !== "success") {
+      setSelectedItemIds([]);
+      setRecommendationMode("selected_items");
+      setCookingTimeMinutes("30");
+      setCookingToolsText("");
+      setDietPreference("");
+      setAllergiesText("");
+      setPrioritizeExpiringSoon(true);
+      setFormError(null);
+    }
+    previousResetStatusRef.current = jobStatus;
+  }, [jobStatus]);
 
   const isPantryEmpty = useMemo(() => !pantryLoading && !pantryError && pantryItems.length === 0, [pantryItems.length, pantryLoading, pantryError]);
   const pendingMessage = useMemo(() => {
@@ -148,10 +163,10 @@ export function RecipesPage() {
     <section className="workspace-recipes">
       <form className="card recipes-form-card" noValidate onSubmit={(event) => void onSubmit(event)}>
         <header className="recipes-header">
-          <h2 className="workspace-title">
+          {/* <h2 className="workspace-title">
             <FiBookOpen aria-hidden="true" /> AI 食譜建議
-          </h2>
-          <p>建立任務後會由後端背景處理，完成後自動顯示結果。</p>
+          </h2> */}
+          <p>食譜推薦任務完成後將自動顯示結果</p>
         </header>
 
         <div className="recipes-mode-switch" role="group" aria-label="推薦模式">

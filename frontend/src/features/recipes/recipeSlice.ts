@@ -148,7 +148,7 @@ function toFriendlyRecipeError(error: unknown, fallback: string, scope: "pantry_
   }
   const text = error.message.toLowerCase();
   if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
-    return "網路連線異常，請檢查後端服務或網路後重試。";
+    return "網路連線異常，請檢查網路後重試。";
   }
   if (text.includes("not found") && scope !== "pantry_list") {
     return "找不到任務資料，請重新送出。";
