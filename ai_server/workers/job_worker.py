@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import and_, asc, or_, select
+from sqlalchemy import asc, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ai_server.app.clients.recipe_llm_client import OllamaRecipeLlmClient
@@ -16,6 +17,7 @@ from ai_server.app.services.recipe_recommendation_service import RecipeRecommend
 from backend.app.domain.models.ai_job_model import AiJob
 from backend.app.domain.models.pantry_item_model import PantryItem
 from backend.app.infra.database import engine as backend_engine
+from backend.app.infra.repository.ai_job_repository import AiJobRepository
 
 LOGGER = logging.getLogger(__name__)
 
@@ -67,29 +69,9 @@ def _get_auto_mode_candidates(db: Session, user_id: int) -> list[dict[str, Any]]
     return [_to_pantry_snapshot(item) for item in db.execute(statement).scalars().all()]
 
 
-def _claim_pending_jobs(db: Session, batch_size: int) -> list[AiJob]:
-    """一次 claim 一批 pending recipe jobs，狀態改為 running。"""
-    statement = (
-        select(AiJob)
-        .where(and_(AiJob.status == "pending", AiJob.job_type == "recipe_recommendation"))
-        .order_by(asc(AiJob.created_at), asc(AiJob.id))
-        .limit(batch_size)
-    )
-    jobs = list(db.execute(statement).scalars().all())
-    now = datetime.now(timezone.utc)
-    claimed: list[AiJob] = []
-    for job in jobs:
-        current = db.get(AiJob, job.id)
-        if current is None or current.status != "pending":
-            continue
-        current.status = "running"
-        current.started_at = now
-        current.finished_at = None
-        current.error_message = None
-        current.result = None
-        claimed.append(current)
-    db.commit()
-    return claimed
+def _claim_pending_jobs(db: Session, batch_size: int, enabled_job_types: list[str]) -> list[AiJob]:
+    """一次 claim 一批 pending jobs，狀態改為 running。"""
+    return AiJobRepository(db).claim_pending_jobs(batch_size=batch_size, job_types=enabled_job_types)
 
 
 def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommendationService) -> None:
@@ -139,28 +121,67 @@ def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommend
         db.commit()
 
 
-def poll_once() -> None:
-    """執行一次 polling 週期並處理一批 pending recipe jobs。"""
+def _parse_job_types_arg() -> list[str] | None:
+    """解析 CLI --job-types 參數。"""
+    parser = argparse.ArgumentParser(description="Smart Pantry AI DB polling worker")
+    parser.add_argument("--job-types", type=str, default=None, help="逗號分隔 job types，例如 recipe_recommendation,ingredient_photo")
+    args = parser.parse_args()
+    if not args.job_types:
+        return None
+    parsed = [job_type.strip() for job_type in args.job_types.split(",") if job_type.strip()]
+    return parsed or None
+
+
+def _resolve_enabled_job_types(cli_job_types: list[str] | None) -> list[str]:
+    """決定 worker 啟用的 job types（CLI 優先，其次 env）。"""
     settings = get_settings()
+    if cli_job_types is not None:
+        return cli_job_types
+    return settings.get_ai_worker_job_types()
+
+
+def poll_once(enabled_job_types: list[str] | None = None) -> None:
+    """執行一次 polling 週期並處理一批 pending jobs。"""
+    settings = get_settings()
+    resolved_job_types = enabled_job_types if enabled_job_types is not None else settings.get_ai_worker_job_types()
     recipe_service = RecipeRecommendationService(llm_client=OllamaRecipeLlmClient())
     with SessionLocal() as db:
-        jobs = _claim_pending_jobs(db=db, batch_size=settings.ai_worker_batch_size)
+        jobs = _claim_pending_jobs(
+            db=db,
+            batch_size=settings.ai_worker_batch_size,
+            enabled_job_types=resolved_job_types,
+        )
         if not jobs:
             return
-        LOGGER.info("poll once claimed %s recipe jobs", len(jobs))
+        LOGGER.info("poll once claimed %s jobs, enabled_job_types=%s", len(jobs), resolved_job_types)
         for job in jobs:
-            _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
+            if job.job_type == "recipe_recommendation":
+                _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
+                continue
+
+            job.status = "failed"
+            job.error_message = f"worker 尚未支援處理 job_type={job.job_type}"
+            job.finished_at = datetime.now(timezone.utc)
+            db.add(job)
+            db.commit()
+            LOGGER.warning("unsupported job_type claimed and marked as failed, job_id=%s, job_type=%s", job.id, job.job_type)
 
 
-def run_forever() -> None:
+def run_forever(enabled_job_types: list[str] | None = None) -> None:
     """持續執行 DB polling worker。"""
     settings = get_settings()
-    LOGGER.info("ai worker started, poll_interval=%s", settings.ai_worker_poll_interval_seconds)
+    resolved_job_types = enabled_job_types if enabled_job_types is not None else settings.get_ai_worker_job_types()
+    LOGGER.info(
+        "ai worker started, poll_interval=%s, batch_size=%s, enabled_job_types=%s",
+        settings.ai_worker_poll_interval_seconds,
+        settings.ai_worker_batch_size,
+        resolved_job_types,
+    )
     while True:
-        poll_once()
+        poll_once(enabled_job_types=resolved_job_types)
         time.sleep(settings.ai_worker_poll_interval_seconds)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    run_forever()
+    run_forever(enabled_job_types=_resolve_enabled_job_types(_parse_job_types_arg()))

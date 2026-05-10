@@ -21,7 +21,7 @@ Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 08-3：Recipes 前端 UI 串接 ✅
-Phase 09-0：AI Worker 架構調整 / job_type 隔離 ⏳
+Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
 Phase 09-2：Vision Model 食材候選辨識 ⏳
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
@@ -367,6 +367,20 @@ job 查詢必須驗證 `user_id`，不可跨使用者查詢。
 - 不呼叫真實 Ollama。
 - 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
 
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離（已完成）
+
+已完成：
+- `ai_worker` 支援依 `job_type` 過濾 pending jobs（`job_type IN (...)`）。
+- `AI_WORKER_JOB_TYPES` 支援逗號分隔設定（例如 `recipe_recommendation,ingredient_photo`）。
+- worker 支援 CLI：`python -m ai_server.workers.job_worker --job-types recipe_recommendation`。
+- worker 啟動 log 顯示 `poll_interval`、`batch_size`、`enabled_job_types`。
+- 新增測試驗證只 claim 指定 job type，且不 claim 非指定 job type。
+- recipe job 既有流程維持不變（frontend 建立 job -> worker claim -> running -> success/failed）。
+
+本階段目的：
+- 避免未來 Vision 任務拖慢 `recipe_recommendation`。
+- 為 Phase 09（ingredient photo）與 Phase 10（nutrition estimate）預留 worker 擴充路徑。
+
 ## AI Queue 階段策略
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker。
@@ -390,6 +404,7 @@ AI_SERVER_HOST=0.0.0.0
 AI_SERVER_PORT=8100
 AI_WORKER_POLL_INTERVAL_SECONDS=5
 AI_WORKER_BATCH_SIZE=1
+AI_WORKER_JOB_TYPES=recipe_recommendation
 AI_JOB_TIMEOUT_SECONDS=300
 OLLAMA_BASE_URL=http://localhost:11434
 LLM_TEXT_MODEL=qwen2.5:7b

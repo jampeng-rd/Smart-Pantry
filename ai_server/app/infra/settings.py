@@ -17,6 +17,7 @@ class AiServerSettings(BaseSettings):
     ai_worker_poll_interval_seconds: int = 5
     ai_worker_batch_size: int = 1
     ai_job_timeout_seconds: int = 300
+    ai_worker_job_types: str = "recipe_recommendation"
 
     ollama_base_url: str = "http://localhost:11434"
     llm_text_model: str = "qwen2.5:7b"
@@ -26,6 +27,11 @@ class AiServerSettings(BaseSettings):
     # 為避免 backend/frontend 專用變數（例如 JWT、CORS）造成啟動失敗，
     # ai_server settings 僅定義自身需要欄位，並忽略其餘 env。
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
+
+    def get_ai_worker_job_types(self) -> list[str]:
+        """解析 AI_WORKER_JOB_TYPES（逗號分隔字串）為 job type 清單。"""
+        parsed = [job_type.strip() for job_type in self.ai_worker_job_types.split(",") if job_type.strip()]
+        return parsed or ["recipe_recommendation"]
 
 
 @lru_cache

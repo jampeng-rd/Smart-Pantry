@@ -63,7 +63,7 @@ def test_selected_items_job_processed_to_success() -> None:
     )
     db.commit()
 
-    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    jobs = _claim_pending_jobs(db=db, batch_size=5, enabled_job_types=["recipe_recommendation"])
     assert len(jobs) == 1
     recipe_service = _make_recipe_service(
         '{"recipe_name":"雞蛋豆腐","ingredients_used":["雞蛋"],"missing_ingredients":["鹽"],"steps":["攪拌","拌炒"],"cooking_time_minutes":15,"note":"僅供生活參考"}'
@@ -111,7 +111,7 @@ def test_auto_from_pantry_job_processed_to_success() -> None:
     )
     db.commit()
 
-    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    jobs = _claim_pending_jobs(db=db, batch_size=5, enabled_job_types=["recipe_recommendation"])
     recipe_service = _make_recipe_service(
         '{"recipe_name":"豆腐家常料理","ingredients_used":["豆腐"],"missing_ingredients":["蒜頭"],"steps":["切塊","拌炒"],"cooking_time_minutes":25,"note":"僅供生活參考"}'
     )
@@ -150,7 +150,7 @@ def test_auto_from_pantry_failed_when_no_available_items_with_chinese_message() 
     )
     db.commit()
 
-    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    jobs = _claim_pending_jobs(db=db, batch_size=5, enabled_job_types=["recipe_recommendation"])
     recipe_service = _make_recipe_service(
         '{"recipe_name":"測試","ingredients_used":[],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":10,"note":"僅供生活參考"}'
     )
@@ -191,7 +191,7 @@ def test_worker_does_not_cross_user_use_pantry_data() -> None:
     )
     db.commit()
 
-    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    jobs = _claim_pending_jobs(db=db, batch_size=5, enabled_job_types=["recipe_recommendation"])
     recipe_service = _make_recipe_service(
         '{"recipe_name":"測試","ingredients_used":[],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":10,"note":"僅供生活參考"}'
     )
@@ -220,7 +220,7 @@ def test_invalid_llm_payload_should_fail_with_chinese_error_message() -> None:
     )
     db.commit()
 
-    jobs = _claim_pending_jobs(db=db, batch_size=5)
+    jobs = _claim_pending_jobs(db=db, batch_size=5, enabled_job_types=["recipe_recommendation"])
     recipe_service = _make_recipe_service("這不是 JSON")
     _process_recipe_job(db=db, job=jobs[0], recipe_service=recipe_service)
 
@@ -228,3 +228,55 @@ def test_invalid_llm_payload_should_fail_with_chinese_error_message() -> None:
     assert job is not None
     assert job.status == "failed"
     assert "無法解析" in (job.error_message or "")
+
+
+def test_worker_claims_only_enabled_job_types() -> None:
+    """worker 只會 claim 啟用清單中的 job_type。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="recipe_recommendation",
+            status="pending",
+            input_snapshot={"recommendation_mode": "selected_items", "resolved_pantry_items": [{"id": 1, "name": "蛋", "status": "normal"}]},
+        )
+    )
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["recipe_recommendation"])
+    assert len(claimed) == 1
+    assert claimed[0].job_type == "recipe_recommendation"
+
+    all_jobs = db.query(AiJob).order_by(AiJob.id.asc()).all()
+    assert all_jobs[0].status == "running"
+    assert all_jobs[1].status == "pending"
+
+
+def test_worker_does_not_claim_jobs_outside_enabled_job_types() -> None:
+    """worker 啟用 job_type 不包含 recipe 時，不會 claim recipe job。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="recipe_recommendation",
+            status="pending",
+            input_snapshot={"recommendation_mode": "auto_from_pantry"},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    assert claimed == []
+
+    job = db.query(AiJob).one()
+    assert job.status == "pending"

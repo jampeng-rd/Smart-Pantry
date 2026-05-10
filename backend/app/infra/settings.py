@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     ai_server_port: int = 8100
     ai_worker_poll_interval_seconds: int = 5
     ai_worker_batch_size: int = 1
+    ai_worker_job_types: str = "recipe_recommendation"
     ai_job_timeout_seconds: int = 300
     ollama_base_url: str = "http://localhost:11434"
     llm_text_model: str = "qwen2.5:7b"

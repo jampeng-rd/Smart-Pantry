@@ -1,5 +1,7 @@
 """AI job 資料存取層。"""
 
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -39,3 +41,32 @@ class AiJobRepository:
             return []
         statement = select(PantryItem).where(PantryItem.user_id == user_id, PantryItem.id.in_(item_ids)).order_by(PantryItem.id.asc())
         return list(self.db.execute(statement).scalars().all())
+
+    def claim_pending_jobs(self, batch_size: int, job_types: list[str]) -> list[AiJob]:
+        """一次 claim 一批 pending jobs，並依 job_type 過濾。"""
+        if not job_types:
+            return []
+
+        statement = (
+            select(AiJob)
+            .where(AiJob.status == "pending", AiJob.job_type.in_(job_types))
+            .order_by(AiJob.created_at.asc(), AiJob.id.asc())
+            .limit(batch_size)
+        )
+        jobs = list(self.db.execute(statement).scalars().all())
+        now = datetime.now(timezone.utc)
+        claimed: list[AiJob] = []
+
+        for job in jobs:
+            current = self.db.get(AiJob, job.id)
+            if current is None or current.status != "pending":
+                continue
+            current.status = "running"
+            current.started_at = now
+            current.finished_at = None
+            current.error_message = None
+            current.result = None
+            claimed.append(current)
+
+        self.db.commit()
+        return claimed
