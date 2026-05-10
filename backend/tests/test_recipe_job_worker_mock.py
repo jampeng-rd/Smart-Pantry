@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from ai_server.workers.job_worker import _claim_pending_jobs, _process_recipe_job
+from ai_server.workers.job_worker import _claim_pending_jobs, _process_ingredient_photo_job, _process_recipe_job
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationService
 from backend.app.domain.models import AiJob, Base, PantryItem, User
 
@@ -280,3 +280,52 @@ def test_worker_does_not_claim_jobs_outside_enabled_job_types() -> None:
 
     job = db.query(AiJob).one()
     assert job.status == "pending"
+
+
+def test_worker_claims_ingredient_photo_when_enabled() -> None:
+    """enabled_job_types 包含 ingredient_photo 時應可 claim。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={"image_path": "uploads/ingredient_photos/mock.jpg"},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    assert len(claimed) == 1
+    assert claimed[0].job_type == "ingredient_photo"
+    assert claimed[0].status == "running"
+
+
+def test_mock_ingredient_photo_job_success_and_no_pantry_write() -> None:
+    """ingredient_photo mock job 成功寫入候選，不可直接寫入 pantry。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={"image_path": "uploads/ingredient_photos/mock.jpg"},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    assert len(claimed) == 1
+    _process_ingredient_photo_job(db=db, job=claimed[0])
+
+    job = db.get(AiJob, claimed[0].id)
+    assert job is not None
+    assert job.status == "success"
+    assert job.result is not None
+    assert "candidate_items" in job.result
+    assert len(job.result["candidate_items"]) >= 1
+
+    pantry_count = db.query(PantryItem).count()
+    assert pantry_count == 0

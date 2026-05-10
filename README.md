@@ -22,7 +22,7 @@ Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 08-3：Recipes 前端 UI 串接 ✅
 Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
-Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
+Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
 Phase 09-2：Vision Model 食材候選辨識 ⏳
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
 Phase 10-1：營養粗估 Job API + Mock Worker ⏳
@@ -380,6 +380,19 @@ job 查詢必須驗證 `user_id`，不可跨使用者查詢。
 本階段目的：
 - 避免未來 Vision 任務拖慢 `recipe_recommendation`。
 - 為 Phase 09（ingredient photo）與 Phase 10（nutrition estimate）預留 worker 擴充路徑。
+
+## Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker（已完成）
+
+已完成：
+- backend 新增 `POST /ingredients/photo/jobs` 與 `GET /ingredients/photo/jobs/{job_id}`。
+- 上傳支援 `multipart/form-data`，限制 `<=5MB`，僅允許 `image/jpeg|image/png|image/webp`。
+- 圖片儲存封裝於 `backend/app/infra/storage.py`，寫入 `uploads/ingredient_photos/`。
+- `ai_jobs.input_snapshot` 只存 `image_path/original_filename/mime_type/size_bytes`，不存 blob/base64。
+- `ai_worker` 新增 `ingredient_photo` mock handler，成功回 `candidate_items`。
+- mock 結果不直接寫入 `pantry_items`，仍需使用者確認（完整 UI 流程留在 Phase 09-3）。
+
+worker 啟動示例：
+- `python -m ai_server.workers.job_worker --job-types ingredient_photo`
 
 ## AI Queue 階段策略
 

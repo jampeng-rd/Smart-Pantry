@@ -121,6 +121,48 @@ def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommend
         db.commit()
 
 
+def _process_ingredient_photo_job(db: Session, job: AiJob) -> None:
+    """處理單筆 ingredient_photo mock job，並寫回 success/failed。"""
+    try:
+        snapshot = job.input_snapshot or {}
+        image_path = snapshot.get("image_path")
+        if not image_path:
+            raise ValueError("缺少圖片路徑，請重新上傳後再試。")
+
+        job.result = {
+            "candidate_items": [
+                {
+                    "name": "番茄",
+                    "category": "蔬菜",
+                    "quantity": 1,
+                    "unit": "顆",
+                    "expiration_date": None,
+                    "storage_location": "fridge",
+                    "note": "AI mock 辨識候選，請確認",
+                }
+            ],
+            "note": "這是 mock 食材辨識結果，請使用者確認後再加入庫存。",
+        }
+        job.status = "success"
+        job.error_message = None
+        job.finished_at = datetime.now(timezone.utc)
+        db.add(job)
+        db.commit()
+    except ValueError as exc:
+        job.status = "failed"
+        job.error_message = str(exc)
+        job.finished_at = datetime.now(timezone.utc)
+        db.add(job)
+        db.commit()
+    except Exception:
+        LOGGER.exception("ingredient photo job processing failed unexpectedly, job_id=%s", job.id)
+        job.status = "failed"
+        job.error_message = "系統處理食材辨識任務時發生問題，請稍後再試。"
+        job.finished_at = datetime.now(timezone.utc)
+        db.add(job)
+        db.commit()
+
+
 def _parse_job_types_arg() -> list[str] | None:
     """解析 CLI --job-types 參數。"""
     parser = argparse.ArgumentParser(description="Smart Pantry AI DB polling worker")
@@ -157,6 +199,9 @@ def poll_once(enabled_job_types: list[str] | None = None) -> None:
         for job in jobs:
             if job.job_type == "recipe_recommendation":
                 _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
+                continue
+            if job.job_type == "ingredient_photo":
+                _process_ingredient_photo_job(db=db, job=job)
                 continue
 
             job.status = "failed"
