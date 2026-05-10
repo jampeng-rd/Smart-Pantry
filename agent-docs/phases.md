@@ -29,6 +29,7 @@
 建立 shopping_list_items；手動新增、從庫存加入、標記已購買、刪除；購物清單獨立於庫存但可引用 pantry_item_id。
 
 本階段補充規範：
+
 - `is_purchased=true` 只記錄 `purchased_at`，不可自動寫入 pantry。
 - `source_pantry_item_id` 僅為來源關聯，不是庫存同步機制。
 - 若要把已購買項目加入庫存，需由使用者確認 `name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note` 後再寫入。
@@ -41,10 +42,12 @@
 React + Vite + TypeScript；Redux slices 分開；登入/註冊；自動 refresh token；Dashboard；食材頁；購物清單；react-icons；繁中 UI；柔和亮/暗主題；API 集中在 apiClient。
 
 本階段補充規範：
+
 - 時間顯示先用瀏覽器 `Intl API` 將 API 回傳 UTC datetime 轉為本地時間。
 - 後續可新增 `user_preferences.timezone` 讓使用者覆蓋瀏覽器時區。
 
 文件：
+
 - `docs/phase-06-1-auth-ui.md`
 - `docs/phase-06-2-dashboard-layout.md`
 - `docs/phase-06-3-pantry-ui.md`
@@ -76,25 +79,19 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 
 文件：`docs/phase-08-2-ai-recipes-ollama.md`
 
-## Phase 09：發票 / 收據 OCR 匯入
-
-上傳發票/收據；圖片大小限制 5MB；開發階段可存本機 uploads/；DB 只存 image_path / image_url；OCR 擷取；AI 整理候選食材；使用者確認後加入庫存；傳統市場無收據仍可手動輸入。
-
-文件：`docs/phase-09-ocr-import.md`
-
-## Phase 10：食材照片辨識
+## Phase 09：食材照片辨識
 
 上傳單一或少量食材照片；圖片大小限制 5MB；開發階段可存本機 uploads/；DB 只存 image_path / image_url；Vision AI 產生候選食材；使用者確認後加入庫存；不做整個冰箱辨識。
 
-文件：`docs/phase-10-ingredient-photo.md`
+文件：`docs/phase-09-ingredient-photo.md`
 
-## Phase 11：餐點營養粗估
+## Phase 10：餐點營養粗估
 
 上傳餐點照片；AI 粗估菜色與熱量/蛋白質/碳水/脂肪；建立 meal_logs 與 nutrition_estimates；明確生活參考聲明。
 
-文件：`docs/phase-11-nutrition-estimate.md`
+文件：`docs/phase-10-nutrition-estimate.md`
 
-## Phase 12：AI Queue / Worker Scaling（視需要）
+## Phase 11：AI Queue / Worker Scaling（視需要）
 
 當 job 延遲與數量增加，再由 DB polling 升級正式 queue。
 
@@ -102,19 +99,20 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - 備選：Dramatiq + Redis
 - Celery + RabbitMQ：僅在複雜 routing、多服務事件流或更高階 broker 需求時評估
 
-文件：`docs/phase-12-ai-queue-worker-scaling.md`
+文件：`docs/phase-11-ai-queue-worker-scaling.md`
 
 ## AI Queue 策略補充
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker，不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
-- Phase 09～11：若 DB polling worker 可接受，持續沿用，OCR/Vision/Nutrition 共用 `ai_jobs`。
-- 任務量與延遲明顯上升時才進入 Phase 12 升級。
+- Phase 09～10：若 DB polling worker 可接受，持續沿用，Vision/Nutrition 共用 `ai_jobs`。
+- 任務量與延遲明顯上升時才進入 Phase 11 升級。
 
 ## Phase 06 子階段規劃
 
 ### Phase 06-1：Auth UI + Protected Layout
 
 內容：
+
 - Login/Register UI
 - tokenService
 - auth guard
@@ -122,11 +120,13 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - 登入後導向 Pantry（`/pantry`）
 
 文件：
+
 - docs/phase-06-1-auth-ui.md
 
 ### Phase 06-2：Dashboard + Sidebar + Theme
 
 內容：
+
 - Dashboard Layout
 - Sidebar
 - collapsible sidebar
@@ -136,42 +136,50 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - `/dashboard` 保留為未來總覽頁（目前 placeholder）
 
 文件：
+
 - docs/phase-06-2-dashboard-layout.md
 
 ### Phase 06-3：Pantry UI
 
 內容：
+
 - pantry CRUD UI
 - pagination
 - search/filter/sort
 - drawer/modal form
 
 文件：
+
 - docs/phase-06-3-pantry-ui.md
 
 ### Phase 06-4：Expiration UI
 
 內容：
+
 - expiration summary cards
 - expired/expiring_soon UI
 - status filter
 
 文件：
+
 - docs/phase-06-4-expiration-ui.md
 
 ### Phase 06-5：Shopping UI
 
 內容：
+
 - shopping list UI
 - purchase state UI
 - shopping -> pantry UX flow
 
 文件：
+
 - docs/phase-06-5-shopping-ui.md
 
 ### Phase 06-6：UX 修正與整合
 
 內容：
+
 - loading/error UX
 - timezone display
 - responsive layout
@@ -179,6 +187,7 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 - mobile/tablet polish
 
 文件：
+
 - docs/phase-06-6-frontend-integration-ux.md
 
 ## Phase 08：AI 食譜推薦完整功能
@@ -198,6 +207,7 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 ### Phase 08-3：Recipes 前端 UI 串接
 
 完成：
+
 - Recipes 頁面
 - 建立 recommendation job
 - frontend polling
@@ -209,32 +219,27 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 
 完成標準：backend + worker + frontend UI + 手動驗收皆完成。
 
-## Phase 09：OCR 完整功能
+## Phase 09：食材照片辨識完整功能
 
-### Phase 09-1：OCR Job API + Storage + Mock Worker
+### Phase 09-1：Ingredient Photo Job API + Mock Worker
 
-### Phase 09-2：OCR / LLM 候選食材整理
+### Phase 09-2：Vision Model 食材辨識
 
-### Phase 09-3：OCR 前端 UI + 使用者確認寫入 Pantry
+### Phase 09-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
 
-完成標準：
-- 上傳圖片
-- frontend polling
-- 顯示候選食材
-- 使用者確認後才寫入 pantry
+## Phase 10：營養粗估完整功能
 
-## Phase 10：食材照片辨識完整功能
+### Phase 10-1：Nutrition Job API + Mock Worker
 
-### Phase 10-1：Ingredient Photo Job API + Mock Worker
+### Phase 10-2：Vision/Text Model 營養粗估
 
-### Phase 10-2：Vision Model 食材辨識
+### Phase 10-3：Nutrition 前端 UI + 生活參考聲明
 
-### Phase 10-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 
-## Phase 11：營養粗估完整功能
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
-### Phase 11-1：Nutrition Job API + Mock Worker
-
-### Phase 11-2：Vision/Text Model 營養粗估
-
-### Phase 11-3：Nutrition 前端 UI + 生活參考聲明
+收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。

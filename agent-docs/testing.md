@@ -13,14 +13,15 @@
 - expiration service：即將過期、已過期。
 - shopping service：新增、標記已購買、刪除。
 - recipe service：prompt 組裝與 LLM mock。
-- ocr import service：OCR mock 與候選資料整理。
+- ingredient photo service：Vision mock 與候選資料整理
 - nutrition service：粗估結果 parsing 與聲明。
 
-## LLM / OCR 測試
+## LLM / Vision 測試
 
-不可在單元測試直接呼叫真實 Ollama 或外部 OCR。使用 fake client / stub client。
+不可在單元測試直接呼叫真實 Ollama。使用 fake client / stub client。
 
 AI job 測試原則（Phase 08～11）：
+
 - 不可在單元測試中呼叫真實 Ollama。
 - 使用 fake AI client / fake worker。
 - 測試 job 建立。
@@ -37,6 +38,7 @@ AI job 測試原則（Phase 08～11）：
 使用 FastAPI TestClient 或 httpx。測試成功與失敗案例，並確認 response 格式符合 `agent-docs/api.md`。
 
 時間欄位需額外驗證：
+
 - 新建立資料的 datetime 回傳需包含時區（`Z` 或 `+00:00`）。
 - `purchased_at` 在 `is_purchased=true` 時需包含時區；`is_purchased=false` 時為 `null`。
 - 後端與 DB 使用 UTC timezone-aware datetime，避免 naive datetime。
@@ -52,7 +54,6 @@ npm run build
 
 - Phase 06 MVP 需驗證使用瀏覽器 `Intl API` 將 UTC datetime 轉成本地時間顯示。
 - 若後續加入 `user_preferences.timezone`，需驗證可覆蓋瀏覽器時區。
-
 
 ## Token 與儲存測試補充
 
@@ -74,10 +75,10 @@ npm run build
 - 測試標記 `is_purchased=true` 只更新 shopping item 狀態與 `purchased_at`。
 - 若未來新增 convert-to-pantry API，需測必填欄位確認流程（`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`）。
 
-
 ## Phase 08～11 全端驗收要求
 
 Backend / Worker：
+
 - job 建立
 - pending -> running -> success
 - failed + 中文 error_message
@@ -85,6 +86,7 @@ Backend / Worker：
 - fake worker / fake AI client 測試
 
 Frontend：
+
 - npm run build
 - 可建立 job
 - 顯示 pending/running/success/failed
@@ -93,6 +95,14 @@ Frontend：
 - 不直連 ai_server
 
 Manual E2E：
+
 - backend + frontend + ai_worker + Ollama 啟動
 - 成功流程驗證
 - 失敗流程驗證
+
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ

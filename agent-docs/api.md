@@ -103,6 +103,7 @@ category=蔬菜&status=expiring_soon&sort=expiration_date&q=番茄&page=1&page_s
 更新購物清單項目，例如標記已購買。
 
 規則：
+
 - `is_purchased=true` 時只記錄 `purchased_at`。
 - 不可自動寫入 `pantry_items`。
 - `source_pantry_item_id` 僅作來源關聯，不應作為 UI 顯示資訊。
@@ -136,6 +137,7 @@ Phase 08 起改為 job-based API。frontend 只呼叫 backend，backend 建立 j
 ```
 
 request 補充：
+
 - `recommendation_mode` 必填：`selected_items` 或 `auto_from_pantry`
 - `selected_items` 模式必須提供 `selected_pantry_item_ids`，且不可為空
 - `selected_pantry_item_ids` 必須屬於目前使用者（backend 建立 job 前驗證）
@@ -152,6 +154,7 @@ request 補充：
 查詢任務狀態。必須驗證 user_id，使用者不可查詢他人的 job。
 
 查詢 job 回應欄位：
+
 - `status`
 - `result`
 - `error_message`
@@ -160,17 +163,10 @@ request 補充：
 - `finished_at`
 
 規則：
+
 - `pending/running` 時 `result` 可為 `null`。
 - `failed` 時需回傳可理解錯誤訊息，不可暴露 raw traceback。
 - job 查詢需驗證 `user_id`，不可跨使用者讀取。
-
-### （未來可類推）POST /ocr/receipt/jobs
-
-上傳發票 / 收據並建立 OCR job，不直接寫入庫存。
-
-### （未來可類推）GET /ocr/receipt/jobs/{job_id}
-
-查詢 OCR job 狀態與結果。
 
 ### （未來可類推）POST /ingredients/photo/jobs
 
@@ -187,7 +183,6 @@ request 補充：
 ### （未來可類推）GET /nutrition/estimate-jobs/{job_id}
 
 查詢營養粗估 job 狀態與結果。
-
 
 ## AI Job API 共通規則
 

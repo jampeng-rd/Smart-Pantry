@@ -21,16 +21,14 @@ Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 08-3：Recipes 前端 UI 串接 ✅
-Phase 09-1：OCR Job API + Storage + Mock Worker ⏳
-Phase 09-2：OCR / LLM 候選食材整理 ⏳
-Phase 09-3：OCR 前端 UI + 使用者確認寫入 Pantry ⏳
-Phase 10-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
-Phase 10-2：Vision Model 食材候選辨識 ⏳
-Phase 10-3：食材照片前端 UI + 使用者確認寫入 Pantry ⏳
-Phase 11-1：營養粗估 Job API + Mock Worker ⏳
-Phase 11-2：Vision/Text Model 營養粗估 ⏳
-Phase 11-3：Nutrition 前端 UI + 生活參考聲明 ⏳
-Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
+Phase 09-0：AI Worker 架構調整 / job_type 隔離 ⏳
+Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
+Phase 09-2：Vision Model 食材候選辨識 ⏳
+Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
+Phase 10-1：營養粗估 Job API + Mock Worker ⏳
+Phase 10-2：Vision/Text Model 營養粗估 ⏳
+Phase 10-3：Nutrition 前端 UI + 生活參考聲明 ⏳
+Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
 ## 環境需求
@@ -160,7 +158,7 @@ Route 行為：
 - 收合狀態依 theme 顯示 logo（light-soft/dark-soft），僅顯示 icon 不顯示文字，並縮小 logo 尺寸
 - 收合 sidebar header 預設顯示 logo，hover/focus 才顯示展開按鈕（不常駐）
 - Mobile/Tablet 改為 overlay drawer + 遮罩層，開啟時鎖定 `body` 捲動
-- Sidebar 主導覽移除 Settings；MVP 目前顯示 Pantry/Expiration/Shopping/Recipes/OCR/Nutrition
+- Sidebar 主導覽移除 Settings；MVP 目前顯示 Pantry/Expiration/Shopping/Recipes/食材辨識/Nutrition
 - `/dashboard` route 保留為未來總覽頁 placeholder，MVP 側欄暫時隱藏「儀表板」導航
 - Sidebar 底部使用者區與向上展開 user menu（Profile/Settings/Help/Theme Toggle/Log out）
 - 收合 sidebar 的 nav/user 改為 square icon button（40x40），修正 hover/active 框外溢
@@ -279,12 +277,12 @@ Route 行為：
 
 ## AI 功能限制
 
-AI 食譜為生活建議；OCR / 食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。
+AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。
 
 ## AI Server / Worker 與 Job 架構（Phase 08 前置規範）
 
 - `backend/` 是 Web API server：負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限。
-- `ai_server/`（或 `ai_worker`）是 AI runtime：負責 LangChain、Ollama、OCR、Vision、Nutrition 長任務。
+- `ai_server/`（或 `ai_worker`）是 AI runtime：負責 LangChain、Ollama、Vision、Nutrition 長任務。
 
 ## Phase 08-1：AI 食譜推薦 Mock（job-based）
 
@@ -372,10 +370,10 @@ job 查詢必須驗證 `user_id`，不可跨使用者查詢。
 ## AI Queue 階段策略
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～11：不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
-- Phase 09～11：OCR / Vision / Nutrition 先共用 `ai_jobs`。
-- 若任務延遲或數量增加，再進入 Phase 12。
-- Phase 12 首選：RQ + Redis；備選：Dramatiq + Redis。
+- Phase 08～10：不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- Phase 09～10：Vision / Nutrition 先共用 `ai_jobs`。
+- 若任務延遲或數量增加，再進入 Phase 11。
+- Phase 11 首選：RQ + Redis；備選：Dramatiq + Redis。
 - RabbitMQ 暫不採用，除非未來有複雜 message routing、多服務事件流或更高階 broker 需求。
 
 選 RQ + Redis 的原因：
@@ -401,8 +399,8 @@ LLM_VISION_MODEL=qwen3-vl:8b
 docker-compose 後續規劃：
 - 新增 `ai-server` 或 `ai-worker` service。
 - 共用同一個 PostgreSQL。
-- Phase 08～11 暫不新增 `redis` service。
-- Phase 12 若導入 RQ + Redis，再新增 `redis` service。
+- Phase 08～10 暫不新增 `redis` service。
+- Phase 11 若導入 RQ + Redis，再新增 `redis` service。
 
 目前設定檔策略：
 - backend 與 ai_server 共用同一份 `.env`。
@@ -413,7 +411,7 @@ docker-compose 後續規劃：
 
 ## 效能與擴充性
 
-開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～11 先採 `ai_jobs` + DB polling worker，Phase 12 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
+開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～11 先採 `ai_jobs` + DB polling worker，Phase 12 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
 
 
 ## AI 階段完成門檻（Phase 08～11）
@@ -423,7 +421,7 @@ Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 每個 AI 階段至少需完成：
 
 1. backend job API
-2. ai_worker / LangChain / Vision / OCR 流程
+2. ai_worker / LangChain / Vision 流程
 3. frontend UI 與 polling
 4. pending/running/success/failed 狀態 UI
 5. 使用者確認流程

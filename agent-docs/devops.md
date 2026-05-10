@@ -23,10 +23,9 @@ feature/phase-07-ci-cd
 feature/phase-08-0-ai-job-architecture
 feature/phase-08-1-ai-recipes-mock
 feature/phase-08-2-ai-recipes-ollama
-feature/phase-09-ocr-import
-feature/phase-10-ingredient-photo
-feature/phase-11-nutrition-estimate
-feature/phase-12-ai-queue-worker-scaling
+feature/phase-09-ingredient-photo
+feature/phase-10-nutrition-estimate
+feature/phase-11-ai-queue-worker-scaling
 ```
 
 ## 最小 CI
@@ -86,8 +85,9 @@ POST 建立任務 → 回傳 job_id → worker 執行 → GET 查詢狀態 → �
 ```
 
 階段策略：
+
 - Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker，不新增 Redis/Celery/RQ/Dramatiq/RabbitMQ。
-- Phase 09～11：OCR/Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
+- Phase 09～11：Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
 - Phase 12：再升級 queue（首選 RQ + Redis，備選 Dramatiq + Redis）。
 - RabbitMQ 暫不採用，僅在未來需要複雜 message routing/事件流時評估。
 
@@ -107,6 +107,14 @@ LLM_VISION_MODEL=qwen3-vl:8b
 ```
 
 docker-compose 後續規劃：
+
 - 新增 `ai-server` 或 `ai-worker` service（共用同一個 PostgreSQL）。
 - Phase 08～11 不新增 `redis` service。
 - Phase 12 若採 RQ + Redis，再新增 `redis` service。
+
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ

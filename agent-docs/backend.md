@@ -19,7 +19,7 @@ langchain-ollama>=1.0,<2.0
 ## Server 分工
 
 - `backend/`：Web API server。負責 auth、pantry、expiration、shopping、AI job API、使用者驗證、資料權限。
-- `ai_server/`（或 `ai_worker`）：AI runtime/worker。負責 LangChain、Ollama、OCR、Vision、Nutrition 長任務。
+- `ai_server/`（或 `ai_worker`）：AI runtime/worker。負責 LangChain、Ollama、Vision、Nutrition 長任務。
 - frontend 不直接呼叫 `ai_server/`，只呼叫 `backend/`。
 - `ai_server/` 不作為一般使用者公開 API。
 - backend 不可同步等待長時間 AI 推論。
@@ -27,11 +27,11 @@ langchain-ollama>=1.0,<2.0
 
 ### API Layer
 
-`backend/app/api/` 只接收 request、驗證 schema、呼叫 service、回傳 response、管理 dependency。禁止直接操作 DB、直接呼叫 LLM/OCR、直接寫商業邏輯。
+`backend/app/api/` 只接收 request、驗證 schema、呼叫 service、回傳 response、管理 dependency。禁止直接操作 DB、直接呼叫 LLM、直接寫商業邏輯。
 
 ### Service Layer
 
-`backend/app/services/` 處理 auth、refresh token、食材 CRUD、過期判斷、購物清單、AI 食譜、OCR 匯入、營養粗估。
+`backend/app/services/` 處理 auth、refresh token、食材 CRUD、過期判斷、購物清單、AI 食譜、營養粗估。
 
 ### Domain Layer
 
@@ -44,10 +44,10 @@ langchain-ollama>=1.0,<2.0
 ## 建議目錄
 
 ```text
-backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ocr,nutrition}.py
-backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,ocr_import_service,nutrition_service}.py
+backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ingredients,nutrition}.py
+backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,ingredient_service,nutrition_service}.py
 backend/app/domain/{schemas,models,enums}.py
-backend/app/infra/{database,repository,settings,security,llm_client,ocr_client,storage}.py
+backend/app/infra/{database,repository,settings,security,llm_client,ingredient_client,storage}.py
 ```
 
 ## Auth 設計要求
@@ -81,3 +81,10 @@ backend/app/infra/{database,repository,settings,security,llm_client,ocr_client,s
 - Phase 12：任務量明顯增加時，升級為 RQ + Redis（首選）；Dramatiq + Redis 為備選。
 - RabbitMQ 非 MVP 與 Phase 08～11 預設方案，僅在複雜 routing/事件流需求時評估。
 - DB engine / session factory 集中管理，不可每次 request 重新建立 engine。
+
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ

@@ -6,7 +6,7 @@
 
 本專案是全端 MVP，目標是建立智慧食材庫存、過期提醒、購物清單與 AI 膳食輔助系統。
 
-核心順序：先完成人工手動輸入、庫存 CRUD、過期提醒、購物清單、繁體中文 Web UI，再逐步加入 AI 食譜推薦、發票 / 收據 OCR 匯入、食材照片辨識、餐點營養粗估。
+核心順序：先完成人工手動輸入、庫存 CRUD、過期提醒、購物清單、繁體中文 Web UI，再逐步加入 AI 食譜推薦、食材照片辨識、餐點營養粗估。
 
 系統包含：`backend/` FastAPI、`frontend/` React + Vite + TypeScript + Redux Toolkit、PostgreSQL、Docker Compose、GitHub Actions、`docs/`、`agent-docs/`。
 
@@ -14,8 +14,8 @@
 
 1. 每次任務開始前，先閱讀本檔案與 `agent-docs/`。
 2. 後端必須分層：API Layer → Service Layer → Domain Layer → Infra Layer。
-3. 不同功能必須分檔：auth、pantry、expiration、shopping、recipes、ocr、nutrition 不可混在同一 route/service。
-4. 前端不同功能必須分 feature：auth、pantry、expiration、shopping、recipes、ocr、nutrition、theme。
+3. 不同功能必須分檔：auth、pantry、expiration、shopping、recipes、nutrition 不可混在同一 route/service。
+4. 前端不同功能必須分 feature：auth、pantry、expiration、shopping、recipes、nutrition、theme。
 5. 前端 UI 主要語言必須是繁體中文。
 6. 前端按鈕需優先使用 `react-icons`；純 icon button 要有 `aria-label`；列表/導覽/選項使用「icon + 繁體中文」。
 7. 前端必須支援柔和亮色與柔和暗色主題切換，不使用純白 `#ffffff` 或純黑 `#000000` 當主要背景。
@@ -27,20 +27,20 @@
 13. Python 套件只能安裝在 `.venv`，禁止全域安裝。
 14. v1 資料庫必須使用 PostgreSQL，不用 SQLite 作主要資料庫。
 15. 開發階段以本地 Docker PostgreSQL 為主；部署階段再使用 managed PostgreSQL。
-16. AI 結果不可直接信任；涉及寫入資料庫的 OCR / 圖片辨識結果必須由使用者確認。
+16. AI 結果不可直接信任；涉及圖片辨識結果必須由使用者確認。
 17. 餐點營養估算僅供生活參考，不可宣稱精準或專業營養診斷。
 18. 文件需記錄效能與擴充性風險：DB 連線、pagination、索引、AI 任務延遲、背景任務、水平擴充。
 
 ## 3. 建議專案目錄
 
 ```text
-backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ocr,nutrition}.py
-backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,ocr_import_service,nutrition_service}.py
+backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ingredients,nutrition}.py
+backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,nutrition_service}.py
 backend/app/domain/{schemas,models,enums}.py
-backend/app/infra/{database,repository,settings,security,llm_client,ocr_client,storage}.py
+backend/app/infra/{database,repository,settings,security,llm_client,storage}.py
 ai_server/{app,workers,clients}
 frontend/src/app/{store,hooks}.ts
-frontend/src/features/{auth,pantry,expiration,shopping,recipes,ocr,nutrition,theme}/
+frontend/src/features/{auth,pantry,expiration,shopping,recipes,ingredients,nutrition,theme}/
 frontend/src/services/{apiClient,tokenService}.ts
 frontend/src/styles/{theme.css,globals.css}
 ```
@@ -76,18 +76,18 @@ frontend/src/styles/{theme.css,globals.css}
 - 上傳圖片大小限制預設為 5MB。
 - 圖片上傳後可進行壓縮、resize 或格式轉換，以降低儲存與傳輸成本。
 - 正式環境使用 object storage，例如 AWS S3、Cloudflare R2、MinIO 或相容服務。
-- OCR / Vision 的候選結果可用 JSON / JSONB 儲存，但大型圖片內容不可放入 DB。
+- 食材辨識 / Vision 的候選結果可用 JSON / JSONB 儲存，但大型圖片內容不可放入 DB。
 
-## 6. AI / OCR 效能規範
+## 6. AI 效能規範
 
 - `backend/` 是 Web API server，只負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限，不可同步等待長時間 AI 推論。
-- `ai_server/`（或 `ai_worker`）負責 LangChain、Ollama、OCR、Vision、Nutrition 等長任務執行；不作為一般使用者公開 API。
+- `ai_server/`（或 `ai_worker`）負責 LangChain、Ollama、Vision、Nutrition 等長任務執行；不作為一般使用者公開 API。
 - frontend 不可直接呼叫 `ai_server/`，只能呼叫 `backend/`。
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～11 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
-- 若任務量成長，再於 Phase 12 升級正式 queue（首選 RQ + Redis）。
+- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- 若任務量成長，再於 Phase 11 升級正式 queue（首選 RQ + Redis）。
 
 ## 7. LangChain 與 AI 套件規範
 
@@ -137,7 +137,7 @@ MVP 可先以單一 backend instance + 本地 Docker PostgreSQL 運作，但需�
 Sidebar 需包含：
 - 最上方 Logo。
 - Logo 右側需有 Sidebar 收合按鈕（icon button）。
-- 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、OCR、Nutrition。
+- 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、食材辨識、Nutrition。
 - Dashboard route 保留但導航先隱藏；Settings 由使用者選單進入。
 - 底部固定顯示目前登入使用者。
 
@@ -180,25 +180,24 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 08-0：AI Server / AI Job 架構初始化
 - Phase 08-1：AI 食譜推薦 Mock（`ai_jobs` + fake worker，不呼叫真實 Ollama）
 - Phase 08-2：AI 食譜推薦 LangChain + Ollama
-- Phase 09：發票 / 收據 OCR 匯入（沿用 `ai_jobs`）
-- Phase 10：食材照片辨識（沿用 `ai_jobs`）
-- Phase 11：餐點營養粗估（沿用 `ai_jobs`）
-- Phase 12：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
+- Phase 09：食材照片辨識（沿用 `ai_jobs`）
+- Phase 10：餐點營養粗估（沿用 `ai_jobs`）
+- Phase 11：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
 
 策略：
-- Phase 08～11 不將 RabbitMQ 作為預設方案。
+- Phase 08～10 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
 
 
 ## 12.1 AI 功能階段完成門檻（Phase 08～11）
 
-Phase 08～11 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。
+Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。
 
 每個 AI 功能階段至少需包含：
 1. backend job API：建立 job、查詢 job status/result，並驗證 user_id 權限。
 2. ai_worker：claim pending job、執行 AI/mock、寫回 success/failed。
 3. frontend feature UI：建立 job、輪詢 job、顯示 pending/running/success/failed。
-4. 使用者確認流程：AI/OCR/Vision 候選資料不可直接寫入正式資料。
+4. 使用者確認流程：AI/Vision 候選資料不可直接寫入正式資料。
 5. 測試：backend 單元測試、fake worker 測試、frontend build。
 6. 文件：更新 docs/phase-xx-*.md 與 README。
 7. 手動整合驗收：backend + frontend + ai_worker + Ollama 可完整操作。
@@ -211,20 +210,22 @@ Phase 08～11 每一個 AI 功能都必須以前後端完整可操作為完成�
 - Phase 08-2：AI 食譜推薦 LangChain + Ollama
 - Phase 08-3：Recipes 前端 UI 串接
 
-### Phase 09：OCR 完整功能
+### Phase 09：食材照片辨識完整功能
 
-- Phase 09-1：OCR Job API + Storage + Mock Worker
-- Phase 09-2：OCR / LLM 候選食材整理
-- Phase 09-3：OCR 前端 UI + 使用者確認後寫入 Pantry
+- Phase 09-1：Ingredient Photo Job API + Mock Worker
+- Phase 09-2：Vision Model 候選食材辨識
+- Phase 09-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
 
-### Phase 10：食材照片辨識完整功能
+### Phase 10：營養粗估完整功能
 
-- Phase 10-1：Ingredient Photo Job API + Mock Worker
-- Phase 10-2：Vision Model 候選食材辨識
-- Phase 10-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
+- Phase 10-1：Nutrition Job API + Mock Worker
+- Phase 10-2：Vision/Text Model 營養粗估
+- Phase 10-3：Nutrition 前端 UI + 生活參考聲明
 
-### Phase 11：營養粗估完整功能
 
-- Phase 11-1：Nutrition Job API + Mock Worker
-- Phase 11-2：Vision/Text Model 營養粗估
-- Phase 11-3：Nutrition 前端 UI + 生活參考聲明
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ

@@ -69,6 +69,7 @@ id、user_id indexed、name indexed、category indexed、quantity、unit、expir
 id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit、is_purchased indexed、purchased_at nullable、created_at、updated_at。
 
 規則：
+
 - `source_pantry_item_id` 僅代表資料來源，不代表自動回寫 pantry。
 - `is_purchased=true` 只記錄 `purchased_at`（UTC timezone-aware）。
 - 不可自動把 shopping item 寫入 `pantry_items`。
@@ -87,6 +88,7 @@ id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text�
 ### ai_jobs（Phase 08 起）
 
 建議欄位：
+
 - id
 - user_id
 - job_type
@@ -100,12 +102,13 @@ id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text�
 - updated_at
 
 `job_type` 建議 enum/固定值：
+
 - `recipe_recommendation`
-- `receipt_ocr`
 - `ingredient_photo`
 - `nutrition_estimate`
 
 `status` 至少包含：
+
 - `pending`
 - `running`
 - `success`
@@ -113,6 +116,7 @@ id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text�
 - `cancelled`
 
 索引建議：
+
 - `user_id`
 - `status`
 - `job_type`
@@ -121,6 +125,7 @@ id、user_id indexed、model、input_snapshot json/jsonb、recommendation_text�
 - `(status, created_at)`
 
 規則：
+
 - backend 建立 job 時先寫入 `pending` 並立即回傳 `job_id`，不可同步等待 AI 推論結果。
 - worker 先將 job 狀態改為 `running` 後執行，完成後寫入 `success/failed` 與結果/錯誤訊息。
 - job 查詢必須驗證 `user_id`，禁止跨使用者讀取。
@@ -155,3 +160,10 @@ API layer 不可直接操作資料庫。Service 透過 repository。DB session /
 - shopping_list_items 建 user_id、is_purchased 索引。
 - 列表 API 必須 pagination。
 - 大型 JSON 只用於 AI snapshot / candidate，不作主要查詢欄位。
+
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ

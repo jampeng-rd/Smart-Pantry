@@ -44,13 +44,13 @@ frontend/src/features/pantry/{pantrySlice,pantryTypes}.ts
 frontend/src/features/expiration/{expirationSlice,expirationTypes}.ts
 frontend/src/features/shopping/{shoppingSlice,shoppingTypes}.ts
 frontend/src/features/recipes/{recipeSlice,recipeTypes}.ts
-frontend/src/features/ocr/{ocrSlice,ocrTypes}.ts
+frontend/src/features/ingredients/{ingredientsSlice,ingredientsTypes}.ts
 frontend/src/features/nutrition/{nutritionSlice,nutritionTypes}.ts
 frontend/src/features/theme/{themeSlice,themeTypes}.ts
 frontend/src/services/{apiClient,tokenService}.ts
 ```
 
-`store.ts` 註冊 auth、pantry、expiration、shopping、recipes、ocr、nutrition、theme。
+`store.ts` 註冊 auth、pantry、expiration、shopping、recipes、ingredients、nutrition、theme。
 
 `hooks.ts` 使用 React Redux v9 typed hooks：
 
@@ -111,10 +111,12 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 ### App Layout
 
 登入前：
+
 - 首頁顯示登入 / 註冊頁。
 - 未登入不可直接進入任何受保護頁。
 
 登入後：
+
 - 使用 Dashboard Layout。
 - MVP 預設導向 `/pantry`（不是 `/dashboard`）。
 - 採 Sidebar + Workspace 結構。
@@ -134,17 +136,19 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 ### Sidebar 規範
 
 Sidebar 必須包含：
+
 - Logo 區。
 - Sidebar 收合按鈕。
 - 功能導覽。
 - 底部固定使用者資訊區。
 
 Sidebar 功能導覽至少包含：
+
 - Pantry
 - Expiration
 - Shopping
 - Recipes
-- OCR
+- 食材辨識
 - Nutrition
 - Dashboard route（`/dashboard`）目前保留為未來總覽頁，MVP 側欄可先隱藏該導航項目。
 - Settings 由使用者選單進入。
@@ -158,10 +162,12 @@ Sidebar 功能導覽至少包含：
 ### 使用者選單規範
 
 點擊 Sidebar 底部使用者區塊：
+
 - 需在 Sidebar 內向上展開使用者選單。
 - 不可超出 Sidebar 寬度。
 
 至少包含：
+
 - Profile
 - Settings
 - Help
@@ -173,6 +179,7 @@ Sidebar 功能導覽至少包含：
 - 每個頁面最上方需有 Toolbar。
 
 Toolbar 可包含：
+
 - 搜尋
 - 篩選
 - 排序
@@ -184,46 +191,52 @@ Toolbar 可包含：
 Phase 06 必須拆分：
 
 ### Phase 06-1
+
 - Login/Register UI
 - tokenService
 - route guard
 - protected layout
 
 ### Phase 06-2
+
 - Sidebar
 - Dashboard layout
 - theme switch
 - responsive layout
 
 ### Phase 06-3
+
 - Pantry UI
 - pantry CRUD
 - pagination
 - filter/sort/search
 
 ### Phase 06-4
+
 - Expiration UI
 - expiration summary
 - status UI
 
 ### Phase 06-5
+
 - Shopping UI
 - purchase state
 - shopping/pantry UX
 
 ### Phase 06-6
+
 - UX polish
 - loading/error states
 - timezone display
 - responsive fixes
 - 路由整理（登入/註冊/已登入首頁導向 `/pantry`）
 
-
 ## AI 功能前端完成標準（Phase 08～11）
 
-Recipes、OCR、Nutrition 頁不可只保留 placeholder。進行對應 AI 階段時，必須完成實際 UI 與 backend job API 串接。
+Recipes、食材辨識、Nutrition 頁不可只保留 placeholder。進行對應 AI 階段時，必須完成實際 UI 與 backend job API 串接。
 
 AI job frontend 共通流程：
+
 1. frontend 呼叫 backend 建立 job
 2. 顯示 pending/running
 3. 前端 polling backend job status
@@ -233,16 +246,19 @@ AI job frontend 共通流程：
 7. frontend 不可直接呼叫 ai_server
 
 Recipes UI：
+
 - selected_items
 - auto_from_pantry
 - recipe result UI
 - cooking tools / allergies / diet preference
 
-OCR UI：
-- receipt upload
-- OCR candidate items
+食材辨識 UI：
+
+- ingredient photo upload
+- 食材辨識 candidate items
 - 使用者確認後寫入 pantry
 
 Nutrition UI：
+
 - nutrition estimate result
 - AI 生活參考聲明
