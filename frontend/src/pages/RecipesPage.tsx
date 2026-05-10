@@ -34,12 +34,14 @@ export function RecipesPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const intervalRef = useRef<number | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const statusRef = useRef<HTMLDivElement | null>(null);
   const feedbackRef = useRef<HTMLDivElement | null>(null);
   const previousJobStatusRef = useRef<string | null>(null);
   const previousHasResultRef = useRef(false);
   const previousHasErrorRef = useRef(false);
   const previousResetStatusRef = useRef<string | null>(null);
+  const hasSubmittedCurrentJobRef = useRef(false);
 
   useEffect(() => {
     void dispatch(fetchPantryItemsForRecipes());
@@ -67,16 +69,28 @@ export function RecipesPage() {
   }, [dispatch, polling, currentJobId]);
 
   useEffect(() => {
+    const workspace = sectionRef.current?.closest(".workspace");
+    if (workspace instanceof HTMLElement) {
+      workspace.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (intervalRef.current !== null) {
         window.clearInterval(intervalRef.current);
       }
+      hasSubmittedCurrentJobRef.current = false;
       dispatch(stopRecipePolling());
     };
   }, [dispatch]);
 
   useEffect(() => {
-    if ((jobStatus === "pending" || jobStatus === "running") && previousJobStatusRef.current !== jobStatus) {
+    if (
+      hasSubmittedCurrentJobRef.current &&
+      (jobStatus === "pending" || jobStatus === "running") &&
+      previousJobStatusRef.current !== jobStatus
+    ) {
       statusRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     previousJobStatusRef.current = jobStatus;
@@ -85,7 +99,10 @@ export function RecipesPage() {
   useEffect(() => {
     const hasResult = Boolean(result);
     const hasError = Boolean(jobError);
-    if ((hasResult && !previousHasResultRef.current) || (hasError && !previousHasErrorRef.current)) {
+    if (
+      hasSubmittedCurrentJobRef.current &&
+      ((hasResult && !previousHasResultRef.current) || (hasError && !previousHasErrorRef.current))
+    ) {
       feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     previousHasResultRef.current = hasResult;
@@ -132,6 +149,7 @@ export function RecipesPage() {
       return;
     }
 
+    hasSubmittedCurrentJobRef.current = true;
     const cookingTools = splitCommaValues(cookingToolsText);
     const allergies = splitCommaValues(allergiesText);
     await dispatch(
@@ -160,7 +178,7 @@ export function RecipesPage() {
   };
 
   return (
-    <section className="workspace-recipes">
+    <section className="workspace-recipes" ref={sectionRef}>
       <form className="card recipes-form-card" noValidate onSubmit={(event) => void onSubmit(event)}>
         <header className="recipes-header">
           {/* <h2 className="workspace-title">
