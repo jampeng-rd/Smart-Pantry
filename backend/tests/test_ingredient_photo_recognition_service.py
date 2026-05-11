@@ -155,3 +155,13 @@ def test_recognition_thinking_only_without_content_should_fail(tmp_path: Path) -
         service.recognize(str(image_path))
 
     assert "AI 回傳內容為空" in str(exc.value)
+
+
+def test_build_prompt_should_include_multi_ingredient_and_output_constraints() -> None:
+    """prompt 應強調多食材辨識與輕量輸出限制。"""
+    service = IngredientPhotoRecognitionService(vision_client=FakeVisionClient("番茄"))
+    prompt = service._build_prompt()
+
+    assert "盡量列出所有清楚可見的食材名稱" in prompt
+    assert "多個食材請用逗號分隔" in prompt
+    assert "不要輸出料理名稱、餐具、包裝品牌、說明文字或 markdown" in prompt

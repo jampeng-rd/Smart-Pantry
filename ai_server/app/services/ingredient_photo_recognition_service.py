@@ -56,8 +56,11 @@ class IngredientPhotoRecognitionService:
     def _build_prompt(self) -> str:
         """建立給 Vision 模型的輕量 prompt。"""
         return (
-            "請用繁體中文列出圖片中的食材名稱，只輸出食材名稱。"
-            "若有多個食材，請以逗號分隔，不要解釋。"
+            "請辨識圖片中可作為食材庫存的未加工食材。"
+            "請盡量列出所有清楚可見的食材名稱。"
+            "只輸出食材名稱，使用繁體中文。"
+            "多個食材請用逗號分隔。"
+            "不要輸出料理名稱、餐具、包裝品牌、說明文字或 markdown。"
         )
 
     def _parse_json_payload_optional(self, raw_text: str) -> dict[str, Any] | None:

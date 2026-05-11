@@ -6,6 +6,7 @@ import { EmptyState } from "../components/common/EmptyState";
 import { ErrorState } from "../components/common/ErrorState";
 import {
   beginNewIngredientRecognition,
+  clearIngredientResult,
   clearIngredientJobError,
   confirmCandidatesToPantry,
   createIngredientPhotoJob,
@@ -41,6 +42,12 @@ export function IngredientsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
   const previousPreviewRef = useRef<string | null>(null);
+  const cleanupStateRef = useRef({
+    currentJobId,
+    jobStatus,
+    candidatesLength: candidates.length,
+    previewUrl,
+  });
 
   useEffect(() => {
     if (!currentJobId) {
@@ -76,6 +83,15 @@ export function IngredientsPage() {
   }, [dispatch, polling, currentJobId]);
 
   useEffect(() => {
+    cleanupStateRef.current = {
+      currentJobId,
+      jobStatus,
+      candidatesLength: candidates.length,
+      previewUrl,
+    };
+  }, [currentJobId, jobStatus, candidates.length, previewUrl]);
+
+  useEffect(() => {
     const previousPreview = previousPreviewRef.current;
     if (previousPreview && previousPreview !== previewUrl) {
       URL.revokeObjectURL(previousPreview);
@@ -88,6 +104,24 @@ export function IngredientsPage() {
       setSelectedFile(null);
     }
   }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
+      const snapshot = cleanupStateRef.current;
+      const shouldPreserve =
+        snapshot.currentJobId !== null &&
+        (snapshot.jobStatus === "pending" ||
+          snapshot.jobStatus === "running" ||
+          (snapshot.jobStatus === "success" && snapshot.candidatesLength > 0));
+      if (shouldPreserve) {
+        return;
+      }
+      if (snapshot.previewUrl) {
+        URL.revokeObjectURL(snapshot.previewUrl);
+      }
+      dispatch(clearIngredientResult());
+    };
+  }, [dispatch]);
 
   const pendingMessage = useMemo(() => {
     if (jobStatus === "running") {
