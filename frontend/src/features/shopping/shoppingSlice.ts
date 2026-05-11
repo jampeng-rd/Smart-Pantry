@@ -174,10 +174,24 @@ const shoppingSlice = createSlice({
 });
 
 function getErrorMessage(error: unknown): string {
+  const fallback = "操作失敗，請稍後再試。";
   if (error instanceof Error) {
-    return error.message;
+    const text = error.message.toLowerCase();
+    if (text.includes("networkerror") || text.includes("failed to fetch") || text.includes("load failed")) {
+      return "網路連線異常，請稍後再試。";
+    }
+    if (
+      text.includes("validation") ||
+      text.includes("string_too_short") ||
+      text.includes("422") ||
+      text.includes("loc") ||
+      text.includes("type")
+    ) {
+      return "請確認欄位是否填寫完整";
+    }
+    return fallback;
   }
-  return "發生未知錯誤";
+  return fallback;
 }
 
 export const { setShoppingFilters, setShoppingPage, setShoppingPageSize, setShoppingSort, clearShoppingError } = shoppingSlice.actions;

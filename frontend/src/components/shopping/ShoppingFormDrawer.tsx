@@ -26,7 +26,7 @@ const defaultFormState: ShoppingFormState = {
 /** 新增/編輯購物項目表單抽屜。 */
 export function ShoppingFormDrawer({ open, loading, initialItem, onClose, onSubmit }: ShoppingFormDrawerProps) {
   const [form, setForm] = useState<ShoppingFormState>(defaultFormState);
-  const [errors, setErrors] = useState<{ name?: string; quantity?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; quantity?: string; unit?: string }>({});
 
   const modeText = useMemo(() => (initialItem ? "編輯購物項目" : "新增購物項目"), [initialItem]);
 
@@ -54,7 +54,7 @@ export function ShoppingFormDrawer({ open, loading, initialItem, onClose, onSubm
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors: { name?: string; quantity?: string } = {};
+    const nextErrors: { name?: string; quantity?: string; unit?: string } = {};
 
     if (!form.name.trim()) {
       nextErrors.name = "請輸入項目名稱";
@@ -72,7 +72,11 @@ export function ShoppingFormDrawer({ open, loading, initialItem, onClose, onSubm
       }
     }
 
-    if (nextErrors.name || nextErrors.quantity) {
+    if (!form.unit.trim()) {
+      nextErrors.unit = "請輸入單位";
+    }
+
+    if (nextErrors.name || nextErrors.quantity || nextErrors.unit) {
       setErrors(nextErrors);
       return;
     }
@@ -147,8 +151,27 @@ export function ShoppingFormDrawer({ open, loading, initialItem, onClose, onSubm
           </label>
 
           <label>
-            單位
-            <input type="text" value={form.unit} onChange={(event) => setForm((prev) => ({ ...prev, unit: event.target.value }))} />
+            單位 *
+            <input
+              type="text"
+              value={form.unit}
+              placeholder="例如 顆、包、瓶、份"
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, unit: value }));
+                if (errors.unit && value.trim()) {
+                  setErrors((prev) => ({ ...prev, unit: undefined }));
+                }
+              }}
+              aria-required="true"
+              aria-invalid={Boolean(errors.unit)}
+              aria-describedby={errors.unit ? "shopping-unit-error" : undefined}
+            />
+            {errors.unit ? (
+              <p id="shopping-unit-error" className="shopping-field-error" role="alert">
+                {errors.unit}
+              </p>
+            ) : null}
           </label>
 
           <button type="submit" className="btn primary" disabled={loading}>

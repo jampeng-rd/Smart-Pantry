@@ -34,7 +34,7 @@ const defaultFormState: PantryFormState = {
 /** 新增/編輯食材表單抽屜。 */
 export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit }: PantryFormDrawerProps) {
   const [form, setForm] = useState<PantryFormState>(defaultFormState);
-  const [errors, setErrors] = useState<{ name?: string; category?: string; quantity?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; category?: string; quantity?: string; unit?: string }>({});
 
   const modeText = useMemo(() => (initialItem ? "編輯食材" : "新增食材"), [initialItem]);
 
@@ -66,7 +66,7 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors: { name?: string; category?: string; quantity?: string } = {};
+    const nextErrors: { name?: string; category?: string; quantity?: string; unit?: string } = {};
 
     if (!form.name.trim()) {
       nextErrors.name = "請輸入食材名稱";
@@ -90,7 +90,11 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
       }
     }
 
-    if (nextErrors.name || nextErrors.category || nextErrors.quantity) {
+    if (!form.unit.trim()) {
+      nextErrors.unit = "請輸入單位";
+    }
+
+    if (nextErrors.name || nextErrors.category || nextErrors.quantity || nextErrors.unit) {
       setErrors(nextErrors);
       return;
     }
@@ -193,8 +197,27 @@ export function PantryFormDrawer({ open, loading, initialItem, onClose, onSubmit
           </label>
 
           <label>
-            單位
-            <input type="text" value={form.unit} onChange={(event) => setForm((prev) => ({ ...prev, unit: event.target.value }))} />
+            單位 *
+            <input
+              type="text"
+              value={form.unit}
+              placeholder="例如 顆、包、瓶、份"
+              onChange={(event) => {
+                const value = event.target.value;
+                setForm((prev) => ({ ...prev, unit: value }));
+                if (errors.unit && value.trim()) {
+                  setErrors((prev) => ({ ...prev, unit: undefined }));
+                }
+              }}
+              aria-required="true"
+              aria-invalid={Boolean(errors.unit)}
+              aria-describedby={errors.unit ? "pantry-unit-error" : undefined}
+            />
+            {errors.unit ? (
+              <p id="pantry-unit-error" className="pantry-field-error" role="alert">
+                {errors.unit}
+              </p>
+            ) : null}
           </label>
 
           <label>
