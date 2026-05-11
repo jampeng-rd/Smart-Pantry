@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from ai_server.app.clients.recipe_llm_client import RecipeLlmClientProtocol
@@ -89,7 +90,8 @@ class RecipeRecommendationService:
             if not isinstance(payload[field], field_type):
                 raise RecipeRecommendationError("AI 回傳欄位格式不正確，請稍後再試。")
 
-        if not payload["recipe_name"].strip():
+        sanitized_recipe_name = self._sanitize_recipe_name(payload["recipe_name"])
+        if not sanitized_recipe_name:
             raise RecipeRecommendationError("AI 回傳食譜名稱為空，請稍後再試。")
         if not payload["steps"]:
             raise RecipeRecommendationError("AI 回傳步驟為空，請稍後再試。")
@@ -98,10 +100,17 @@ class RecipeRecommendationService:
 
         # 強制輸出相容格式
         return {
-            "recipe_name": normalize_to_traditional(payload["recipe_name"]),
+            "recipe_name": sanitized_recipe_name,
             "ingredients_used": [normalize_to_traditional(str(item)) for item in payload["ingredients_used"]],
             "missing_ingredients": [normalize_to_traditional(str(item)) for item in payload["missing_ingredients"]],
             "steps": [normalize_to_traditional(str(step)) for step in payload["steps"]],
             "cooking_time_minutes": int(payload["cooking_time_minutes"]),
             "note": normalize_to_traditional(payload["note"]),
         }
+
+    def _sanitize_recipe_name(self, name: str) -> str:
+        """清理食譜名稱前後異常 o/O 雜訊字元。"""
+        normalized = normalize_to_traditional(str(name)).strip()
+        without_prefix = re.sub(r"^[oO]+", "", normalized)
+        without_edges = re.sub(r"[oO]+$", "", without_prefix)
+        return without_edges.strip()

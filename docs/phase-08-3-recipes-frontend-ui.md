@@ -31,6 +31,7 @@
 - polling 清理：
   - job 完成（success/failed/cancelled）停止 polling
   - component unmount 清除 interval，避免 memory leak
+  - mobile 版會自動尋找可滾動容器，建立任務後可捲到 status/result；找不到容器時 fallback `scrollIntoView`
 
 ## 3. 啟動方式
 
@@ -72,6 +73,8 @@ npm run dev
 - MVP 的 pantry 選擇清單目前一次抓取前 200 筆，若資料量更大需導入搜尋/分頁選擇器。
 - `cooking_tools`、`allergies` 目前使用逗號分隔文字輸入，未提供進階 tag 編輯器。
 - 輪詢採固定間隔，尚未做指數退避（backoff）。
+- `auto_from_pantry` 雖已加入候選抽樣/排序調整與 prompt 多樣性要求，但 MVP 不保存推薦歷史，無法保證每次完全不同。
+- `recipe_name` 會做最小清理（前後異常 `o/O`），避免模型雜訊字元。
 
 ## 7. 效能與 Polling 注意事項
 

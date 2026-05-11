@@ -324,7 +324,9 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐�
 - worker 維持 job-based 非同步流程：`pending -> running -> success/failed`。
 - `selected_items` 仍只使用 `input_snapshot.resolved_pantry_items`。
 - `auto_from_pantry` 仍僅查 job 所屬 `user_id` 的 pantry，排除 expired。
+- `auto_from_pantry` 候選食材會做輕量 shuffle/截斷（預設最多約 10 筆）；`prioritize_expiring_soon=true` 仍優先即將到期，但同狀態內會打散順序以降低重複。
 - result 格式維持相容：`recipe_name/ingredients_used/missing_ingredients/steps/cooking_time_minutes/note`。
+- `recipe_name` 會做最小清理：移除前後異常連續 `o/O` 字元，避免模型輸出雜訊。
 - LLM 回傳非 JSON、缺欄位、型別錯誤或解析失敗時，job 會 `failed` 並回中文友善錯誤訊息。
 - frontend 仍沿用既有建立 job / 查詢 job API，沒有新增 frontend 直連 ai_server。
 - frontend 不直接呼叫 `ai_server/`，只呼叫 backend。
@@ -361,6 +363,8 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐�
   - `note`
 - failed 顯示中文友善錯誤，不顯示 traceback 或技術細節。
 - polling 間隔約 2.5 秒；job 完成與 component unmount 都會停止 polling，避免 memory leak。
+- mobile 版建立任務後，會嘗試尋找實際可滾動容器自動捲到 status/result；找不到時 fallback `scrollIntoView`。
+- MVP 不保存推薦歷史，僅透過候選抽樣/排序與 prompt 降低重複，不保證每次完全不同。
 
 job-based 流程：
 

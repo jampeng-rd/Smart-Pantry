@@ -87,3 +87,51 @@ def test_recommend_should_normalize_simplified_chinese_phrases() -> None:
     assert result["ingredients_used"] == ["雞蛋"]
     assert result["missing_ingredients"] == ["薑片"]
     assert result["steps"] == ["撒上少許鹽和薑片"]
+
+
+def test_recipe_name_should_sanitize_prefix_o() -> None:
+    """食譜名稱應清理前綴 o/O 雜訊。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"ooooo秋刀魚煎蛋","ingredients_used":["秋刀魚","雞蛋"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["recipe_name"] == "秋刀魚煎蛋"
+
+
+def test_recipe_name_should_sanitize_suffix_o() -> None:
+    """食譜名稱應清理後綴 o/O 雜訊。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"秋刀魚煎蛋oooo","ingredients_used":["秋刀魚","雞蛋"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["recipe_name"] == "秋刀魚煎蛋"
+
+
+def test_recipe_name_should_sanitize_prefix_and_suffix_o() -> None:
+    """食譜名稱應清理前後綴 o/O 雜訊。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"ooooo秋刀魚煎蛋oooo","ingredients_used":["秋刀魚","雞蛋"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["recipe_name"] == "秋刀魚煎蛋"
+
+
+def test_recipe_name_should_keep_normal_name() -> None:
+    """正常食譜名稱不應被影響。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"家常番茄炒蛋","ingredients_used":["番茄","雞蛋"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["recipe_name"] == "家常番茄炒蛋"

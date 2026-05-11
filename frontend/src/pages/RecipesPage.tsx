@@ -49,13 +49,23 @@ export function RecipesPage() {
     }
     window.requestAnimationFrame(() => {
       const workspace = sectionRef.current?.closest(".workspace");
-      if (workspace instanceof HTMLElement) {
+      if (workspace instanceof HTMLElement && isScrollableContainer(workspace)) {
         const workspaceRect = workspace.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
         const top = targetRect.top - workspaceRect.top + workspace.scrollTop - 12;
         workspace.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
         return;
       }
+
+      const scrollableParent = findScrollableParent(target);
+      if (scrollableParent) {
+        const parentRect = scrollableParent.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const top = targetRect.top - parentRect.top + scrollableParent.scrollTop - 12;
+        scrollableParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        return;
+      }
+
       target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
@@ -411,6 +421,24 @@ export function RecipesPage() {
       ) : null}
     </section>
   );
+}
+
+function isScrollableContainer(element: HTMLElement): boolean {
+  const style = window.getComputedStyle(element);
+  const overflowY = style.overflowY;
+  const allowsScroll = overflowY === "auto" || overflowY === "scroll";
+  return allowsScroll && element.scrollHeight > element.clientHeight;
+}
+
+function findScrollableParent(target: HTMLElement): HTMLElement | null {
+  let current: HTMLElement | null = target.parentElement;
+  while (current) {
+    if (isScrollableContainer(current)) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
 }
 
 function splitCommaValues(value: string): string[] {

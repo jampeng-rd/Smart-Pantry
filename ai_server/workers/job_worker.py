@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import logging
+import random
 import time
 from datetime import date, datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy import and_, asc, or_, select
 from sqlalchemy.orm import Session, sessionmaker
@@ -87,6 +88,37 @@ def _get_auto_mode_candidates(db: Session, user_id: int) -> list[dict[str, Any]]
     return [_to_pantry_snapshot(item) for item in db.execute(statement).scalars().all()]
 
 
+def _shuffle_items(items: list[dict[str, Any]], randomizer: random.Random) -> list[dict[str, Any]]:
+    """回傳洗牌後的新陣列，不修改原始資料。"""
+    shuffled = list(items)
+    randomizer.shuffle(shuffled)
+    return shuffled
+
+
+def _select_auto_mode_candidates_for_prompt(
+    items: list[dict[str, Any]],
+    prioritize_expiring_soon: bool,
+    max_items: int = 10,
+    randomizer: random.Random | None = None,
+) -> list[dict[str, Any]]:
+    """選擇 auto_from_pantry 要送入 prompt 的候選食材。"""
+    available = [item for item in items if item.get("status") in {"normal", "expiring_soon"}]
+    if not available:
+        return []
+
+    effective_max_items = max(1, max_items)
+    rng = randomizer or random.Random()
+    expiring_items = [item for item in available if item.get("status") == "expiring_soon"]
+    normal_items = [item for item in available if item.get("status") == "normal"]
+
+    if prioritize_expiring_soon:
+        ordered = _shuffle_items(expiring_items, rng) + _shuffle_items(normal_items, rng)
+    else:
+        ordered = _shuffle_items(available, rng)
+
+    return ordered[:effective_max_items]
+
+
 def _claim_pending_jobs(db: Session, batch_size: int, enabled_job_types: list[str]) -> list[AiJob]:
     """一次 claim 一批 pending jobs，狀態改為 running。"""
     return AiJobRepository(db).claim_pending_jobs(batch_size=batch_size, job_types=enabled_job_types)
@@ -155,7 +187,12 @@ def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommend
             if not candidates:
                 raise ValueError("目前選擇的食材皆不可用於推薦，請改選未過期食材。")
         elif mode == "auto_from_pantry":
-            candidates = _get_auto_mode_candidates(db=db, user_id=job.user_id)
+            raw_candidates = _get_auto_mode_candidates(db=db, user_id=job.user_id)
+            candidates = _select_auto_mode_candidates_for_prompt(
+                items=raw_candidates,
+                prioritize_expiring_soon=bool(snapshot.get("prioritize_expiring_soon", False)),
+                max_items=10,
+            )
             if not candidates:
                 raise ValueError("目前沒有可用食材可供推薦，請先新增未過期食材。")
         else:

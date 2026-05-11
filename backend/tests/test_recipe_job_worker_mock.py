@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -9,7 +10,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from ai_server.app.clients.ingredient_vision_client import IngredientVisionTimeoutError
-from ai_server.workers.job_worker import _claim_pending_jobs, _fail_stale_running_jobs, _process_ingredient_photo_job, _process_recipe_job
+from ai_server.workers.job_worker import (
+    _claim_pending_jobs,
+    _fail_stale_running_jobs,
+    _process_ingredient_photo_job,
+    _process_recipe_job,
+    _select_auto_mode_candidates_for_prompt,
+)
 from ai_server.app.services.ingredient_photo_recognition_service import IngredientPhotoRecognitionService
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationService
 from backend.app.domain.models import AiJob, Base, PantryItem, User
@@ -502,3 +509,42 @@ def test_stale_running_recipe_job_should_not_try_image_cleanup() -> None:
     job = db.query(AiJob).one()
     assert job.status == "failed"
     assert job.error_message == "AI 任務執行逾時，請稍後再試。"
+
+
+def test_select_auto_mode_candidates_without_prioritize_should_shuffle_and_limit() -> None:
+    """未勾選優先時，候選應可洗牌並限制數量。"""
+    items = [
+        {"id": 1, "name": "蛋", "status": "normal"},
+        {"id": 2, "name": "豆腐", "status": "expiring_soon"},
+        {"id": 3, "name": "高麗菜", "status": "normal"},
+        {"id": 4, "name": "牛奶", "status": "normal"},
+        {"id": 5, "name": "番茄", "status": "expiring_soon"},
+    ]
+    selected = _select_auto_mode_candidates_for_prompt(
+        items=items,
+        prioritize_expiring_soon=False,
+        max_items=3,
+        randomizer=random.Random(7),
+    )
+
+    assert len(selected) == 3
+    assert [item["id"] for item in selected] != [1, 2, 3]
+
+
+def test_select_auto_mode_candidates_with_prioritize_should_keep_expiring_first() -> None:
+    """勾選優先時，expiring_soon 應先於 normal。"""
+    items = [
+        {"id": 1, "name": "蛋", "status": "normal"},
+        {"id": 2, "name": "豆腐", "status": "expiring_soon"},
+        {"id": 3, "name": "高麗菜", "status": "normal"},
+        {"id": 4, "name": "番茄", "status": "expiring_soon"},
+    ]
+    selected = _select_auto_mode_candidates_for_prompt(
+        items=items,
+        prioritize_expiring_soon=True,
+        max_items=4,
+        randomizer=random.Random(11),
+    )
+
+    statuses = [item["status"] for item in selected]
+    assert statuses[:2] == ["expiring_soon", "expiring_soon"]
