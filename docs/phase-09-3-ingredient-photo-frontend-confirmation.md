@@ -50,6 +50,17 @@
 - 部分成功/部分失敗時顯示失敗項目與中文錯誤原因
 - job success 不會自動寫入 pantry，必須使用者手動確認
 
+8. 暫存上傳圖片清理（temporary upload cleanup）
+- `uploads/ingredient_photos/` 僅作 Vision 辨識暫存，不作長期保存。
+- worker 在 `ingredient_photo` job 進入終態後會嘗試刪除 `input_snapshot.image_path`：
+  - success
+  - failed
+  - timeout
+  - stale running -> failed
+- 僅刪除 `uploads/` 目錄內檔案（防止 path traversal）。
+- 若檔案不存在或刪除失敗，worker 只記錄 warning，不會覆蓋既有 job success/failed 結果。
+- `ai_jobs` 與 `result.candidate_items` 仍保留；前端候選顯示與使用者確認寫入 pantry 不受影響。
+
 ## 錯誤處理
 
 - 前端不顯示 traceback / Pydantic 原始錯誤 / `NetworkError` 原文
@@ -63,3 +74,4 @@
 - 複雜場景（整桌料理、冰箱全景、多人餐點、過多品項）可能造成 timeout
 - `candidate_items` 為 AI 候選，仍需使用者確認後才可寫入 pantry
 - 整桌料理/餐點照片較適合後續 Nutrition 階段，非本階段庫存匯入主要目標
+- `input_snapshot.image_path` 為歷史上傳路徑紀錄，不保證檔案仍存在（可能已被 worker cleanup）。

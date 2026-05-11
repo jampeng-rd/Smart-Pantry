@@ -432,6 +432,9 @@ MVP 使用範圍與注意事項：
 - 使用者按「確認加入庫存」後，前端逐筆呼叫既有 `pantryApi.create` 寫入 `pantry_items`（無 bulk API）。
 - 保持「AI 候選不可自動寫入 pantry」原則，必須由使用者確認才寫入。
 - 部分成功/部分失敗時，會回報失敗項目與原因（中文友善訊息）。
+- `uploads/ingredient_photos/` 僅作暫存；worker 於 ingredient_photo job 終態（success/failed/timeout/stale failed）後會嘗試刪除原始圖片。
+- `ai_jobs` 與 `result.candidate_items` 仍保留，前端顯示與後續確認加入 pantry 流程不受影響。
+- `input_snapshot.image_path` 僅作歷史路徑紀錄，不保證檔案仍存在（可能已被 cleanup）。
 
 MVP 使用範圍：
 - 主要支援單一或少量未加工食材照片。

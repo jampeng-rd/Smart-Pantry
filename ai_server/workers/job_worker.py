@@ -24,10 +24,12 @@ from backend.app.domain.models.ai_job_model import AiJob
 from backend.app.domain.models.pantry_item_model import PantryItem
 from backend.app.infra.database import engine as backend_engine
 from backend.app.infra.repository.ai_job_repository import AiJobRepository
+from backend.app.infra.storage import LocalStorage
 
 LOGGER = logging.getLogger(__name__)
 
 SessionLocal = sessionmaker(bind=backend_engine, autoflush=False, autocommit=False, class_=Session)
+UPLOAD_STORAGE = LocalStorage(root_dir="uploads")
 
 
 def _get_item_status(expiration_date: date | None) -> str:
@@ -101,12 +103,32 @@ def _fail_stale_running_jobs(db: Session, enabled_job_types: list[str], timeout_
     now = datetime.now(timezone.utc)
     for job in stale_jobs:
         job.status = "failed"
-        job.error_message = INGREDIENT_PHOTO_TIMEOUT_MESSAGE
+        if job.job_type == "ingredient_photo":
+            job.error_message = INGREDIENT_PHOTO_TIMEOUT_MESSAGE
+        else:
+            job.error_message = "AI 任務執行逾時，請稍後再試。"
         job.finished_at = now
         db.add(job)
     db.commit()
+    for job in stale_jobs:
+        _cleanup_ingredient_photo_upload(job=job)
     LOGGER.warning("marked stale running jobs as failed count=%s enabled_job_types=%s", len(stale_jobs), enabled_job_types)
     return len(stale_jobs)
+
+
+def _cleanup_ingredient_photo_upload(job: AiJob) -> None:
+    """清理 ingredient_photo 任務暫存圖片，不影響既有 job 結果。"""
+    if job.job_type != "ingredient_photo":
+        return
+    snapshot = job.input_snapshot or {}
+    image_path = snapshot.get("image_path")
+    if not isinstance(image_path, str) or not image_path:
+        return
+    deleted = UPLOAD_STORAGE.delete_file(image_path)
+    if deleted:
+        LOGGER.info("ingredient photo upload cleaned up job_id=%s path=%s", job.id, image_path)
+        return
+    LOGGER.warning("ingredient photo upload cleanup skipped_or_failed job_id=%s path=%s", job.id, image_path)
 
 
 def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommendationService) -> None:
@@ -189,6 +211,8 @@ def _process_ingredient_photo_job(db: Session, job: AiJob, recognition_service: 
         db.add(job)
         db.commit()
         LOGGER.info("ingredient_photo job commit failed job_id=%s", job.id)
+    finally:
+        _cleanup_ingredient_photo_upload(job=job)
 
 
 def _parse_job_types_arg() -> list[str] | None:

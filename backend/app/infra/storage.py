@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
+import logging
 
 from fastapi import UploadFile
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -58,3 +61,33 @@ class LocalStorage:
             "image/webp": ".webp",
         }
         return mapping.get(mime_type, ".bin")
+
+    def delete_file(self, path: str) -> bool:
+        """安全刪除 uploads 目錄下檔案，僅回傳是否成功刪除。"""
+        if not path:
+            return False
+
+        root_resolved = self.root_dir.resolve()
+        target_path = Path(path)
+        if not target_path.is_absolute():
+            target_path = Path.cwd() / target_path
+
+        try:
+            target_resolved = target_path.resolve()
+        except OSError:
+            LOGGER.warning("delete_file failed to resolve path=%s", path)
+            return False
+
+        if root_resolved not in target_resolved.parents:
+            LOGGER.warning("delete_file blocked path outside uploads path=%s", path)
+            return False
+
+        if not target_resolved.exists():
+            return False
+
+        try:
+            target_resolved.unlink()
+            return True
+        except OSError:
+            LOGGER.warning("delete_file failed path=%s", path)
+            return False

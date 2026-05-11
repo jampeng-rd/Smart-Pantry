@@ -364,10 +364,10 @@ def test_mock_ingredient_photo_job_success_and_no_pantry_write() -> None:
     assert job.result is not None
     assert "candidate_items" in job.result
     assert len(job.result["candidate_items"]) >= 1
+    assert not Path(image_path).exists()
 
     pantry_count = db.query(PantryItem).count()
     assert pantry_count == 0
-    Path(image_path).unlink(missing_ok=True)
 
 
 def test_ingredient_photo_job_failed_with_chinese_error_message() -> None:
@@ -395,7 +395,7 @@ def test_ingredient_photo_job_failed_with_chinese_error_message() -> None:
     assert job is not None
     assert job.status == "failed"
     assert "無法解析" in (job.error_message or "")
-    Path(image_path).unlink(missing_ok=True)
+    assert not Path(image_path).exists()
 
 
 def test_ingredient_photo_job_timeout_failed_with_friendly_message() -> None:
@@ -423,20 +423,23 @@ def test_ingredient_photo_job_timeout_failed_with_friendly_message() -> None:
     assert job is not None
     assert job.status == "failed"
     assert job.error_message == "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
-    Path(image_path).unlink(missing_ok=True)
+    assert not Path(image_path).exists()
 
 
 def test_stale_running_job_should_be_marked_failed() -> None:
     """超過 timeout 的 running ingredient job 應被回收為 failed。"""
     db = _make_session()
     _create_user(db, user_id=1, email="u1@example.com")
+    image_path = "uploads/ingredient_photos/stale.jpg"
+    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(image_path).write_bytes(b"stale-image")
     stale_started_at = datetime.now(timezone.utc) - timedelta(seconds=301)
     db.add(
         AiJob(
             user_id=1,
             job_type="ingredient_photo",
             status="running",
-            input_snapshot={"image_path": "uploads/ingredient_photos/stale.jpg"},
+            input_snapshot={"image_path": image_path},
             started_at=stale_started_at,
         )
     )
@@ -449,3 +452,53 @@ def test_stale_running_job_should_be_marked_failed() -> None:
     assert job.status == "failed"
     assert job.finished_at is not None
     assert job.error_message == "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
+    assert not Path(image_path).exists()
+
+
+def test_ingredient_photo_cleanup_should_not_crash_when_file_missing() -> None:
+    """ingredient_photo 圖片不存在時，worker 仍可正常完成失敗流程。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    image_path = "uploads/ingredient_photos/not_exists.jpg"
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="ingredient_photo",
+            status="pending",
+            input_snapshot={"image_path": image_path},
+        )
+    )
+    db.commit()
+
+    claimed = _claim_pending_jobs(db=db, batch_size=10, enabled_job_types=["ingredient_photo"])
+    recognition_service = _make_ingredient_recognition_service("???")
+    _process_ingredient_photo_job(db=db, job=claimed[0], recognition_service=recognition_service)
+
+    job = db.get(AiJob, claimed[0].id)
+    assert job is not None
+    assert job.status == "failed"
+    assert job.error_message == "找不到要辨識的圖片，請重新上傳後再試。"
+
+
+def test_stale_running_recipe_job_should_not_try_image_cleanup() -> None:
+    """stale recipe job 只標記 failed，不做圖片清理。"""
+    db = _make_session()
+    _create_user(db, user_id=1, email="u1@example.com")
+    stale_started_at = datetime.now(timezone.utc) - timedelta(seconds=301)
+    db.add(
+        AiJob(
+            user_id=1,
+            job_type="recipe_recommendation",
+            status="running",
+            input_snapshot={"recommendation_mode": "auto_from_pantry"},
+            started_at=stale_started_at,
+        )
+    )
+    db.commit()
+
+    changed = _fail_stale_running_jobs(db=db, enabled_job_types=["recipe_recommendation"], timeout_seconds=300)
+    assert changed == 1
+
+    job = db.query(AiJob).one()
+    assert job.status == "failed"
+    assert job.error_message == "AI 任務執行逾時，請稍後再試。"
