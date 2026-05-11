@@ -211,9 +211,9 @@ export function IngredientsPage() {
   return (
     <section className="workspace-ingredients">
       <div className="card ingredients-upload-card">
-        <h2 className="workspace-title">
+        {/* <h2 className="workspace-title">
           <FiCamera aria-hidden="true" /> 食材辨識
-        </h2>
+        </h2> */}
         <p className="ingredients-tip">
           建議拍攝單一或少量未加工食材。避免整桌料理、冰箱全景、多人餐點或過多品項。
         </p>

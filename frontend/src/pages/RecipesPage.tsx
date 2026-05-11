@@ -43,6 +43,23 @@ export function RecipesPage() {
   const previousResetStatusRef = useRef<string | null>(null);
   const hasSubmittedCurrentJobRef = useRef(false);
 
+  const scrollWorkspaceToTarget = (target: HTMLElement | null) => {
+    if (!target) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      const workspace = sectionRef.current?.closest(".workspace");
+      if (workspace instanceof HTMLElement) {
+        const workspaceRect = workspace.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const top = targetRect.top - workspaceRect.top + workspace.scrollTop - 12;
+        workspace.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        return;
+      }
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
   useEffect(() => {
     void dispatch(fetchPantryItemsForRecipes());
   }, [dispatch]);
@@ -105,7 +122,7 @@ export function RecipesPage() {
       (jobStatus === "pending" || jobStatus === "running") &&
       previousJobStatusRef.current !== jobStatus
     ) {
-      statusRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      scrollWorkspaceToTarget(statusRef.current);
     }
     previousJobStatusRef.current = jobStatus;
   }, [jobStatus]);
@@ -117,7 +134,7 @@ export function RecipesPage() {
       hasSubmittedCurrentJobRef.current &&
       ((hasResult && !previousHasResultRef.current) || (hasError && !previousHasErrorRef.current))
     ) {
-      feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      scrollWorkspaceToTarget(feedbackRef.current);
     }
     previousHasResultRef.current = hasResult;
     previousHasErrorRef.current = hasError;
@@ -367,28 +384,30 @@ export function RecipesPage() {
       ) : null}
 
       {result ? (
-        <article className="card recipes-result-card" ref={feedbackRef}>
-          <h3>{result.recipe_name}</h3>
-          <p className="recipes-result-time">
-            <FiClock aria-hidden="true" /> 估計料理時間：{result.cooking_time_minutes} 分鐘
-          </p>
-          <section>
-            <h4>使用食材</h4>
-            <ul>{result.ingredients_used.map((item) => <li key={`used-${item}`}>{item}</li>)}</ul>
-          </section>
-          <section>
-            <h4>缺少食材</h4>
-            {result.missing_ingredients.length === 0 ? <p>無</p> : <ul>{result.missing_ingredients.map((item) => <li key={`missing-${item}`}>{item}</li>)}</ul>}
-          </section>
-          <section>
-            <h4>步驟</h4>
-            <ol>{result.steps.map((step) => <li key={step}>{step}</li>)}</ol>
-          </section>
-          <section>
-            <h4>備註</h4>
-            <p>{result.note}</p>
-          </section>
-        </article>
+        <div ref={feedbackRef}>
+          <article className="card recipes-result-card">
+            <h3>{result.recipe_name}</h3>
+            <p className="recipes-result-time">
+              <FiClock aria-hidden="true" /> 估計料理時間：{result.cooking_time_minutes} 分鐘
+            </p>
+            <section>
+              <h4>使用食材</h4>
+              <ul>{result.ingredients_used.map((item) => <li key={`used-${item}`}>{item}</li>)}</ul>
+            </section>
+            <section>
+              <h4>缺少食材</h4>
+              {result.missing_ingredients.length === 0 ? <p>無</p> : <ul>{result.missing_ingredients.map((item) => <li key={`missing-${item}`}>{item}</li>)}</ul>}
+            </section>
+            <section>
+              <h4>步驟</h4>
+              <ol>{result.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+            </section>
+            <section>
+              <h4>備註</h4>
+              <p>{result.note}</p>
+            </section>
+          </article>
+        </div>
       ) : null}
     </section>
   );
