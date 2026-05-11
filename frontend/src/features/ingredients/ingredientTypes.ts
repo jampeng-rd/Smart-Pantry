@@ -55,6 +55,8 @@ export interface IngredientState {
   currentJobId: number | null;
   jobStatus: IngredientPhotoJobStatus | null;
   jobError: string | null;
+  previewUrl: string | null;
+  selectedImageName: string | null;
   candidates: IngredientCandidateItem[];
   resultNote: string | null;
   confirmLoading: boolean;

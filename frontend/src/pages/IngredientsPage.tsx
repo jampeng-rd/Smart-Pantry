@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorState } from "../components/common/ErrorState";
 import {
+  beginNewIngredientRecognition,
   clearIngredientJobError,
   confirmCandidatesToPantry,
   createIngredientPhotoJob,
@@ -21,13 +22,25 @@ const POLLING_INTERVAL_MS = 2500;
 /** 食材辨識頁：上傳圖片、輪詢 job、確認候選後寫入 pantry。 */
 export function IngredientsPage() {
   const dispatch = useAppDispatch();
-  const { uploading, polling, currentJobId, jobStatus, jobError, candidates, resultNote, confirmLoading, confirmSummary, showNoItemsState } =
-    useAppSelector((state) => state.ingredients);
+  const {
+    uploading,
+    polling,
+    currentJobId,
+    jobStatus,
+    jobError,
+    previewUrl,
+    selectedImageName,
+    candidates,
+    resultNote,
+    confirmLoading,
+    confirmSummary,
+    showNoItemsState,
+  } = useAppSelector((state) => state.ingredients);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const previousPreviewRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!currentJobId) {
@@ -63,14 +76,17 @@ export function IngredientsPage() {
   }, [dispatch, polling, currentJobId]);
 
   useEffect(() => {
-    return () => {
-      if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current);
-      }
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
+    const previousPreview = previousPreviewRef.current;
+    if (previousPreview && previousPreview !== previewUrl) {
+      URL.revokeObjectURL(previousPreview);
+    }
+    previousPreviewRef.current = previewUrl;
+  }, [previewUrl]);
+
+  useEffect(() => {
+    if (!previewUrl) {
+      setSelectedFile(null);
+    }
   }, [previewUrl]);
 
   const pendingMessage = useMemo(() => {
@@ -89,10 +105,6 @@ export function IngredientsPage() {
     setFormError(null);
     if (!file) {
       setSelectedFile(null);
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-      }
       return;
     }
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -105,10 +117,7 @@ export function IngredientsPage() {
     }
 
     setSelectedFile(file);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(URL.createObjectURL(file));
+    dispatch(beginNewIngredientRecognition({ previewUrl: URL.createObjectURL(file), fileName: file.name }));
   };
 
   const onCreateJob = async () => {
@@ -195,7 +204,7 @@ export function IngredientsPage() {
             建立辨識任務
           </button>
         </div>
-        {selectedFile ? <p className="muted-text">已選擇：{selectedFile.name}</p> : null}
+        {selectedImageName ? <p className="muted-text">已選擇：{selectedImageName}</p> : null}
         {fileError ? <p className="pantry-field-error">{fileError}</p> : null}
         {previewUrl ? <img src={previewUrl} alt="食材預覽" className="ingredients-preview" /> : null}
       </div>

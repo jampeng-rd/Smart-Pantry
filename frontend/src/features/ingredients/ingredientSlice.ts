@@ -16,6 +16,8 @@ const initialState: IngredientState = {
   currentJobId: null,
   jobStatus: null,
   jobError: null,
+  previewUrl: null,
+  selectedImageName: null,
   candidates: [],
   resultNote: null,
   confirmLoading: false,
@@ -102,10 +104,25 @@ const ingredientSlice = createSlice({
   name: "ingredients",
   initialState,
   reducers: {
+    beginNewIngredientRecognition: (state, action: PayloadAction<{ previewUrl: string; fileName: string }>) => {
+      state.previewUrl = action.payload.previewUrl;
+      state.selectedImageName = action.payload.fileName;
+      state.currentJobId = null;
+      state.jobStatus = null;
+      state.jobError = null;
+      state.candidates = [];
+      state.resultNote = null;
+      state.polling = false;
+      state.confirmLoading = false;
+      state.confirmSummary = null;
+      state.showNoItemsState = false;
+    },
     clearIngredientJobError: (state) => {
       state.jobError = null;
     },
     clearIngredientResult: (state) => {
+      state.previewUrl = null;
+      state.selectedImageName = null;
       state.candidates = [];
       state.resultNote = null;
       state.confirmSummary = null;
@@ -142,6 +159,14 @@ const ingredientSlice = createSlice({
     removeCandidate: (state, action: PayloadAction<number>) => {
       state.candidates = state.candidates.filter((_, index) => index !== action.payload);
       if (state.candidates.length === 0) {
+        state.previewUrl = null;
+        state.selectedImageName = null;
+        state.resultNote = null;
+        state.confirmSummary = null;
+        state.jobError = null;
+        state.jobStatus = null;
+        state.currentJobId = null;
+        state.polling = false;
         state.showNoItemsState = false;
       }
     },
@@ -210,10 +235,20 @@ const ingredientSlice = createSlice({
       .addCase(confirmCandidatesToPantry.fulfilled, (state, action) => {
         state.confirmLoading = false;
         state.confirmSummary = action.payload;
-        if (action.payload.failureItems.length === 0) {
-          state.candidates = [];
+        if (action.payload.failureItems.length > 0) {
+          const failureIndexSet = new Set(action.payload.failureItems.map((item) => item.index));
+          state.candidates = state.candidates.filter((_, index) => failureIndexSet.has(index));
           state.showNoItemsState = false;
+          return;
         }
+        state.previewUrl = null;
+        state.selectedImageName = null;
+        state.candidates = [];
+        state.resultNote = null;
+        state.jobStatus = null;
+        state.currentJobId = null;
+        state.polling = false;
+        state.showNoItemsState = false;
       })
       .addCase(confirmCandidatesToPantry.rejected, (state, action) => {
         state.confirmLoading = false;
@@ -252,6 +287,12 @@ function toFriendlyIngredientError(error: unknown, fallback: string, scope: "cre
   return fallback;
 }
 
-export const { clearIngredientJobError, clearIngredientResult, setIngredientPolling, updateCandidateField, removeCandidate } =
-  ingredientSlice.actions;
+export const {
+  beginNewIngredientRecognition,
+  clearIngredientJobError,
+  clearIngredientResult,
+  setIngredientPolling,
+  updateCandidateField,
+  removeCandidate,
+} = ingredientSlice.actions;
 export default ingredientSlice.reducer;
