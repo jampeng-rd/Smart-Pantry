@@ -4,6 +4,7 @@ import type { PantryCreatePayload } from "../pantry/pantryTypes";
 import { ingredientsApi, pantryApi } from "../../services/apiClient";
 import type {
   IngredientCandidateItem,
+  IngredientEditableCandidateItem,
   IngredientConfirmSummary,
   IngredientPhotoJobCreateData,
   IngredientPhotoJobStatusData,
@@ -24,6 +25,13 @@ const initialState: IngredientState = {
   confirmSummary: null,
   showNoItemsState: false,
 };
+
+let candidateClientIdSeed = 0;
+
+function createCandidateClientId(): string {
+  candidateClientIdSeed += 1;
+  return `ingredient-candidate-${Date.now()}-${candidateClientIdSeed}`;
+}
 
 function toStorageLocationUi(value: string): string {
   const normalized = value.trim().toLowerCase();
@@ -62,7 +70,11 @@ export const fetchIngredientPhotoJobStatus = createAsyncThunk<IngredientPhotoJob
 );
 
 /** 將候選資料逐筆寫入 pantry（不可 bulk）。 */
-export const confirmCandidatesToPantry = createAsyncThunk<IngredientConfirmSummary, IngredientCandidateItem[], { rejectValue: string }>(
+export const confirmCandidatesToPantry = createAsyncThunk<
+  IngredientConfirmSummary,
+  IngredientEditableCandidateItem[],
+  { rejectValue: string }
+>(
   "ingredients/confirmCandidatesToPantry",
   async (candidates, { rejectWithValue }) => {
     const failureItems: IngredientConfirmSummary["failureItems"] = [];
@@ -85,7 +97,7 @@ export const confirmCandidatesToPantry = createAsyncThunk<IngredientConfirmSumma
         successCount += 1;
       } catch (error) {
         failureItems.push({
-          index,
+          clientId: candidate.clientId,
           name: candidate.name,
           reason: toFriendlyIngredientError(error, "加入庫存失敗，請稍後再試。", "confirm"),
         });
@@ -137,9 +149,9 @@ const ingredientSlice = createSlice({
     },
     updateCandidateField: (
       state,
-      action: PayloadAction<{ index: number; field: keyof IngredientCandidateItem; value: string | number | null }>,
+      action: PayloadAction<{ clientId: string; field: keyof IngredientCandidateItem; value: string | number | null }>,
     ) => {
-      const target = state.candidates[action.payload.index];
+      const target = state.candidates.find((candidate) => candidate.clientId === action.payload.clientId);
       if (!target) {
         return;
       }
@@ -156,8 +168,8 @@ const ingredientSlice = createSlice({
         target[field] = value as never;
       }
     },
-    removeCandidate: (state, action: PayloadAction<number>) => {
-      state.candidates = state.candidates.filter((_, index) => index !== action.payload);
+    removeCandidate: (state, action: PayloadAction<string>) => {
+      state.candidates = state.candidates.filter((candidate) => candidate.clientId !== action.payload);
       if (state.candidates.length === 0) {
         state.previewUrl = null;
         state.selectedImageName = null;
@@ -200,6 +212,7 @@ const ingredientSlice = createSlice({
           state.polling = false;
           state.jobError = null;
           state.candidates = (action.payload.result?.candidate_items ?? []).map((item) => ({
+            clientId: createCandidateClientId(),
             ...item,
             quantity: Math.max(1, Math.floor(item.quantity)),
             storage_location: toStorageLocationUi(item.storage_location),
@@ -236,8 +249,8 @@ const ingredientSlice = createSlice({
         state.confirmLoading = false;
         state.confirmSummary = action.payload;
         if (action.payload.failureItems.length > 0) {
-          const failureIndexSet = new Set(action.payload.failureItems.map((item) => item.index));
-          state.candidates = state.candidates.filter((_, index) => failureIndexSet.has(index));
+          const failureClientIdSet = new Set(action.payload.failureItems.map((item) => item.clientId));
+          state.candidates = state.candidates.filter((candidate) => failureClientIdSet.has(candidate.clientId));
           state.showNoItemsState = false;
           return;
         }

@@ -11,6 +11,11 @@ export interface IngredientCandidateItem {
   note: string;
 }
 
+/** 前端可編輯候選食材（含本地穩定 id）。 */
+export interface IngredientEditableCandidateItem extends IngredientCandidateItem {
+  clientId: string;
+}
+
 /** 食材照片辨識結果。 */
 export interface IngredientPhotoRecognitionResult {
   candidate_items: IngredientCandidateItem[];
@@ -37,7 +42,7 @@ export interface IngredientPhotoJobStatusData {
 
 /** 單筆候選食材寫入 pantry 的結果。 */
 export interface IngredientConfirmFailureItem {
-  index: number;
+  clientId: string;
   name: string;
   reason: string;
 }
@@ -57,7 +62,7 @@ export interface IngredientState {
   jobError: string | null;
   previewUrl: string | null;
   selectedImageName: string | null;
-  candidates: IngredientCandidateItem[];
+  candidates: IngredientEditableCandidateItem[];
   resultNote: string | null;
   confirmLoading: boolean;
   confirmSummary: IngredientConfirmSummary | null;

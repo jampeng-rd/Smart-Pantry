@@ -13,7 +13,7 @@ import {
   removeCandidate,
   updateCandidateField,
 } from "../features/ingredients/ingredientSlice";
-import type { IngredientCandidateItem } from "../features/ingredients/ingredientTypes";
+import type { IngredientCandidateItem, IngredientEditableCandidateItem } from "../features/ingredients/ingredientTypes";
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -130,28 +130,28 @@ export function IngredientsPage() {
     await dispatch(createIngredientPhotoJob(selectedFile)).unwrap();
   };
 
-  const onCandidateChange = (index: number, field: keyof IngredientCandidateItem, value: string) => {
+  const onCandidateChange = (clientId: string, field: keyof IngredientCandidateItem, value: string) => {
     if (field === "quantity") {
       const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
-      dispatch(updateCandidateField({ index, field, value: Number.isFinite(parsed) ? parsed : 1 }));
+      dispatch(updateCandidateField({ clientId, field, value: Number.isFinite(parsed) ? parsed : 1 }));
       return;
     }
     if (field === "expiration_date") {
-      dispatch(updateCandidateField({ index, field, value: value.trim() ? value : null }));
+      dispatch(updateCandidateField({ clientId, field, value: value.trim() ? value : null }));
       return;
     }
-    dispatch(updateCandidateField({ index, field, value }));
+    dispatch(updateCandidateField({ clientId, field, value }));
   };
 
-  const onDecreaseQuantity = (index: number, current: number) => {
-    dispatch(updateCandidateField({ index, field: "quantity", value: Math.max(1, current - 1) }));
+  const onDecreaseQuantity = (clientId: string, current: number) => {
+    dispatch(updateCandidateField({ clientId, field: "quantity", value: Math.max(1, current - 1) }));
   };
 
-  const onIncreaseQuantity = (index: number, current: number) => {
-    dispatch(updateCandidateField({ index, field: "quantity", value: Math.max(1, current + 1) }));
+  const onIncreaseQuantity = (clientId: string, current: number) => {
+    dispatch(updateCandidateField({ clientId, field: "quantity", value: Math.max(1, current + 1) }));
   };
 
-  const validateCandidates = (items: IngredientCandidateItem[]): string | null => {
+  const validateCandidates = (items: IngredientEditableCandidateItem[]): string | null => {
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
       if (!item.name.trim() || !item.category.trim() || !item.unit.trim()) {
@@ -249,14 +249,14 @@ export function IngredientsPage() {
           {formError ? <p className="pantry-field-error">{formError}</p> : null}
           <div className="ingredients-candidates-list">
             {candidates.map((candidate, index) => (
-              <article key={`${candidate.name}-${index}`} className="ingredients-candidate-item">
+              <article key={candidate.clientId} className="ingredients-candidate-item">
                 <div className="ingredients-candidate-item-head">
                   <strong>食材 {index + 1}</strong>
                   <button
                     type="button"
                     className="icon-btn"
                     aria-label={`刪除食材 ${candidate.name || index + 1}`}
-                    onClick={() => dispatch(removeCandidate(index))}
+                    onClick={() => dispatch(removeCandidate(candidate.clientId))}
                   >
                     <FiTrash2 aria-hidden="true" />
                   </button>
@@ -264,11 +264,11 @@ export function IngredientsPage() {
                 <div className="ingredients-candidate-grid">
                   <label>
                     名稱*
-                    <input value={candidate.name} onChange={(event) => onCandidateChange(index, "name", event.target.value)} />
+                    <input value={candidate.name} onChange={(event) => onCandidateChange(candidate.clientId, "name", event.target.value)} />
                   </label>
                   <label>
                     分類*
-                    <input value={candidate.category} onChange={(event) => onCandidateChange(index, "category", event.target.value)} />
+                    <input value={candidate.category} onChange={(event) => onCandidateChange(candidate.clientId, "category", event.target.value)} />
                   </label>
                   <label>
                     數量*
@@ -278,14 +278,14 @@ export function IngredientsPage() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={candidate.quantity}
-                        onChange={(event) => onCandidateChange(index, "quantity", event.target.value)}
+                        onChange={(event) => onCandidateChange(candidate.clientId, "quantity", event.target.value)}
                       />
                       <span className="ingredients-quantity-buttons">
                         <button
                           type="button"
                           className="btn ghost ingredients-quantity-btn"
                           aria-label="減少數量"
-                          onClick={() => onDecreaseQuantity(index, candidate.quantity)}
+                          onClick={() => onDecreaseQuantity(candidate.clientId, candidate.quantity)}
                         >
                           <FiMinus aria-hidden="true" />
                         </button>
@@ -293,7 +293,7 @@ export function IngredientsPage() {
                           type="button"
                           className="btn ghost ingredients-quantity-btn"
                           aria-label="增加數量"
-                          onClick={() => onIncreaseQuantity(index, candidate.quantity)}
+                          onClick={() => onIncreaseQuantity(candidate.clientId, candidate.quantity)}
                         >
                           <FiPlus aria-hidden="true" />
                         </button>
@@ -302,26 +302,26 @@ export function IngredientsPage() {
                   </label>
                   <label>
                     單位*
-                    <input value={candidate.unit} onChange={(event) => onCandidateChange(index, "unit", event.target.value)} />
+                    <input value={candidate.unit} onChange={(event) => onCandidateChange(candidate.clientId, "unit", event.target.value)} />
                   </label>
                   <label>
                     到期日
                     <input
                       type="date"
                       value={candidate.expiration_date ?? ""}
-                      onChange={(event) => onCandidateChange(index, "expiration_date", event.target.value)}
+                      onChange={(event) => onCandidateChange(candidate.clientId, "expiration_date", event.target.value)}
                     />
                   </label>
                   <label>
                     儲存位置
                     <input
                       value={candidate.storage_location}
-                      onChange={(event) => onCandidateChange(index, "storage_location", event.target.value)}
+                      onChange={(event) => onCandidateChange(candidate.clientId, "storage_location", event.target.value)}
                     />
                   </label>
                   <label className="ingredients-candidate-note">
                     備註
-                    <input value={candidate.note} onChange={(event) => onCandidateChange(index, "note", event.target.value)} />
+                    <input value={candidate.note} onChange={(event) => onCandidateChange(candidate.clientId, "note", event.target.value)} />
                   </label>
                 </div>
               </article>
@@ -334,8 +334,8 @@ export function IngredientsPage() {
               {confirmSummary.failureItems.length > 0 ? (
                 <ul>
                   {confirmSummary.failureItems.map((failure) => (
-                    <li key={`${failure.index}-${failure.name}`}>
-                      {failure.name || `第 ${failure.index + 1} 筆`}：{failure.reason}
+                    <li key={`${failure.clientId}-${failure.name}`}>
+                      {failure.name || "食材"}：{failure.reason}
                     </li>
                   ))}
                 </ul>
