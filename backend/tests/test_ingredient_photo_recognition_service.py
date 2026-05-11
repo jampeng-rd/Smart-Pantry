@@ -164,4 +164,19 @@ def test_build_prompt_should_include_multi_ingredient_and_output_constraints() -
 
     assert "盡量列出所有清楚可見的食材名稱" in prompt
     assert "多個食材請用逗號分隔" in prompt
+    assert "所有輸出必須使用繁體中文，不可使用簡體中文" in prompt
     assert "不要輸出料理名稱、餐具、包裝品牌、說明文字或 markdown" in prompt
+
+
+def test_recognition_plain_text_should_apply_extended_zh_variant_mapping(tmp_path: Path) -> None:
+    """常見簡體字詞應轉為繁體。"""
+    image_path = tmp_path / "ingredient.jpg"
+    image_path.write_bytes(b"fake-image")
+    service = IngredientPhotoRecognitionService(vision_client=FakeVisionClient("西兰花、芦笋、锅"))
+
+    result = service.recognize(str(image_path))
+    names = [item["name"] for item in result["candidate_items"]]
+
+    assert "西蘭花" in names
+    assert "蘆筍" in names
+    assert "鍋" in names

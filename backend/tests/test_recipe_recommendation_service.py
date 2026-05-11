@@ -61,3 +61,14 @@ def test_recommend_fail_when_not_json() -> None:
 
     assert "無法解析" in str(exc.value)
 
+
+def test_recipe_prompt_should_require_traditional_chinese() -> None:
+    """prompt 應要求輸出繁體中文。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"番茄炒蛋","ingredients_used":["番茄","雞蛋"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":10,"note":"僅供生活參考"}'
+        )
+    )
+
+    prompt = service._build_prompt(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert "所有輸出必須使用繁體中文，不可使用簡體中文" in prompt

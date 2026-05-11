@@ -59,6 +59,7 @@ class IngredientPhotoRecognitionService:
             "請辨識圖片中可作為食材庫存的未加工食材。"
             "請盡量列出所有清楚可見的食材名稱。"
             "只輸出食材名稱，使用繁體中文。"
+            "所有輸出必須使用繁體中文，不可使用簡體中文。"
             "多個食材請用逗號分隔。"
             "不要輸出料理名稱、餐具、包裝品牌、說明文字或 markdown。"
         )
@@ -174,12 +175,19 @@ class IngredientPhotoRecognitionService:
         """最小化常見簡體字轉換。"""
         mapping = {
             "西红柿": "西紅柿",
+            "西兰花": "西蘭花",
             "鸡蛋": "雞蛋",
             "马铃薯": "馬鈴薯",
             "萝卜": "蘿蔔",
             "黄瓜": "黃瓜",
             "茄子": "茄子",
             "蘑菇": "蘑菇",
+            "芦笋": "蘆筍",
+            "锅": "鍋",
+            "兰": "蘭",
+            "芦": "蘆",
+            "笋": "筍",
+            "花椰菜": "花椰菜",
         }
         normalized = text.strip()
         for simplified, traditional in mapping.items():

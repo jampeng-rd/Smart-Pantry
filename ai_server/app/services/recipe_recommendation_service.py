@@ -49,6 +49,7 @@ class RecipeRecommendationService:
         return (
             "你是智慧食材系統的食譜推薦助手。"
             "請僅輸出單一 JSON 物件，不要輸出 markdown、前後說明或其他文字。\n"
+            "所有輸出必須使用繁體中文，不可使用簡體中文。\n"
             "JSON 必須包含欄位：recipe_name、ingredients_used、missing_ingredients、steps、cooking_time_minutes、note。\n"
             "- ingredients_used/missing_ingredients/steps 必須是陣列\n"
             "- cooking_time_minutes 必須是整數\n"
@@ -103,4 +104,3 @@ class RecipeRecommendationService:
             "cooking_time_minutes": int(payload["cooking_time_minutes"]),
             "note": payload["note"],
         }
-

@@ -61,6 +61,14 @@
 - 若檔案不存在或刪除失敗，worker 只記錄 warning，不會覆蓋既有 job success/failed 結果。
 - `ai_jobs` 與 `result.candidate_items` 仍保留；前端候選顯示與使用者確認寫入 pantry 不受影響。
 
+9. worker isolation 使用提醒（Phase 09 收尾補充）
+- `job_type isolation` 是 worker process 層級隔離。
+- 若單一 worker process 啟用 `recipe_recommendation,ingredient_photo`，任務仍在同一 process 逐筆處理，可能互相等待。
+- 若要降低 recipe 被 Vision 任務拖慢，建議分開啟動兩個 process：
+  - `python -m ai_server.workers.job_worker --job-types recipe_recommendation`
+  - `python -m ai_server.workers.job_worker --job-types ingredient_photo`
+- 即使分開 process，若共用同一個 Ollama runtime/GPU/CPU，仍可能互相影響推論效能。
+
 ## 錯誤處理
 
 - 前端不顯示 traceback / Pydantic 原始錯誤 / `NetworkError` 原文

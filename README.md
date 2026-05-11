@@ -435,12 +435,23 @@ MVP 使用範圍與注意事項：
 - `uploads/ingredient_photos/` 僅作暫存；worker 於 ingredient_photo job 終態（success/failed/timeout/stale failed）後會嘗試刪除原始圖片。
 - `ai_jobs` 與 `result.candidate_items` 仍保留，前端顯示與後續確認加入 pantry 流程不受影響。
 - `input_snapshot.image_path` 僅作歷史路徑紀錄，不保證檔案仍存在（可能已被 cleanup）。
+- worker 啟動 log 會顯示 `worker_identity`、`poll_interval`、`batch_size`、`enabled_job_types`，便於辨識目前 worker 類型。
 
 MVP 使用範圍：
 - 主要支援單一或少量未加工食材照片。
 - 複雜場景可能增加 Vision 推論時間與 timeout 風險。
 - 不建議整桌料理、冰箱全景、多人餐點、過多品項照片用於庫存匯入。
 - 整桌料理/餐點照片較適合後續 Nutrition 階段，不是本階段主要目標。
+
+Phase 09 worker isolation 補充：
+- `job_type isolation` 是 worker process 層級隔離。
+- 若使用單一 process：`python -m ai_server.workers.job_worker --job-types recipe_recommendation,ingredient_photo`
+  - 仍是同一 worker 逐筆處理，Vision 任務可能讓 recipe 任務等待。
+- 若要降低互相等待，開發時建議分開兩個 process：
+  - `python -m ai_server.workers.job_worker --job-types recipe_recommendation`
+  - `python -m ai_server.workers.job_worker --job-types ingredient_photo`
+- 即使分開 process，若共用同一個 Ollama runtime / GPU / CPU，Vision 推論仍可能影響文字推論效能。
+- MVP 可接受同機多 process；後續可再拆為不同 Ollama instance、不同 GPU、不同機器，或於 Phase 11 評估 queue/scaling。
 
 ## AI Queue 階段策略
 

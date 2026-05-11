@@ -32,6 +32,16 @@ SessionLocal = sessionmaker(bind=backend_engine, autoflush=False, autocommit=Fal
 UPLOAD_STORAGE = LocalStorage(root_dir="uploads")
 
 
+def _build_worker_identity(enabled_job_types: list[str]) -> str:
+    """依啟用 job types 建立 worker 識別名稱。"""
+    unique_types = sorted(set(enabled_job_types))
+    if unique_types == ["recipe_recommendation"]:
+        return "recipe_recommendation-worker"
+    if unique_types == ["ingredient_photo"]:
+        return "ingredient_photo-worker"
+    return "multi-job-worker"
+
+
 def _get_item_status(expiration_date: date | None) -> str:
     """依 expiration_date 回傳食材狀態。"""
     if expiration_date is None:
@@ -238,6 +248,7 @@ def poll_once(enabled_job_types: list[str] | None = None) -> None:
     """執行一次 polling 週期並處理一批 pending jobs。"""
     settings = get_settings()
     resolved_job_types = enabled_job_types if enabled_job_types is not None else settings.get_ai_worker_job_types()
+    worker_identity = _build_worker_identity(resolved_job_types)
     recipe_service = RecipeRecommendationService(llm_client=OllamaRecipeLlmClient())
     recognition_service = IngredientPhotoRecognitionService(vision_client=OllamaIngredientVisionClient())
     with SessionLocal() as db:
@@ -253,7 +264,12 @@ def poll_once(enabled_job_types: list[str] | None = None) -> None:
         )
         if not jobs:
             return
-        LOGGER.info("poll once claimed %s jobs, enabled_job_types=%s", len(jobs), resolved_job_types)
+        LOGGER.info(
+            "poll once claimed %s jobs, worker_identity=%s, enabled_job_types=%s",
+            len(jobs),
+            worker_identity,
+            resolved_job_types,
+        )
         for job in jobs:
             if job.job_type == "recipe_recommendation":
                 _process_recipe_job(db=db, job=job, recipe_service=recipe_service)
@@ -274,8 +290,10 @@ def run_forever(enabled_job_types: list[str] | None = None) -> None:
     """持續執行 DB polling worker。"""
     settings = get_settings()
     resolved_job_types = enabled_job_types if enabled_job_types is not None else settings.get_ai_worker_job_types()
+    worker_identity = _build_worker_identity(resolved_job_types)
     LOGGER.info(
-        "ai worker started, poll_interval=%s, batch_size=%s, enabled_job_types=%s",
+        "ai worker started, worker_identity=%s, poll_interval=%s, batch_size=%s, enabled_job_types=%s",
+        worker_identity,
         settings.ai_worker_poll_interval_seconds,
         settings.ai_worker_batch_size,
         resolved_job_types,

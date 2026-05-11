@@ -10,7 +10,7 @@
 2. 支援 `AI_WORKER_JOB_TYPES`（comma-separated）環境變數解析。
 3. worker 支援 CLI 參數 `--job-types`（逗號分隔），且優先於 env。
 4. pending job claim query 改為可依 `job_type IN (...)` 過濾。
-5. worker 啟動 log 顯示 `poll_interval`、`batch_size`、`enabled_job_types`。
+5. worker 啟動 log 顯示 `worker_identity`、`poll_interval`、`batch_size`、`enabled_job_types`。
 6. 新增測試驗證 worker 只 claim 指定 `job_type`，不 claim 非指定 `job_type`。
 7. 既有 `recipe_recommendation` 流程維持可運作（pending -> running -> success/failed）。
 
@@ -25,17 +25,42 @@
 
 ## 使用方式
 
+重要：`job_type isolation` 是 **worker process 層級**，不是同一 process 內並行隔離。  
+若單一 process 同時啟用 `recipe_recommendation,ingredient_photo`，仍會在同一 worker 內逐筆處理，Vision 任務可能讓 recipe 任務等待。
+
 ### 1) 使用 env
 
 ```bash
 AI_WORKER_JOB_TYPES=recipe_recommendation,ingredient_photo python -m ai_server.workers.job_worker
 ```
 
+上述模式是單一 worker process（`multi-job-worker`），任務仍序列處理。
+
 ### 2) 使用 CLI（優先於 env）
 
 ```bash
 python -m ai_server.workers.job_worker --job-types recipe_recommendation
 ```
+
+### 3) 開發期建議：分開兩個 worker process（真正隔離）
+
+```bash
+# recipe worker
+python -m ai_server.workers.job_worker --job-types recipe_recommendation
+
+# ingredient worker
+python -m ai_server.workers.job_worker --job-types ingredient_photo
+```
+
+worker 啟動 log 會顯示：
+- `recipe_recommendation-worker`
+- `ingredient_photo-worker`
+- `multi-job-worker`
+
+注意：
+- 即使分成兩個 process，若共用同一個 Ollama runtime / GPU / CPU，Vision 推論仍可能影響文字推論效能。
+- MVP 階段可接受同機多 process。
+- 後續可再拆分為不同 Ollama instance、不同 GPU、不同機器，或在 Phase 11 評估 queue/scaling。
 
 ## 測試與驗證
 
