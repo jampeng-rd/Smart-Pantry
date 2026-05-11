@@ -6,9 +6,9 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { initializeAuth } from "./features/auth/authSlice";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ExpirationPage } from "./pages/ExpirationPage";
+import { IngredientsPage } from "./pages/IngredientsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NutritionPage } from "./pages/NutritionPage";
-import { OCRPage } from "./pages/OCRPage";
 import { PantryPage } from "./pages/PantryPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -22,7 +22,7 @@ type ProtectedPath =
   | "/expiration"
   | "/shopping"
   | "/recipes"
-  | "/ocr"
+  | "/ingredients"
   | "/nutrition"
   | "/settings";
 
@@ -32,7 +32,7 @@ const protectedRoutes: ProtectedPath[] = [
   "/expiration",
   "/shopping",
   "/recipes",
-  "/ocr",
+  "/ingredients",
   "/nutrition",
   "/settings",
 ];
@@ -105,8 +105,8 @@ function WorkspaceByPath({ pathname }: { pathname: ProtectedPath }) {
       return <ShoppingPage />;
     case "/recipes":
       return <RecipesPage />;
-    case "/ocr":
-      return <OCRPage />;
+    case "/ingredients":
+      return <IngredientsPage />;
     case "/nutrition":
       return <NutritionPage />;
     case "/settings":

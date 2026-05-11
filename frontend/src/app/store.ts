@@ -2,8 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "../features/auth/authSlice";
 import expirationReducer from "../features/expiration/expirationSlice";
+import ingredientsReducer from "../features/ingredients/ingredientSlice";
 import nutritionReducer from "../features/nutrition/nutritionSlice";
-import ocrReducer from "../features/ocr/ocrSlice";
 import pantryReducer from "../features/pantry/pantrySlice";
 import recipesReducer from "../features/recipes/recipeSlice";
 import shoppingReducer from "../features/shopping/shoppingSlice";
@@ -15,9 +15,9 @@ export const store = configureStore({
     auth: authReducer,
     pantry: pantryReducer,
     expiration: expirationReducer,
+    ingredients: ingredientsReducer,
     shopping: shoppingReducer,
     recipes: recipesReducer,
-    ocr: ocrReducer,
     nutrition: nutritionReducer,
     theme: themeReducer,
   },

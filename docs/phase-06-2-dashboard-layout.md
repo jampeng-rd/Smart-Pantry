@@ -2,7 +2,7 @@
 
 ## 1. 階段目標
 
-本階段聚焦完成 Dashboard 系統版型與導覽骨架，不進入 Pantry / Expiration / Shopping / Recipes / OCR / Nutrition 的 CRUD 功能。
+本階段聚焦完成 Dashboard 系統版型與導覽骨架，不進入 Pantry / Expiration / Shopping / Recipes / 食材辨識 / Nutrition 的 CRUD 功能。
 
 ## 2. Dashboard Layout
 
@@ -42,7 +42,7 @@
 - Expiration（到期提醒）
 - Shopping（購物清單）
 - Recipes（食譜建議）
-- OCR（OCR 匯入）
+- 食材辨識（Ingredient Recognition）
 - Nutrition（營養估算）
 
 補充（Phase 06-6B / 後續 UX 整理）：
@@ -98,7 +98,7 @@ Sidebar 底部顯示：
 - `ExpirationPage`
 - `ShoppingPage`
 - `RecipesPage`
-- `OCRPage`
+- `IngredientsPage`
 - `NutritionPage`
 - `SettingsPage`
 
@@ -129,7 +129,7 @@ Sidebar 底部顯示：
 - `frontend/src/pages/ExpirationPage.tsx`
 - `frontend/src/pages/ShoppingPage.tsx`
 - `frontend/src/pages/RecipesPage.tsx`
-- `frontend/src/pages/OCRPage.tsx`
+- `frontend/src/pages/IngredientsPage.tsx`
 - `frontend/src/pages/NutritionPage.tsx`
 - `frontend/src/pages/SettingsPage.tsx`
 - `frontend/src/styles/globals.css`

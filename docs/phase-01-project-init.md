@@ -12,7 +12,7 @@
 - 建立資料庫設定與 DB engine / session factory 集中管理。
 - 建立 `backend/tests/test_health_api.py`。
 - 建立 React + Vite + TypeScript 前端專案骨架。
-- 建立 Redux Toolkit store 與 `auth/pantry/expiration/shopping/recipes/ocr/nutrition/theme` feature 骨架。
+- 建立 Redux Toolkit store 與 `auth/pantry/expiration/shopping/recipes/ingredients/nutrition/theme` feature 骨架。
 - 建立主題架構 `light-soft` 與 `dark-soft`（基礎版本）。
 - 建立 `docker-compose.yml`（`backend` + `smartpantry-db`）。
 - 建立 GitHub Actions CI（backend pytest + frontend build）。
@@ -83,14 +83,14 @@ Docker：`docker compose up --build`
 - DB 連線：已集中於 `infra/database.py`，避免每請求重建 engine。
 - Pagination：本 phase 尚無列表 API；Phase 03 起所有列表 API 必須支援 `page/page_size`。
 - Index：本 phase 尚未建立資料表；Phase 02/03 起需針對 `user_id`、時間與查詢欄位建立索引。
-- AI 任務延遲：本 phase 未實作 AI/OCR；後續可能因推論時間阻塞 API，需保留 background job 化能力。
+- AI 任務延遲：本 phase 未實作 AI/Ingredient Recognition；後續可能因推論時間阻塞 API，需保留 background job 化能力。
 - 背景任務：尚未導入 Celery/RQ/Dramatiq；先保持 service 與 infra 解耦，利於後續拆分 worker。
 - 水平擴充：目前為單 backend instance；建議後續加入 stateless session、rate limit 與觀測性指標。
 - CI 風險：目前 CI 僅跑 pytest 與 frontend build，後續需補 lint、型別檢查與安全掃描。
 
 ## 10. 已知限制
 
-- 尚未實作 auth、refresh token、pantry CRUD、AI、OCR、nutrition、background job。
+- 尚未實作 auth、refresh token、pantry CRUD、AI、食材辨識、nutrition、background job。
 - 尚未加入 DB migration 工具（例如 Alembic）。
 - 前端 theme 狀態目前未持久化，僅提供架構。
 

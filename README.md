@@ -24,7 +24,7 @@ Phase 08-3：Recipes 前端 UI 串接 ✅
 Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
 Phase 09-2：Vision Model 食材候選辨識 ✅
-Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
+Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
 Phase 10-1：營養粗估 Job API + Mock Worker ⏳
 Phase 10-2：Vision/Text Model 營養粗估 ⏳
 Phase 10-3：Nutrition 前端 UI + 生活參考聲明 ⏳
@@ -415,6 +415,29 @@ MVP 使用範圍與注意事項：
 - 不建議使用整桌料理、冰箱全景、多人餐點、過多品項照片做食材庫存匯入。
 - `candidate_items` 是 AI 候選結果，需在 Phase 09-3 使用者確認後才可寫入 pantry。
 - 整桌料理/餐點照片更適合後續 Nutrition 階段，非本階段主要目標。
+
+## Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry（已完成）
+
+已完成：
+- `/ingredients` 由 placeholder 升級為可操作「食材辨識」頁（沿用既有 Dashboard layout）。
+- 前端新增食材辨識狀態管理：`frontend/src/features/ingredients/`。
+- 新增 ingredient photo API client：
+  - `createIngredientPhotoJob(file)`：`POST /ingredients/photo/jobs`（`multipart/form-data`，field=`image`）
+  - `getIngredientPhotoJob(jobId)`：`GET /ingredients/photo/jobs/{job_id}`
+- 前端只呼叫 backend，不直連 `ai_server`。
+- 支援圖片格式/大小前置檢查（JPG/PNG/WEBP、<=5MB）與預覽。
+- 建立 job 後自動 polling 狀態（pending/running/success/failed）。
+- 頁面切換回來若 job 仍在 pending/running，會恢復 polling。
+- success 後顯示 `candidate_items`，可逐筆編輯/刪除。
+- 使用者按「確認加入庫存」後，前端逐筆呼叫既有 `pantryApi.create` 寫入 `pantry_items`（無 bulk API）。
+- 保持「AI 候選不可自動寫入 pantry」原則，必須由使用者確認才寫入。
+- 部分成功/部分失敗時，會回報失敗項目與原因（中文友善訊息）。
+
+MVP 使用範圍：
+- 主要支援單一或少量未加工食材照片。
+- 複雜場景可能增加 Vision 推論時間與 timeout 風險。
+- 不建議整桌料理、冰箱全景、多人餐點、過多品項照片用於庫存匯入。
+- 整桌料理/餐點照片較適合後續 Nutrition 階段，不是本階段主要目標。
 
 ## AI Queue 階段策略
 

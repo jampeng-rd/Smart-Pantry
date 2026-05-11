@@ -47,7 +47,7 @@ const iconMap: Record<string, ReactElement> = {
   expiration: <FiClock aria-hidden="true" />,
   shopping: <FiShoppingCart aria-hidden="true" />,
   recipes: <FiBookOpen aria-hidden="true" />,
-  ocr: <FiCamera aria-hidden="true" />,
+  ingredients: <FiCamera aria-hidden="true" />,
   nutrition: <FiActivity aria-hidden="true" />,
 };
 

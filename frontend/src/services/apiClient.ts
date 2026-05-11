@@ -15,6 +15,10 @@ import type {
   ShoppingUpdatePayload,
 } from "../features/shopping/shoppingTypes";
 import type {
+  IngredientPhotoJobCreateData,
+  IngredientPhotoJobStatusData,
+} from "../features/ingredients/ingredientTypes";
+import type {
   RecipeRecommendationJobCreateData,
   RecipeRecommendationJobCreatePayload,
   RecipeRecommendationJobStatusData,
@@ -127,6 +131,18 @@ export const recipesApi = {
     requestWithAuth<RecipeRecommendationJobStatusData>(`/recipes/recommendation-jobs/${jobId}`, { method: "GET" }),
 };
 
+/** Ingredients Photo Job API 封裝。 */
+export const ingredientsApi = {
+  /** 建立食材照片辨識任務。 */
+  createIngredientPhotoJob: (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return requestWithAuthFormData<IngredientPhotoJobCreateData>("/ingredients/photo/jobs", formData);
+  },
+  /** 查詢食材照片辨識任務狀態。 */
+  getIngredientPhotoJob: (jobId: number) => requestWithAuth<IngredientPhotoJobStatusData>(`/ingredients/photo/jobs/${jobId}`, { method: "GET" }),
+};
+
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */
 export async function requestWithAuth<T>(path: string, init: RequestInit, retried = false): Promise<T> {
   if (isAccessTokenExpiringSoon()) {
@@ -152,9 +168,40 @@ export async function requestWithAuth<T>(path: string, init: RequestInit, retrie
     return requestWithAuth<T>(path, init, true);
   }
 
-  const body = (await response.json()) as ApiResponse<T>;
+  const body = (await response.json()) as ApiResponse<T> & { detail?: string };
   if (!response.ok || body.status !== "success" || body.data === null) {
-    throw new Error(body.message ?? "API 請求失敗");
+    throw new Error(body.message ?? body.detail ?? "API 請求失敗");
+  }
+
+  return body.data;
+}
+
+async function requestWithAuthFormData<T>(path: string, formData: FormData, retried = false): Promise<T> {
+  if (isAccessTokenExpiringSoon()) {
+    await refreshTokensOrThrow();
+  }
+
+  const accessToken = getAccessToken();
+  if (!accessToken) {
+    throw new Error("尚未登入");
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: formData,
+  });
+
+  if (response.status === 401 && !retried) {
+    await refreshTokensOrThrow();
+    return requestWithAuthFormData<T>(path, formData, true);
+  }
+
+  const body = (await response.json()) as ApiResponse<T> & { detail?: string };
+  if (!response.ok || body.status !== "success" || body.data === null) {
+    throw new Error(body.message ?? body.detail ?? "API 請求失敗");
   }
 
   return body.data;

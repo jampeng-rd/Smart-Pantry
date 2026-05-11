@@ -87,7 +87,7 @@ Pantry API：
 
 ## 11. 已知限制
 
-- 尚未加入 expiration/shopping/recipes/OCR/nutrition/background job。
+- 尚未加入 expiration/shopping/recipes/食材辨識/nutrition/background job。
 - 尚未有 pantry API 的端對端 HTTP 測試（目前以 service 與授權依賴測試為主）。
 - 尚未做 Alembic migration（目前仍為 `create_all`）。
 
