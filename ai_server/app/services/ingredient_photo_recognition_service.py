@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ai_server.app.clients.ingredient_vision_client import IngredientVisionClientProtocol, IngredientVisionTimeoutError
+from ai_server.app.utils.zh_text import normalize_to_traditional
 
 LOGGER = logging.getLogger(__name__)
 INGREDIENT_PHOTO_TIMEOUT_MESSAGE = "食材照片辨識逾時，請改用較清楚、單一或少量食材的照片後再試。"
@@ -124,13 +125,13 @@ class IngredientPhotoRecognitionService:
 
             normalized_items.append(
                 {
-                    "name": str(item["name"]).strip(),
-                    "category": str(item["category"]).strip(),
+                    "name": normalize_to_traditional(str(item["name"])),
+                    "category": normalize_to_traditional(str(item["category"])),
                     "quantity": int(quantity) if quantity.is_integer() else quantity,
-                    "unit": str(item["unit"]).strip(),
+                    "unit": normalize_to_traditional(str(item["unit"])),
                     "expiration_date": item["expiration_date"],
                     "storage_location": str(item["storage_location"]).strip(),
-                    "note": str(item["note"]).strip() or "AI 辨識候選，請確認",
+                    "note": normalize_to_traditional(str(item["note"])) or "AI 辨識候選，請確認",
                 }
             )
 
@@ -140,6 +141,8 @@ class IngredientPhotoRecognitionService:
         note = payload.get("note")
         if not isinstance(note, str) or not note.strip():
             note = "AI 食材照片辨識結果，請使用者確認後再加入庫存。"
+        else:
+            note = normalize_to_traditional(note)
 
         return {
             "candidate_items": normalized_items,
@@ -156,7 +159,7 @@ class IngredientPhotoRecognitionService:
         tokens = [part.strip() for part in cleaned.split(",") if part.strip()]
         names: list[str] = []
         for token in tokens:
-            normalized = self._normalize_zh_variant(token)
+            normalized = normalize_to_traditional(token)
             normalized = re.sub(r"^(一顆|一個|一份)", "", normalized).strip()
             if normalized and re.search(r"[A-Za-z0-9\u4e00-\u9fff]", normalized):
                 names.append(normalized)
@@ -170,29 +173,6 @@ class IngredientPhotoRecognitionService:
         if not deduped:
             raise IngredientPhotoRecognitionError("AI 回傳格式無法解析，請稍後再試。")
         return deduped
-
-    def _normalize_zh_variant(self, text: str) -> str:
-        """最小化常見簡體字轉換。"""
-        mapping = {
-            "西红柿": "西紅柿",
-            "西兰花": "西蘭花",
-            "鸡蛋": "雞蛋",
-            "马铃薯": "馬鈴薯",
-            "萝卜": "蘿蔔",
-            "黄瓜": "黃瓜",
-            "茄子": "茄子",
-            "蘑菇": "蘑菇",
-            "芦笋": "蘆筍",
-            "锅": "鍋",
-            "兰": "蘭",
-            "芦": "蘆",
-            "笋": "筍",
-            "花椰菜": "花椰菜",
-        }
-        normalized = text.strip()
-        for simplified, traditional in mapping.items():
-            normalized = normalized.replace(simplified, traditional)
-        return normalized
 
     def _build_result_from_names(self, names: list[str]) -> dict[str, Any]:
         """依名稱清單建立標準 candidate_items 結構。"""

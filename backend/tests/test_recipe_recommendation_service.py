@@ -72,3 +72,18 @@ def test_recipe_prompt_should_require_traditional_chinese() -> None:
 
     prompt = service._build_prompt(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
     assert "所有輸出必須使用繁體中文，不可使用簡體中文" in prompt
+
+
+def test_recommend_should_normalize_simplified_chinese_phrases() -> None:
+    """食譜結果應套用繁中正規化。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"家常炒蛋","ingredients_used":["鸡蛋"],"missing_ingredients":["姜片"],"steps":["撒上少许鹽和姜片"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+
+    assert result["ingredients_used"] == ["雞蛋"]
+    assert result["missing_ingredients"] == ["薑片"]
+    assert result["steps"] == ["撒上少許鹽和薑片"]

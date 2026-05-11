@@ -21,6 +21,8 @@ class AiServerSettings(BaseSettings):
     ai_worker_job_types: str = "recipe_recommendation"
 
     ollama_base_url: str = "http://localhost:11434"
+    ollama_text_base_url: str | None = None
+    ollama_vision_base_url: str | None = None
     llm_text_model: str = "qwen2.5:7b"
     llm_vision_model: str = "qwen3-vl:8b"
 

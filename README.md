@@ -453,6 +453,15 @@ Phase 09 worker isolation 補充：
 - 即使分開 process，若共用同一個 Ollama runtime / GPU / CPU，Vision 推論仍可能影響文字推論效能。
 - MVP 可接受同機多 process；後續可再拆為不同 Ollama instance、不同 GPU、不同機器，或於 Phase 11 評估 queue/scaling。
 
+Ollama runtime 設定補充：
+- `OLLAMA_BASE_URL`：共用 fallback。
+- `OLLAMA_TEXT_BASE_URL`：text/recipe 專用（未設定時 fallback 到 `OLLAMA_BASE_URL`）。
+- `OLLAMA_VISION_BASE_URL`：vision/ingredient 專用（未設定時 fallback 到 `OLLAMA_BASE_URL`）。
+- text 與 vision 若都 fallback 到同一個 `OLLAMA_BASE_URL`，仍可能在同一 runtime/GPU/CPU 互相排隊。
+- 若要降低互相影響，可分開兩個 Ollama instance，例如：
+  - text → `http://localhost:11434`
+  - vision → `http://localhost:11435`
+
 ## AI Queue 階段策略
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker。
@@ -480,6 +489,8 @@ AI_WORKER_JOB_TYPES=recipe_recommendation
 AI_JOB_TIMEOUT_SECONDS=300
 AI_VISION_TIMEOUT_SECONDS=60
 OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_TEXT_BASE_URL=
+OLLAMA_VISION_BASE_URL=
 LLM_TEXT_MODEL=qwen2.5:7b
 LLM_VISION_MODEL=qwen3-vl:8b
 ```

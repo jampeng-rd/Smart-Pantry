@@ -29,7 +29,7 @@ class OllamaIngredientVisionClient:
     def __init__(self) -> None:
         """建立 Ollama Vision client。"""
         settings = get_settings()
-        self.base_url = settings.ollama_base_url
+        self.base_url = settings.ollama_vision_base_url or settings.ollama_base_url
         self.model = settings.llm_vision_model
         self.timeout_seconds = settings.ai_vision_timeout_seconds
 

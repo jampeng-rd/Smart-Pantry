@@ -62,6 +62,22 @@ worker 啟動 log 會顯示：
 - MVP 階段可接受同機多 process。
 - 後續可再拆分為不同 Ollama instance、不同 GPU、不同機器，或在 Phase 11 評估 queue/scaling。
 
+## Ollama runtime 隔離補充（Phase 09 收尾）
+
+- worker `job_type` isolation 只隔離「DB claim 與 job processing process」。
+- 若 text 與 vision 共用同一個 `OLLAMA_BASE_URL`（同一 runtime / 同一 GPU / 同一 CPU），仍可能互相排隊或搶資源。
+- ai_server settings 支援：
+  - `OLLAMA_BASE_URL`（共用 fallback）
+  - `OLLAMA_TEXT_BASE_URL`（recipe/text 專用，可留空）
+  - `OLLAMA_VISION_BASE_URL`（ingredient vision 專用，可留空）
+- fallback 行為：
+  - text client：`OLLAMA_TEXT_BASE_URL or OLLAMA_BASE_URL`
+  - vision client：`OLLAMA_VISION_BASE_URL or OLLAMA_BASE_URL`
+- 開發期若要降低互相影響，可拆兩個 Ollama instance（例如不同 port）：
+  - text → `http://localhost:11434`
+  - vision → `http://localhost:11435`
+- 若仍共用同一張 GPU/CPU，隔離效果有限；真正降低互相影響需分開 runtime、GPU、CPU 或機器。
+
 ## 測試與驗證
 
 - 單元測試：`backend/tests/test_recipe_job_worker_mock.py`

@@ -172,11 +172,31 @@ def test_recognition_plain_text_should_apply_extended_zh_variant_mapping(tmp_pat
     """常見簡體字詞應轉為繁體。"""
     image_path = tmp_path / "ingredient.jpg"
     image_path.write_bytes(b"fake-image")
-    service = IngredientPhotoRecognitionService(vision_client=FakeVisionClient("西兰花、芦笋、锅"))
+    service = IngredientPhotoRecognitionService(vision_client=FakeVisionClient("芦笋、西兰花、芫荽"))
 
     result = service.recognize(str(image_path))
     names = [item["name"] for item in result["candidate_items"]]
 
-    assert "西蘭花" in names
     assert "蘆筍" in names
-    assert "鍋" in names
+    assert "西蘭花" in names
+    assert "香菜" in names
+
+
+def test_recognition_json_payload_should_apply_normalize_to_candidate_fields(tmp_path: Path) -> None:
+    """JSON payload 欄位應套用繁中正規化。"""
+    image_path = tmp_path / "ingredient.jpg"
+    image_path.write_bytes(b"fake-image")
+    service = IngredientPhotoRecognitionService(
+        vision_client=FakeVisionClient(
+            '{"candidate_items":[{"name":"芫荽","category":"锅中蔬菜","quantity":1,"unit":"份","expiration_date":null,"storage_location":"fridge","note":"少许姜片"}],"note":"加入芫荽"}'
+        )
+    )
+
+    result = service.recognize(str(image_path))
+    item = result["candidate_items"][0]
+
+    assert item["name"] == "香菜"
+    assert item["category"] == "鍋中蔬菜"
+    assert item["unit"] == "份"
+    assert item["note"] == "少許薑片"
+    assert result["note"] == "加入香菜"

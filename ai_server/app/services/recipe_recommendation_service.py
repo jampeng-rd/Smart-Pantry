@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from ai_server.app.clients.recipe_llm_client import RecipeLlmClientProtocol
+from ai_server.app.utils.zh_text import normalize_to_traditional
 
 
 class RecipeRecommendationError(Exception):
@@ -97,10 +98,10 @@ class RecipeRecommendationService:
 
         # 強制輸出相容格式
         return {
-            "recipe_name": payload["recipe_name"],
-            "ingredients_used": [str(item) for item in payload["ingredients_used"]],
-            "missing_ingredients": [str(item) for item in payload["missing_ingredients"]],
-            "steps": [str(step) for step in payload["steps"]],
+            "recipe_name": normalize_to_traditional(payload["recipe_name"]),
+            "ingredients_used": [normalize_to_traditional(str(item)) for item in payload["ingredients_used"]],
+            "missing_ingredients": [normalize_to_traditional(str(item)) for item in payload["missing_ingredients"]],
+            "steps": [normalize_to_traditional(str(step)) for step in payload["steps"]],
             "cooking_time_minutes": int(payload["cooking_time_minutes"]),
-            "note": payload["note"],
+            "note": normalize_to_traditional(payload["note"]),
         }

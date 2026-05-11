@@ -20,7 +20,7 @@ class OllamaRecipeLlmClient:
     def __init__(self) -> None:
         """建立 Ollama client。"""
         settings = get_settings()
-        self.base_url = settings.ollama_base_url
+        self.base_url = settings.ollama_text_base_url or settings.ollama_base_url
         self.model = settings.llm_text_model
 
     def generate_recipe_json(self, prompt: str) -> str:
@@ -43,4 +43,3 @@ class OllamaRecipeLlmClient:
                     text_parts.append(part["text"])
             return "\n".join(text_parts)
         return str(content)
-
