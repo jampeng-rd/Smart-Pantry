@@ -32,11 +32,7 @@ function toStorageLocationUi(value: string): string {
 }
 
 function toStorageLocationApi(value: string): string {
-  const normalized = value.trim().toLowerCase();
-  if (normalized === "冰箱") {
-    return "fridge";
-  }
-  return value.trim() || "fridge";
+  return value.trim() || "冰箱";
 }
 
 /** 建立食材照片辨識 job。 */
