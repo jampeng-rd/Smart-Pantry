@@ -89,6 +89,15 @@ frontend/src/styles/{theme.css,globals.css}
 - Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
 - 若任務量成長，再於 Phase 11 升級正式 queue（首選 RQ + Redis）。
 
+### 6.1 Worker isolation 與 Ollama runtime 隔離差異
+
+- `job_type` worker isolation 只隔離「DB claim 與 worker process」，不等於模型推論硬體隔離。
+- 若 `OLLAMA_TEXT_BASE_URL` 與 `OLLAMA_VISION_BASE_URL` 未設定，兩者會 fallback 到 `OLLAMA_BASE_URL`，代表 text/vision 共用同一個 Ollama runtime。
+- 即使分開啟動 recipe worker 與 ingredient worker，只要同一台機器共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe latency。
+- 本地若只用單一 runtime（例如 `http://localhost:11434`）屬於 MVP 可接受方案，但不代表已完成效能隔離。
+- 可用不同 base URL 指向不同 Ollama instance（例如 `11434` 與 `11435`）先做 runtime 分流；若仍在同機同 GPU，仍可能互相影響。
+- 真正降低互相影響需分開 GPU、分開機器，或提升硬體資源。
+
 ## 7. LangChain 與 AI 套件規範
 
 - AI 階段使用 LangChain 1.x 系列。
@@ -135,6 +144,7 @@ MVP 可先以單一 backend instance + 本地 Docker PostgreSQL 運作，但需�
 ### Sidebar 規範
 
 Sidebar 需包含：
+
 - 最上方 Logo。
 - Logo 右側需有 Sidebar 收合按鈕（icon button）。
 - 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、食材辨識、Nutrition。
@@ -144,6 +154,7 @@ Sidebar 需包含：
 ### 使用者選單規範
 
 點擊 Sidebar 底部使用者區塊後：
+
 - 需在側邊欄內向上展開使用者選單。
 - 第一列顯示目前登入使用者。
 - 下方至少包含：
@@ -170,6 +181,7 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 06-6：前端整合與 UX 修正
 
 每個子階段都需：
+
 - 可單獨測試
 - 更新 docs
 - 更新 README
@@ -185,15 +197,16 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 11：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
 
 策略：
+
 - Phase 08～10 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
-
 
 ## 12.1 AI 功能階段完成門檻（Phase 08～11）
 
 Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。
 
 每個 AI 功能階段至少需包含：
+
 1. backend job API：建立 job、查詢 job status/result，並驗證 user_id 權限。
 2. ai_worker：claim pending job、執行 AI/mock、寫回 success/failed。
 3. frontend feature UI：建立 job、輪詢 job、顯示 pending/running/success/failed。
@@ -216,16 +229,15 @@ Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成�
 - Phase 09-2：Vision Model 候選食材辨識
 - Phase 09-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
 
-### Phase 10：營養粗估完整功能
-
-- Phase 10-1：Nutrition Job API + Mock Worker
-- Phase 10-2：Vision/Text Model 營養粗估
-- Phase 10-3：Nutrition 前端 UI + 生活參考聲明
-
-
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 
 - worker 可依 job_type 過濾任務
 - 避免 Vision 任務拖慢 recipe_recommendation
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+### Phase 10：營養粗估完整功能
+
+- Phase 10-1：Nutrition Job API + Mock Worker
+- Phase 10-2：Vision/Text Model 營養粗估
+- Phase 10-3：Nutrition 前端 UI + 生活參考聲明

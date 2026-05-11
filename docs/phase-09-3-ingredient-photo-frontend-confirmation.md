@@ -68,6 +68,13 @@
   - `python -m ai_server.workers.job_worker --job-types recipe_recommendation`
   - `python -m ai_server.workers.job_worker --job-types ingredient_photo`
 - 即使分開 process，若共用同一個 Ollama runtime/GPU/CPU，仍可能互相影響推論效能。
+- 若 `.env` 為：
+  - `OLLAMA_BASE_URL=http://localhost:11434`
+  - `OLLAMA_TEXT_BASE_URL=`
+  - `OLLAMA_VISION_BASE_URL=`
+  代表 text/vision 都 fallback 到同一 runtime（MVP 可用，但不等於效能隔離）。
+- 本地可改為不同 runtime URL（例如 `11434`/`11435`），但若同機同 GPU/CPU，仍可能互相影響。
+- 雲端若同機部署 backend + workers + Ollama text/vision，仍會遇到類似資源競爭；若要降低延遲干擾，需拆成不同機器或不同 GPU。
 
 ## 錯誤處理
 

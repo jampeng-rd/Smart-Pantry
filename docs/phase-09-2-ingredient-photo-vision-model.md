@@ -60,6 +60,12 @@
 - `candidate_items` 仍是 AI 候選結果，Phase 09-3 需由使用者確認後才可寫入 pantry。
 - 整桌料理或餐點照片更適合後續 Nutrition 階段，非本階段主要目標。
 
+## Ollama 資源限制補充
+
+- `job_type` worker isolation 只隔離 process，不隔離模型推論硬體資源。
+- 若 text/vision 共用同一個 `OLLAMA_BASE_URL`（或雖不同 port 但同機同 GPU/CPU），Vision 任務仍可能影響 recipe latency。
+- 本地與雲端同機部署都會遇到相同問題；若要實質改善，需分開 runtime、GPU 或機器。
+
 ## 測試策略
 
 - 單元測試全部使用 fake vision client，不呼叫真實 Ollama。

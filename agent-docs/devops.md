@@ -102,9 +102,23 @@ AI_WORKER_POLL_INTERVAL_SECONDS=5
 AI_WORKER_BATCH_SIZE=1
 AI_JOB_TIMEOUT_SECONDS=300
 OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_TEXT_BASE_URL=
+OLLAMA_VISION_BASE_URL=
 LLM_TEXT_MODEL=qwen2.5:7b
 LLM_VISION_MODEL=qwen3-vl:8b
 ```
+
+本地與雲端資源限制補充：
+
+- `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空時，會 fallback 到 `OLLAMA_BASE_URL`，適合 MVP 快速啟動，但不代表效能隔離。
+- worker process 分開（recipe/vision）只隔離 job process，不隔離模型推論硬體。
+- 同一台機器即使用不同 port 跑兩個 Ollama instance，若共用同一張 GPU/CPU，仍可能互相搶資源。
+- 雲端若同機同時跑 backend、recipe worker、vision worker、text Ollama、vision Ollama，會與本地同樣遇到資源競爭。
+- 較佳部署：backend 與 AI worker 分離，recipe worker 指向 text runtime、vision worker 指向 vision runtime。
+- 完整隔離：text/vision Ollama 分別部署到不同機器或不同 GPU，例如：
+  - `OLLAMA_TEXT_BASE_URL=http://ollama-text.internal:11434`
+  - `OLLAMA_VISION_BASE_URL=http://ollama-vision.internal:11434`
+- 高負載階段再於 Phase 11 評估 RQ + Redis、worker replicas、不同 job queue、GPU worker pool。
 
 docker-compose 後續規劃：
 

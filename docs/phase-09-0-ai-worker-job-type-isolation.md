@@ -70,6 +70,7 @@ worker 啟動 log 會顯示：
   - `OLLAMA_BASE_URL`（共用 fallback）
   - `OLLAMA_TEXT_BASE_URL`（recipe/text 專用，可留空）
   - `OLLAMA_VISION_BASE_URL`（ingredient vision 專用，可留空）
+- `.env.example` 中 text/vision base URL 預設留空是刻意設計，表示 fallback 到 `OLLAMA_BASE_URL`，適合 MVP 快速啟動，但不代表完成效能隔離。
 - fallback 行為：
   - text client：`OLLAMA_TEXT_BASE_URL or OLLAMA_BASE_URL`
   - vision client：`OLLAMA_VISION_BASE_URL or OLLAMA_BASE_URL`
@@ -77,6 +78,16 @@ worker 啟動 log 會顯示：
   - text → `http://localhost:11434`
   - vision → `http://localhost:11435`
 - 若仍共用同一張 GPU/CPU，隔離效果有限；真正降低互相影響需分開 runtime、GPU、CPU 或機器。
+
+## 雲端部署補充
+
+- 若雲端同一台機器同時執行 backend、recipe worker、vision worker、text Ollama、vision Ollama，仍會遇到與本地相同的資源競爭。
+- 同機即使使用不同 port（或不同 Ollama instance），也不等於硬體隔離。
+- 最小 MVP 可先接受同機延遲；較佳做法是 backend/worker 拆分部署，並讓 recipe/vision worker 指向不同 Ollama runtime。
+- 若要進一步降低互相影響，text Ollama 與 vision Ollama 應部署在不同機器或不同 GPU，例如：
+  - `OLLAMA_TEXT_BASE_URL=http://ollama-text.internal:11434`
+  - `OLLAMA_VISION_BASE_URL=http://ollama-vision.internal:11434`
+- 當使用者量上升或延遲明顯，再於 Phase 11 評估 queue/scaling（RQ + Redis、worker replicas、不同 job queue、GPU worker pool）。
 
 ## 測試與驗證
 

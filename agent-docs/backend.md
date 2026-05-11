@@ -88,3 +88,10 @@ backend/app/infra/{database,repository,settings,security,llm_client,ingredient_c
 - 避免 Vision 任務拖慢 recipe_recommendation
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+補充：
+
+- worker 分開只代表 job claim/process 分流，不等於 Ollama runtime 或硬體資源隔離。
+- `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 未設定時會 fallback 到 `OLLAMA_BASE_URL`，text/vision 仍共用同一 runtime。
+- 同機部署下若共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能影響 recipe latency。
+- 若要降低影響，至少拆分不同 runtime URL；若要明顯改善，需分開 GPU 或分開機器。

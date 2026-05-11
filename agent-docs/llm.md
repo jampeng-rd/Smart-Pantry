@@ -50,6 +50,14 @@ AI server 分工補充：
 
 LLM、Vision 可能很慢。Phase 08 起採 job-based API，backend 不同步等待；AI worker 內可同步執行模型推論。
 
+Ollama runtime 與 worker 隔離注意：
+
+- `job_type` worker isolation 只隔離「DB claim 與 process」，不是模型推論硬體隔離。
+- 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 仍共用同一個 Ollama runtime。
+- 即使模型不同（例如 `qwen2.5:7b` 與 `qwen3-vl:8b`），共用同一台機器與同一張 GPU/CPU 時，Vision 任務仍可能拖慢 recipe latency。
+- 本地可先用不同 port 分流 runtime（例如 `11434` 與 `11435`），但若同機同 GPU，仍可能互相影響。
+- 真正隔離需分開 GPU 或分開機器（例如 `ollama-text.internal` / `ollama-vision.internal`）。
+
 建議背景任務流程：
 
 ```text

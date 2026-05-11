@@ -242,4 +242,11 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
+補充：
+
+- `job_type` 隔離是 worker process 層級，不是 Ollama runtime/GPU 隔離。
+- 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 共用同一 runtime。
+- 本地或雲端只要同機共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe。
+- Phase 11 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
+
 收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。

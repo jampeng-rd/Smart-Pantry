@@ -350,7 +350,7 @@ export function RecipesPage() {
 
       {pendingMessage ? (
         <div className="card recipes-job-status" role="status" ref={statusRef}>
-          <FiClock aria-hidden="true" />
+          <FiLoader aria-hidden="true" className="spin" />
           <p>{pendingMessage}</p>
         </div>
       ) : null}
