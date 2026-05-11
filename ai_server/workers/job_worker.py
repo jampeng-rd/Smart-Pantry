@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import math
 import random
 import time
 from datetime import date, datetime, timedelta, timezone
-from typing import Any, Callable
+from typing import Any
 
 from sqlalchemy import and_, asc, or_, select
 from sqlalchemy.orm import Session, sessionmaker
@@ -63,11 +64,33 @@ def _to_pantry_snapshot(item: PantryItem) -> dict[str, Any]:
         "id": item.id,
         "name": item.name,
         "category": item.category,
-        "quantity": float(item.quantity),
+        "quantity": _format_quantity_for_prompt(item.quantity),
         "unit": item.unit,
         "expiration_date": item.expiration_date.isoformat() if item.expiration_date else None,
         "status": _get_item_status(item.expiration_date),
     }
+
+
+def _format_quantity_for_prompt(quantity: Any) -> int | float:
+    """將數量轉為 prompt 友善格式：整數不帶 .0，小數保留。"""
+    numeric = float(quantity)
+    if math.isfinite(numeric) and numeric.is_integer():
+        return int(numeric)
+    return numeric
+
+
+def _normalize_snapshot_quantities(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """統一 snapshot 食材數量格式，避免 selected_items 出現 1.0。"""
+    normalized: list[dict[str, Any]] = []
+    for item in items:
+        row = dict(item)
+        if "quantity" in row and row["quantity"] is not None:
+            try:
+                row["quantity"] = _format_quantity_for_prompt(row["quantity"])
+            except (TypeError, ValueError):
+                pass
+        normalized.append(row)
+    return normalized
 
 
 def _get_auto_mode_candidates(db: Session, user_id: int) -> list[dict[str, Any]]:
@@ -183,7 +206,8 @@ def _process_recipe_job(db: Session, job: AiJob, recipe_service: RecipeRecommend
             resolved_items = snapshot.get("resolved_pantry_items") or []
             if not resolved_items:
                 raise ValueError("selected_items 模式缺少可用食材，請重新選擇食材後再試。")
-            candidates = [item for item in resolved_items if item.get("status") in {"normal", "expiring_soon"}]
+            normalized_items = _normalize_snapshot_quantities(resolved_items)
+            candidates = [item for item in normalized_items if item.get("status") in {"normal", "expiring_soon"}]
             if not candidates:
                 raise ValueError("目前選擇的食材皆不可用於推薦，請改選未過期食材。")
         elif mode == "auto_from_pantry":

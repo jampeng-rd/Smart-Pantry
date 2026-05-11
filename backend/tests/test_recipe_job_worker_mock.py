@@ -13,9 +13,11 @@ from ai_server.app.clients.ingredient_vision_client import IngredientVisionTimeo
 from ai_server.workers.job_worker import (
     _claim_pending_jobs,
     _fail_stale_running_jobs,
+    _format_quantity_for_prompt,
     _process_ingredient_photo_job,
     _process_recipe_job,
     _select_auto_mode_candidates_for_prompt,
+    _to_pantry_snapshot,
 )
 from ai_server.app.services.ingredient_photo_recognition_service import IngredientPhotoRecognitionService
 from ai_server.app.services.recipe_recommendation_service import RecipeRecommendationService
@@ -548,3 +550,44 @@ def test_select_auto_mode_candidates_with_prioritize_should_keep_expiring_first(
 
     statuses = [item["status"] for item in selected]
     assert statuses[:2] == ["expiring_soon", "expiring_soon"]
+
+
+def test_format_quantity_for_prompt_should_convert_integer_like_to_int() -> None:
+    """整數值數量應轉為 int，不帶 .0。"""
+    assert _format_quantity_for_prompt(10) == 10
+    assert _format_quantity_for_prompt(10.0) == 10
+
+
+def test_format_quantity_for_prompt_should_keep_decimal() -> None:
+    """小數數量應保留小數。"""
+    assert _format_quantity_for_prompt(1.5) == 1.5
+
+
+def test_to_pantry_snapshot_should_use_formatted_quantity() -> None:
+    """pantry snapshot 應使用數量格式化邏輯。"""
+    integer_item = PantryItem(
+        user_id=1,
+        name="雞蛋",
+        category="蛋類",
+        quantity=2.0,
+        unit="顆",
+        expiration_date=None,
+        storage_location=None,
+        note=None,
+    )
+    decimal_item = PantryItem(
+        user_id=1,
+        name="牛奶",
+        category="乳品",
+        quantity=1.5,
+        unit="杯",
+        expiration_date=None,
+        storage_location=None,
+        note=None,
+    )
+
+    integer_snapshot = _to_pantry_snapshot(integer_item)
+    decimal_snapshot = _to_pantry_snapshot(decimal_item)
+
+    assert integer_snapshot["quantity"] == 2
+    assert decimal_snapshot["quantity"] == 1.5

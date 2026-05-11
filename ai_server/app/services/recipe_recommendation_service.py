@@ -101,8 +101,8 @@ class RecipeRecommendationService:
         # 強制輸出相容格式
         return {
             "recipe_name": sanitized_recipe_name,
-            "ingredients_used": [normalize_to_traditional(str(item)) for item in payload["ingredients_used"]],
-            "missing_ingredients": [normalize_to_traditional(str(item)) for item in payload["missing_ingredients"]],
+            "ingredients_used": [self._sanitize_ingredient_text(str(item)) for item in payload["ingredients_used"]],
+            "missing_ingredients": [self._sanitize_ingredient_text(str(item)) for item in payload["missing_ingredients"]],
             "steps": [normalize_to_traditional(str(step)) for step in payload["steps"]],
             "cooking_time_minutes": int(payload["cooking_time_minutes"]),
             "note": normalize_to_traditional(payload["note"]),
@@ -114,3 +114,8 @@ class RecipeRecommendationService:
         without_prefix = re.sub(r"^[oO]+", "", normalized)
         without_edges = re.sub(r"[oO]+$", "", without_prefix)
         return without_edges.strip()
+
+    def _sanitize_ingredient_text(self, text: str) -> str:
+        """清理食材文字中的整數浮點表示（例如 10.0 -> 10）。"""
+        normalized = normalize_to_traditional(text)
+        return re.sub(r"(?<!\d)(\d+)\.0(?!\d)", r"\1", normalized)

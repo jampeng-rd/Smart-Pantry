@@ -47,27 +47,7 @@ export function RecipesPage() {
     if (!target) {
       return;
     }
-    window.requestAnimationFrame(() => {
-      const workspace = sectionRef.current?.closest(".workspace");
-      if (workspace instanceof HTMLElement && isScrollableContainer(workspace)) {
-        const workspaceRect = workspace.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const top = targetRect.top - workspaceRect.top + workspace.scrollTop - 12;
-        workspace.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-        return;
-      }
-
-      const scrollableParent = findScrollableParent(target);
-      if (scrollableParent) {
-        const parentRect = scrollableParent.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const top = targetRect.top - parentRect.top + scrollableParent.scrollTop - 12;
-        scrollableParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-        return;
-      }
-
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    scrollToTargetWhenStable(target, sectionRef.current);
   };
 
   useEffect(() => {
@@ -439,6 +419,58 @@ function findScrollableParent(target: HTMLElement): HTMLElement | null {
     current = current.parentElement;
   }
   return null;
+}
+
+function resolveScrollContainer(target: HTMLElement, section: HTMLElement | null): HTMLElement | null {
+  const workspace = section?.closest(".workspace");
+  if (workspace instanceof HTMLElement && isScrollableContainer(workspace)) {
+    return workspace;
+  }
+  return findScrollableParent(target);
+}
+
+function isTargetFullyVisibleInContainer(target: HTMLElement, container: HTMLElement): boolean {
+  const targetRect = target.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  return targetRect.top >= containerRect.top + 8 && targetRect.bottom <= containerRect.bottom - 8;
+}
+
+function scrollContainerToTarget(target: HTMLElement, container: HTMLElement): void {
+  const containerRect = container.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const top = targetRect.top - containerRect.top + container.scrollTop - 12;
+  container.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
+function scrollToTargetWhenStable(target: HTMLElement, section: HTMLElement | null): void {
+  const attemptScroll = () => {
+    const container = resolveScrollContainer(target, section);
+    if (container) {
+      scrollContainerToTarget(target, container);
+      return container;
+    }
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    return null;
+  };
+
+  window.requestAnimationFrame(() => {
+    const firstContainer = attemptScroll();
+    window.setTimeout(() => {
+      const secondContainer = attemptScroll();
+      if (secondContainer && !isTargetFullyVisibleInContainer(target, secondContainer)) {
+        window.setTimeout(() => {
+          const thirdContainer = resolveScrollContainer(target, section);
+          if (thirdContainer) {
+            scrollContainerToTarget(target, thirdContainer);
+            return;
+          }
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 140);
+      } else if (!secondContainer && !firstContainer) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 160);
+  });
 }
 
 function splitCommaValues(value: string): string[] {

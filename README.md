@@ -363,7 +363,8 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐�
   - `note`
 - failed 顯示中文友善錯誤，不顯示 traceback 或技術細節。
 - polling 間隔約 2.5 秒；job 完成與 component unmount 都會停止 polling，避免 memory leak。
-- mobile 版建立任務後，會嘗試尋找實際可滾動容器自動捲到 status/result；找不到時 fallback `scrollIntoView`。
+- mobile/desktop 建立任務後，會在 layout 穩定後分段補捲到 status/result（含 fallback），降低只捲到一半的情況。
+- prompt 與結果文字會避免將整數數量顯示為 `10.0` 這類格式；真實小數（如 `1.5`）仍保留。
 - MVP 不保存推薦歷史，僅透過候選抽樣/排序與 prompt 降低重複，不保證每次完全不同。
 
 job-based 流程：

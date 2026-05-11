@@ -29,6 +29,7 @@ CHAR_REPLACEMENTS: tuple[tuple[str, str], ...] = (
     ("头", "頭"),
     ("备", "備"),
     ("适", "適"),
+    ("蛎", "蠣"),
 )
 
 

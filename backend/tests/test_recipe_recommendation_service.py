@@ -135,3 +135,28 @@ def test_recipe_name_should_keep_normal_name() -> None:
 
     result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
     assert result["recipe_name"] == "家常番茄炒蛋"
+
+
+def test_ingredient_text_should_remove_integer_decimal_suffix() -> None:
+    """食材文字中的整數浮點應清理為整數。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"家常番茄炒蛋","ingredients_used":["雞蛋 15.0 顆"],"missing_ingredients":["三文魚 1.0 份"],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["ingredients_used"] == ["雞蛋 15 顆"]
+    assert result["missing_ingredients"] == ["三文魚 1 份"]
+
+
+def test_ingredient_text_should_keep_real_decimal() -> None:
+    """真實小數應保留，不可被轉為整數。"""
+    service = RecipeRecommendationService(
+        llm_client=FakeRecipeLlmClient(
+            '{"recipe_name":"家常番茄炒蛋","ingredients_used":["牛奶 1.5 杯"],"missing_ingredients":[],"steps":["步驟"],"cooking_time_minutes":8,"note":"僅供生活參考"}'
+        )
+    )
+
+    result = service.recommend(input_snapshot={}, pantry_items=[{"name": "雞蛋", "status": "normal"}])
+    assert result["ingredients_used"] == ["牛奶 1.5 杯"]
