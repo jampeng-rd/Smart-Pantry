@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { FiAlertCircle, FiCamera, FiCheckCircle, FiImage, FiLoader, FiPlusCircle, FiTrash2, FiUpload } from "react-icons/fi";
+import { FiAlertCircle, FiCamera, FiCheckCircle, FiImage, FiLoader, FiMinus, FiPlus, FiPlusCircle, FiTrash2, FiUpload } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { EmptyState } from "../components/common/EmptyState";
@@ -21,9 +21,8 @@ const POLLING_INTERVAL_MS = 2500;
 /** 食材辨識頁：上傳圖片、輪詢 job、確認候選後寫入 pantry。 */
 export function IngredientsPage() {
   const dispatch = useAppDispatch();
-  const { uploading, polling, currentJobId, jobStatus, jobError, candidates, resultNote, confirmLoading, confirmSummary } = useAppSelector(
-    (state) => state.ingredients,
-  );
+  const { uploading, polling, currentJobId, jobStatus, jobError, candidates, resultNote, confirmLoading, confirmSummary, showNoItemsState } =
+    useAppSelector((state) => state.ingredients);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -124,8 +123,8 @@ export function IngredientsPage() {
 
   const onCandidateChange = (index: number, field: keyof IngredientCandidateItem, value: string) => {
     if (field === "quantity") {
-      const parsed = Number.parseFloat(value);
-      dispatch(updateCandidateField({ index, field, value: Number.isFinite(parsed) ? parsed : 0 }));
+      const parsed = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
+      dispatch(updateCandidateField({ index, field, value: Number.isFinite(parsed) ? parsed : 1 }));
       return;
     }
     if (field === "expiration_date") {
@@ -133,6 +132,14 @@ export function IngredientsPage() {
       return;
     }
     dispatch(updateCandidateField({ index, field, value }));
+  };
+
+  const onDecreaseQuantity = (index: number, current: number) => {
+    dispatch(updateCandidateField({ index, field: "quantity", value: Math.max(1, current - 1) }));
+  };
+
+  const onIncreaseQuantity = (index: number, current: number) => {
+    dispatch(updateCandidateField({ index, field: "quantity", value: Math.max(1, current + 1) }));
   };
 
   const validateCandidates = (items: IngredientCandidateItem[]): string | null => {
@@ -168,7 +175,7 @@ export function IngredientsPage() {
           建議拍攝單一或少量未加工食材。避免整桌料理、冰箱全景、多人餐點或過多品項。
         </p>
         <div className="ingredients-upload-row">
-          <label className="btn ghost ingredients-file-label" htmlFor="ingredient-image-input">
+          <label className="btn ghost ingredients-file-label ingredients-upload-action" htmlFor="ingredient-image-input">
             <FiImage aria-hidden="true" /> 選擇圖片
           </label>
           <input
@@ -178,7 +185,12 @@ export function IngredientsPage() {
             onChange={onFileChange}
             className="ingredients-file-input"
           />
-          <button type="button" className="btn" onClick={() => void onCreateJob()} disabled={uploading || polling || !selectedFile}>
+          <button
+            type="button"
+            className="btn ingredients-upload-action"
+            onClick={() => void onCreateJob()}
+            disabled={uploading || polling || !selectedFile}
+          >
             {uploading ? <FiLoader aria-hidden="true" className="spin" /> : <FiUpload aria-hidden="true" />}
             建立辨識任務
           </button>
@@ -204,11 +216,11 @@ export function IngredientsPage() {
         />
       ) : null}
 
-      {jobStatus === "success" && candidates.length === 0 ? (
+      {showNoItemsState ? (
         <EmptyState
           icon={FiAlertCircle}
-          title="沒有可用候選食材"
-          description="此張圖片暫時未辨識出候選食材，請改用較清楚、單一或少量食材的照片。"
+          title="沒有需要加入的食材"
+          description=""
           className="card pantry-empty"
         />
       ) : null}
@@ -217,7 +229,7 @@ export function IngredientsPage() {
         <div className="card ingredients-candidates-card">
           <header className="ingredients-candidate-header">
             <h3>
-              <FiCheckCircle aria-hidden="true" /> 候選食材（請確認後加入庫存）
+              <FiCheckCircle aria-hidden="true" /> 食材清單（請確認後加入庫存）
             </h3>
             <button type="button" className="btn" onClick={() => void onConfirmToPantry()} disabled={confirmLoading}>
               {confirmLoading ? <FiLoader aria-hidden="true" className="spin" /> : <FiPlusCircle aria-hidden="true" />}
@@ -230,11 +242,11 @@ export function IngredientsPage() {
             {candidates.map((candidate, index) => (
               <article key={`${candidate.name}-${index}`} className="ingredients-candidate-item">
                 <div className="ingredients-candidate-item-head">
-                  <strong>候選 {index + 1}</strong>
+                  <strong>食材 {index + 1}</strong>
                   <button
                     type="button"
                     className="icon-btn"
-                    aria-label={`刪除候選食材 ${candidate.name || index + 1}`}
+                    aria-label={`刪除食材 ${candidate.name || index + 1}`}
                     onClick={() => dispatch(removeCandidate(index))}
                   >
                     <FiTrash2 aria-hidden="true" />
@@ -251,13 +263,33 @@ export function IngredientsPage() {
                   </label>
                   <label>
                     數量*
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={candidate.quantity}
-                      onChange={(event) => onCandidateChange(index, "quantity", event.target.value)}
-                    />
+                    <div className="ingredients-quantity-control">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={candidate.quantity}
+                        onChange={(event) => onCandidateChange(index, "quantity", event.target.value)}
+                      />
+                      <span className="ingredients-quantity-buttons">
+                        <button
+                          type="button"
+                          className="btn ghost ingredients-quantity-btn"
+                          aria-label="減少數量"
+                          onClick={() => onDecreaseQuantity(index, candidate.quantity)}
+                        >
+                          <FiMinus aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn ghost ingredients-quantity-btn"
+                          aria-label="增加數量"
+                          onClick={() => onIncreaseQuantity(index, candidate.quantity)}
+                        >
+                          <FiPlus aria-hidden="true" />
+                        </button>
+                      </span>
+                    </div>
                   </label>
                   <label>
                     單位*

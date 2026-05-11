@@ -3,7 +3,7 @@ import type { IconType } from "react-icons";
 interface EmptyStateProps {
   icon: IconType;
   title: string;
-  description: string;
+  description?: string;
   className?: string;
   as?: "div" | "section";
 }
@@ -15,7 +15,7 @@ export function EmptyState({ icon: Icon, title, description, className, as = "di
     <Tag className={className}>
       <Icon aria-hidden="true" />
       <h3>{title}</h3>
-      <p>{description}</p>
+      {description ? <p>{description}</p> : null}
     </Tag>
   );
 }

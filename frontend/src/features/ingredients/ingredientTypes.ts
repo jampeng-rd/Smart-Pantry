@@ -59,4 +59,5 @@ export interface IngredientState {
   resultNote: string | null;
   confirmLoading: boolean;
   confirmSummary: IngredientConfirmSummary | null;
+  showNoItemsState: boolean;
 }

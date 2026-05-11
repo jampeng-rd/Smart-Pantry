@@ -1808,6 +1808,16 @@ body {
   flex-wrap: wrap;
 }
 
+.ingredients-upload-action {
+  margin-top: 0;
+  min-height: 40px;
+  height: 40px;
+  padding: 0.6rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .ingredients-file-label {
   margin-top: 0;
   cursor: pointer;
@@ -1901,6 +1911,27 @@ body {
   outline: none;
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 24%, transparent);
+}
+
+.ingredients-quantity-control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.ingredients-quantity-buttons {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.ingredients-quantity-btn {
+  margin-top: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
 }
 
 .ingredients-candidate-note {

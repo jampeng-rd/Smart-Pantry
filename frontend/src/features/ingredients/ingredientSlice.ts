@@ -20,7 +20,24 @@ const initialState: IngredientState = {
   resultNote: null,
   confirmLoading: false,
   confirmSummary: null,
+  showNoItemsState: false,
 };
+
+function toStorageLocationUi(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "fridge") {
+    return "冰箱";
+  }
+  return value;
+}
+
+function toStorageLocationApi(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "冰箱") {
+    return "fridge";
+  }
+  return value.trim() || "fridge";
+}
 
 /** 建立食材照片辨識 job。 */
 export const createIngredientPhotoJob = createAsyncThunk<IngredientPhotoJobCreateData, File, { rejectValue: string }>(
@@ -58,10 +75,10 @@ export const confirmCandidatesToPantry = createAsyncThunk<IngredientConfirmSumma
       const payload: PantryCreatePayload = {
         name: candidate.name.trim(),
         category: candidate.category.trim(),
-        quantity: candidate.quantity,
+        quantity: Math.max(1, Math.floor(candidate.quantity)),
         unit: candidate.unit.trim(),
         expiration_date: candidate.expiration_date,
-        storage_location: candidate.storage_location.trim() || "fridge",
+        storage_location: toStorageLocationApi(candidate.storage_location),
         note: candidate.note.trim() || null,
       };
 
@@ -100,6 +117,7 @@ const ingredientSlice = createSlice({
       state.jobStatus = null;
       state.currentJobId = null;
       state.polling = false;
+      state.showNoItemsState = false;
     },
     setIngredientPolling: (state, action: PayloadAction<boolean>) => {
       state.polling = action.payload;
@@ -114,7 +132,7 @@ const ingredientSlice = createSlice({
       }
       const { field, value } = action.payload;
       if (field === "quantity" && typeof value === "number") {
-        target.quantity = value;
+        target.quantity = Math.max(1, Math.floor(value));
         return;
       }
       if (field === "expiration_date") {
@@ -127,6 +145,9 @@ const ingredientSlice = createSlice({
     },
     removeCandidate: (state, action: PayloadAction<number>) => {
       state.candidates = state.candidates.filter((_, index) => index !== action.payload);
+      if (state.candidates.length === 0) {
+        state.showNoItemsState = false;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -135,6 +156,7 @@ const ingredientSlice = createSlice({
         state.uploading = true;
         state.jobError = null;
         state.confirmSummary = null;
+        state.showNoItemsState = false;
       })
       .addCase(createIngredientPhotoJob.fulfilled, (state, action) => {
         state.uploading = false;
@@ -143,6 +165,7 @@ const ingredientSlice = createSlice({
         state.polling = action.payload.status === "pending" || action.payload.status === "running";
         state.candidates = [];
         state.resultNote = null;
+        state.showNoItemsState = false;
       })
       .addCase(createIngredientPhotoJob.rejected, (state, action) => {
         state.uploading = false;
@@ -155,8 +178,13 @@ const ingredientSlice = createSlice({
         if (action.payload.status === "success") {
           state.polling = false;
           state.jobError = null;
-          state.candidates = action.payload.result?.candidate_items ?? [];
+          state.candidates = (action.payload.result?.candidate_items ?? []).map((item) => ({
+            ...item,
+            quantity: Math.max(1, Math.floor(item.quantity)),
+            storage_location: toStorageLocationUi(item.storage_location),
+          }));
           state.resultNote = action.payload.result?.note ?? null;
+          state.showNoItemsState = state.candidates.length === 0;
           return;
         }
         if (action.payload.status === "failed") {
@@ -164,6 +192,7 @@ const ingredientSlice = createSlice({
           state.jobError = action.payload.error_message ?? "食材辨識失敗，請稍後再試。";
           state.candidates = [];
           state.resultNote = null;
+          state.showNoItemsState = false;
           return;
         }
         if (action.payload.status === "cancelled") {
@@ -187,6 +216,7 @@ const ingredientSlice = createSlice({
         state.confirmSummary = action.payload;
         if (action.payload.failureItems.length === 0) {
           state.candidates = [];
+          state.showNoItemsState = false;
         }
       })
       .addCase(confirmCandidatesToPantry.rejected, (state, action) => {
