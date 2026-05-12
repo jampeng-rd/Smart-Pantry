@@ -31,15 +31,15 @@ export function UserMenu({
     <div className={`user-menu${collapsed ? " icon-only" : ""}`} role="menu" aria-label="使用者選單">
       <button type="button" className="user-menu-item" role="menuitem" aria-label="個人資料" title="個人資料" onClick={onProfile}>
         <FiUser aria-hidden="true" />
-        {collapsed ? null : "Profile（個人資料）"}
+        {collapsed ? null : "個人資料"}
       </button>
       <button type="button" className="user-menu-item" role="menuitem" aria-label="設定" title="設定" onClick={onSettings}>
         <FiSettings aria-hidden="true" />
-        {collapsed ? null : "Settings（設定）"}
+        {collapsed ? null : "系統設定"}
       </button>
       <button type="button" className="user-menu-item" role="menuitem" aria-label="說明" title="說明" onClick={onHelp}>
         <FiHelpCircle aria-hidden="true" />
-        {collapsed ? null : "Help（說明）"}
+        {collapsed ? null : "使用說明"}
       </button>
       <button
         type="button"
@@ -50,11 +50,11 @@ export function UserMenu({
         title={themeLabel}
       >
         {themeMode === "light-soft" ? <FiMoon aria-hidden="true" /> : <FiSun aria-hidden="true" />}
-        {collapsed ? null : "Theme Toggle（主題切換）"}
+        {collapsed ? null : "主題切換"}
       </button>
       <button type="button" className="user-menu-item danger" role="menuitem" aria-label={logoutLabel} title={logoutLabel} onClick={onLogout}>
         <FiLogOut aria-hidden="true" />
-        {collapsed ? null : (loading ? "Log out..." : "Log out（登出）")}
+        {collapsed ? null : (loading ? "登出中..." : "登出")}
       </button>
     </div>
   );

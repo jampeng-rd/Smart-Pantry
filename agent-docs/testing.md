@@ -108,7 +108,7 @@ Manual E2E：
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
 
-## Phase 10 Profile / Settings / Email Reminder 測試補充
+## Phase 10 Profile / Settings / Email Reminder 測試補充（10-1 已完成，10-2 待做）（10-1 已完成，10-2 待做）
 
 Backend：
 
@@ -117,9 +117,8 @@ Backend：
 - 測試修改密碼：目前密碼錯誤、新密碼成功。
 - 測試 settings 取得與更新：theme、timezone、language、expiration_email_reminder_days。
 - 測試 expiration_email_reminder_days 只允許 `none`、`1`、`3`，預設為 `1`。
-- 測試 reminder worker 在上午 8:00 / 下午 5:00 應寄送的使用者與食材。
-- 測試同一使用者同一天同一 send_window 不重複寄送。
-- 測試 fake email client，不可在單元測試寄真信。
+- Phase 10-1 不測寄信 worker。
+- reminder worker、8:00/17:00 寄送與 delivery log 去重測試留在 Phase 10-2。
 
 Frontend：
 

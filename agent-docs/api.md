@@ -198,7 +198,7 @@ Phase 08～11 AI 功能統一採 job-based API：
 - 不可暴露 traceback
 
 
-## Profile / Settings（Phase 10 規劃）
+## Profile / Settings（Phase 10-1 已實作）
 
 ### GET /profile
 
@@ -253,7 +253,7 @@ Response data 範例：
 - UI 顯示順序：不提醒、前 1 天（預設）、前 3 天。
 - `language` MVP 固定 `zh-TW`，可先不開放修改。
 
-## Expiration Email Reminder（Phase 10 規劃）
+## Expiration Email Reminder（Phase 10-2 規劃）
 
 系統內部排程每天上午 8:00 與下午 5:00 檢查使用者設定與即將到期食材，不需要由 frontend 手動呼叫寄送 API。
 

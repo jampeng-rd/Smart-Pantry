@@ -14,6 +14,8 @@ import { RecipesPage } from "./pages/RecipesPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ShoppingPage } from "./pages/ShoppingPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { HelpPage } from "./pages/HelpPage";
 
 type AuthViewMode = "login" | "register";
 type ProtectedPath =
@@ -24,7 +26,9 @@ type ProtectedPath =
   | "/recipes"
   | "/ingredients"
   | "/nutrition"
-  | "/settings";
+  | "/settings"
+  | "/profile"
+  | "/help";
 
 const protectedRoutes: ProtectedPath[] = [
   "/dashboard",
@@ -35,6 +39,8 @@ const protectedRoutes: ProtectedPath[] = [
   "/ingredients",
   "/nutrition",
   "/settings",
+  "/profile",
+  "/help",
 ];
 
 /** 前端入口：處理 Auth UI 與受保護路由。 */
@@ -111,6 +117,10 @@ function WorkspaceByPath({ pathname }: { pathname: ProtectedPath }) {
       return <NutritionPage />;
     case "/settings":
       return <SettingsPage />;
+    case "/profile":
+      return <ProfilePage />;
+    case "/help":
+      return <HelpPage />;
     default:
       return <DashboardPage />;
   }

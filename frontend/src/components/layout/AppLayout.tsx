@@ -61,6 +61,15 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
   }, [isMobile, mobileOpen]);
 
   const currentTitle = useMemo(() => {
+    if (pathname === "/profile") {
+      return { icon: <FiGrid aria-hidden="true" />, text: "個人資料" };
+    }
+    if (pathname === "/settings") {
+      return { icon: <FiGrid aria-hidden="true" />, text: "系統設定" };
+    }
+    if (pathname === "/help") {
+      return { icon: <FiGrid aria-hidden="true" />, text: "使用說明" };
+    }
     if (pathname === "/pantry") {
       return { icon: <FiArchive aria-hidden="true" />, text: "食材庫存" };
     }

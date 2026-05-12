@@ -1959,3 +1959,115 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.workspace-subtitle {
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.settings-form {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.settings-form input,
+.settings-form select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.settings-form input:focus,
+.settings-form select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 24%, transparent);
+}
+
+.success-text {
+  color: var(--color-success);
+  margin: 0.65rem 0 0;
+}
+
+.section-divider {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 1rem 0;
+}
+
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.85rem;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  color: var(--color-accent-active);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+}
+
+.theme-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.future-block {
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.help-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.help-faq {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.help-faq-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-hover);
+  padding: 0.65rem 0.75rem;
+}
+
+.help-faq-item h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.96rem;
+}
+
+.help-faq-item p {
+  margin: 0.45rem 0 0;
+}

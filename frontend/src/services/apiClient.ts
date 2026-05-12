@@ -23,6 +23,8 @@ import type {
   RecipeRecommendationJobCreatePayload,
   RecipeRecommendationJobStatusData,
 } from "../features/recipes/recipeTypes";
+import type { ChangePasswordPayload, ProfileData, ProfileUpdatePayload } from "../features/profile/profileTypes";
+import type { SettingsData, SettingsUpdatePayload } from "../features/settings/settingsTypes";
 import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon, saveTokens } from "./tokenService";
 
 /** API 基底網址。 */
@@ -141,6 +143,20 @@ export const ingredientsApi = {
   },
   /** 查詢食材照片辨識任務狀態。 */
   getIngredientPhotoJob: (jobId: number) => requestWithAuth<IngredientPhotoJobStatusData>(`/ingredients/photo/jobs/${jobId}`, { method: "GET" }),
+};
+
+/** Profile API 封裝。 */
+export const profileApi = {
+  get: () => requestWithAuth<ProfileData>("/profile", { method: "GET" }),
+  update: (payload: ProfileUpdatePayload) => requestWithAuth<ProfileData>("/profile", { method: "PATCH", body: JSON.stringify(payload) }),
+  changePassword: (payload: ChangePasswordPayload) =>
+    requestWithAuth<{ password_changed: boolean }>("/profile/change-password", { method: "POST", body: JSON.stringify(payload) }),
+};
+
+/** Settings API 封裝。 */
+export const settingsApi = {
+  get: () => requestWithAuth<SettingsData>("/settings", { method: "GET" }),
+  update: (payload: SettingsUpdatePayload) => requestWithAuth<SettingsData>("/settings", { method: "PATCH", body: JSON.stringify(payload) }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

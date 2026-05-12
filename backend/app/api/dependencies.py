@@ -69,6 +69,15 @@ def get_ingredient_photo_job_service(db: Session = Depends(get_db_session)):
     return IngredientPhotoJobService(ai_job_repository=repository, storage=_LOCAL_STORAGE)
 
 
+def get_profile_settings_service(db: Session = Depends(get_db_session)):
+    """提供 ProfileSettingsService 依賴。"""
+    from backend.app.infra.repository.profile_settings_repository import ProfileSettingsRepository
+    from backend.app.services.profile_settings_service import ProfileSettingsService
+
+    repository = ProfileSettingsRepository(db=db)
+    return ProfileSettingsService(repository=repository)
+
+
 def get_bearer_token(authorization: str | None = Header(default=None)) -> str:
     """從 Authorization Header 擷取 Bearer token。"""
     if authorization is None:

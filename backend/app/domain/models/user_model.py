@@ -26,3 +26,4 @@ class User(Base):
     )
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    user_preference = relationship("UserPreference", back_populates="user", uselist=False)

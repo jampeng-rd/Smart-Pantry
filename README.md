@@ -25,8 +25,8 @@ Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
 Phase 09-2：Vision Model 食材候選辨識 ✅
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
-Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）⏳
-Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ⏳
+Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）✅
+Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
 Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ⏳
 Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
 Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
@@ -647,3 +647,23 @@ Help 頁面建議包含：
 - 食材辨識拍攝建議與限制。
 - 到期 Email 提醒規則與常見問題。
 - FAQ：AI 辨識不準、食譜重複、Email 沒收到、如何修改提醒設定。
+
+## Phase 10-1：Profile / Settings / Help（已完成）
+
+本階段只完成 Profile / Settings / Help 與偏好資料模型，不包含寄信排程。
+
+已完成項目：
+
+- 後端新增 `user_preferences`（`user_id` unique indexed、`theme`、`timezone`、`language`、`expiration_email_reminder_days`、`created_at`、`updated_at`）。
+- `expiration_email_reminder_days` 僅允許 `none`、`1`、`3`，預設 `1`。
+- 新增 API：`GET/PATCH /profile`、`POST /profile/change-password`、`GET/PATCH /settings`。
+- `email` 僅顯示不可修改；頭像 fallback 為 `display_name` 第一個字元。
+- Settings 區塊順序：外觀設定（主題切換）→ 到期 Email 提醒 → 時區 → 語言 → 登出所有裝置（未來功能）→ 最近登入時間（未來功能）。
+- 到期提醒選項順序固定：不提醒、前 1 天（預設）、前 3 天。
+- Help 頁完成繁體中文說明與 FAQ。
+
+限制與後續：
+
+- Phase 10-1 只儲存提醒偏好，不寄送 Email。
+- 真正寄信排程與 delivery log 留在 Phase 10-2。
+- 未實作 Nutrition、未新增 Email worker、未導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。

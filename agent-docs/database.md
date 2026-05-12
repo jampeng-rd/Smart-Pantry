@@ -79,7 +79,7 @@ id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit�
 
 ### user_preferences
 
-id、user_id unique indexed、diet_preference、allergies、cooking_tools、disliked_foods、theme、timezone、language、expiration_email_reminder_days、created_at、updated_at。
+id、user_id unique indexed、theme、timezone、language、expiration_email_reminder_days、created_at、updated_at。
 
 規則：
 
@@ -89,6 +89,14 @@ id、user_id unique indexed、diet_preference、allergies、cooking_tools、disl
 - `timezone` 可保存使用者指定時區；未設定時前端可使用瀏覽器時區。
 - `language` MVP 固定繁體中文，可先保留欄位。
 
+
+
+Phase 10-1 實作預設：
+
+- `theme` 預設 `light-soft`。
+- `language` 預設 `zh-TW`。
+- `expiration_email_reminder_days` 預設 `1`。
+- `timezone` 允許 `null`，前端可 fallback 瀏覽器時區或 `Asia/Taipei`。
 
 ### expiration_reminder_deliveries（Phase 10 規劃）
 

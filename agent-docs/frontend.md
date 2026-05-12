@@ -264,7 +264,7 @@ Nutrition UI：
 - AI 生活參考聲明
 
 
-## Profile / Settings / Help 頁面規範（Phase 10）
+## Profile / Settings / Help 頁面規範（Phase 10-1 已實作）
 
 ### Profile（個人資料）
 
@@ -289,3 +289,11 @@ Settings 是系統行為偏好。頁面區塊建議順序：
 ### Help（說明）
 
 Help 應包含：基本操作教學、AI 食譜限制、食材辨識拍攝建議、Email 提醒規則與 FAQ。Help 文字需使用繁體中文，並避免過度技術化。
+
+
+Phase 10-1 已完成重點：
+
+- Profile：可讀取/更新 display_name、顯示不可修改 Email、密碼顯示/隱藏與修改密碼。
+- Settings：第一區塊為主題切換，並與 themeSlice 同步；可儲存 theme/timezone/expiration_email_reminder_days。
+- 到期提醒選項順序固定：不提醒、前 1 天（預設）、前 3 天。
+- Help：完成繁體中文教學、AI/Vision 使用限制、Email 提醒規則與 FAQ。

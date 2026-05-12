@@ -21,6 +21,11 @@ const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
+    setTheme: (state, action: { payload: ThemeState["mode"] }) => {
+      state.mode = action.payload;
+      localStorage.setItem(THEME_STORAGE_KEY, state.mode);
+      document.documentElement.setAttribute("data-theme", state.mode);
+    },
     toggleTheme: (state) => {
       state.mode = state.mode === "light-soft" ? "dark-soft" : "light-soft";
       localStorage.setItem(THEME_STORAGE_KEY, state.mode);
@@ -29,5 +34,5 @@ const themeSlice = createSlice({
   },
 });
 
-export const { toggleTheme } = themeSlice.actions;
+export const { toggleTheme, setTheme } = themeSlice.actions;
 export default themeSlice.reducer;

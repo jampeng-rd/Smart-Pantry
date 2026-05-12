@@ -152,9 +152,9 @@ export function Sidebar({
               collapsed={isCollapsedDesktop}
               themeMode={themeMode}
               loading={auth.loading}
-              onProfile={() => handleNavigate("/settings")}
+              onProfile={() => handleNavigate("/profile")}
               onSettings={() => handleNavigate("/settings")}
-              onHelp={() => handleNavigate("/settings")}
+              onHelp={() => handleNavigate("/help")}
               onToggleTheme={() => dispatch(toggleTheme())}
               onLogout={() => void handleLogout()}
             />
