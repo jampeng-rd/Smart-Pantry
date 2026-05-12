@@ -19,7 +19,7 @@
 
 - `id`
 - `user_id`（`unique` + `index`）
-- `theme`（預設 `light-soft`）
+- `theme`（預設 `dark-soft`）
 - `timezone`（可為 `null`）
 - `language`（預設 `zh-TW`）
 - `expiration_email_reminder_days`（預設 `1`，允許 `none`/`1`/`3`）
@@ -40,6 +40,7 @@
 - `email` 僅顯示，不可修改。
 - `GET /settings` 在偏好不存在時自動建立預設值。
 - `PATCH /settings` 只更新 `theme/timezone/expiration_email_reminder_days`；`language` MVP 固定 `zh-TW`。
+- UserMenu 的主題切換按鈕先註解保留，主題切換入口移到 Settings 第一區塊。
 
 ## 前端
 
@@ -51,6 +52,7 @@
 - 修改密碼區：目前密碼、新密碼、確認新密碼。
 - 三個密碼欄位都有顯示/隱藏切換按鈕（含 `aria-label`）。
 - 錯誤與成功提示為繁體中文。
+- 修改密碼成功後立即登出並導回登入頁，需用新密碼重新登入。
 
 ### Settings
 
@@ -70,6 +72,15 @@
 - 前 3 天
 
 本階段僅儲存偏好，不寄信。
+- 語言欄位顯示「繁體中文」，後端值維持 `zh-TW`。
+
+## Phase 10-1 UX 修正（本次）
+
+- UserMenu 主題切換按鈕已註解（保留程式碼不刪除），註解說明主題切換已移到 Settings。
+- Settings 外觀設定預設與 fallback 改為 `dark-soft`。
+- Profile 頭像旁提示文字已移除；Email 標籤改為「Email」。
+- 手機版 Profile 頭像固定為不變形圓形（含 `min-width`、`min-height`、`flex-shrink: 0`、`aspect-ratio: 1 / 1`）。
+- TopToolbar 在 Profile / Settings / Help 的 icon + 標題已與頁內 `h2` 一致。
 
 ### Help
 

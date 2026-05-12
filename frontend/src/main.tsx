@@ -8,7 +8,7 @@ import "./styles/globals.css";
 import "./styles/theme.css";
 
 const savedTheme = localStorage.getItem("smartpantry_theme_mode");
-const themeMode = savedTheme === "dark-soft" || savedTheme === "light-soft" ? savedTheme : "light-soft";
+const themeMode = savedTheme === "dark-soft" || savedTheme === "light-soft" ? savedTheme : "dark-soft";
 document.documentElement.setAttribute("data-theme", themeMode);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

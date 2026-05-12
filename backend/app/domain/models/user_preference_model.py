@@ -15,7 +15,7 @@ class UserPreference(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True, nullable=False)
-    theme: Mapped[str] = mapped_column(String(32), nullable=False, default="light-soft")
+    theme: Mapped[str] = mapped_column(String(32), nullable=False, default="dark-soft")
     timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
     language: Mapped[str] = mapped_column(String(16), nullable=False, default="zh-TW")
     expiration_email_reminder_days: Mapped[str] = mapped_column(String(8), nullable=False, default="1")

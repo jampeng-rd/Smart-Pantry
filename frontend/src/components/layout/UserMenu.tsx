@@ -41,7 +41,8 @@ export function UserMenu({
         <FiHelpCircle aria-hidden="true" />
         {collapsed ? null : "使用說明"}
       </button>
-      <button
+      {/* Phase 10-1 UX：主題切換功能已移到 Settings 第一個區塊，UserMenu 先暫時隱藏。 */}
+      {/* <button
         type="button"
         className="user-menu-item"
         role="menuitem"
@@ -51,7 +52,7 @@ export function UserMenu({
       >
         {themeMode === "light-soft" ? <FiMoon aria-hidden="true" /> : <FiSun aria-hidden="true" />}
         {collapsed ? null : "主題切換"}
-      </button>
+      </button> */}
       <button type="button" className="user-menu-item danger" role="menuitem" aria-label={logoutLabel} title={logoutLabel} onClick={onLogout}>
         <FiLogOut aria-hidden="true" />
         {collapsed ? null : (loading ? "登出中..." : "登出")}

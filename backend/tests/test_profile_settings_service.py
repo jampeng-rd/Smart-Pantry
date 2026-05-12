@@ -63,7 +63,7 @@ class FakeProfileSettingsRepository:
     def create_preference(
         self,
         user_id: int,
-        theme: str = "light-soft",
+        theme: str = "dark-soft",
         timezone_value: str | None = None,
         language: str = "zh-TW",
         expiration_email_reminder_days: str = "1",
@@ -159,7 +159,7 @@ def test_get_settings_should_create_defaults_when_missing(
 
     result = service.get_settings(user_id=1)
 
-    assert result.theme == "light-soft"
+    assert result.theme == "dark-soft"
     assert result.language == "zh-TW"
     assert result.expiration_email_reminder_days == "1"
     assert repository.preferences[1].expiration_email_reminder_days == "1"
@@ -192,7 +192,7 @@ def test_get_settings_should_not_cross_user(
     service.update_settings(user_id=1, theme="dark-soft", timezone_value="Asia/Taipei", expiration_email_reminder_days="3")
     other_user = service.get_settings(user_id=2)
 
-    assert other_user.theme == "light-soft"
+    assert other_user.theme == "dark-soft"
     assert other_user.expiration_email_reminder_days == "1"
 
 

@@ -655,12 +655,17 @@ Help 頁面建議包含：
 已完成項目：
 
 - 後端新增 `user_preferences`（`user_id` unique indexed、`theme`、`timezone`、`language`、`expiration_email_reminder_days`、`created_at`、`updated_at`）。
+- `theme` 預設為 `dark-soft`（無偏好或 fallback 時以前端暗色為預設）。
 - `expiration_email_reminder_days` 僅允許 `none`、`1`、`3`，預設 `1`。
 - 新增 API：`GET/PATCH /profile`、`POST /profile/change-password`、`GET/PATCH /settings`。
 - `email` 僅顯示不可修改；頭像 fallback 為 `display_name` 第一個字元。
 - Settings 區塊順序：外觀設定（主題切換）→ 到期 Email 提醒 → 時區 → 語言 → 登出所有裝置（未來功能）→ 最近登入時間（未來功能）。
 - 到期提醒選項順序固定：不提醒、前 1 天（預設）、前 3 天。
 - Help 頁完成繁體中文說明與 FAQ。
+- UserMenu 的主題切換入口已註解保留，主題切換集中在 Settings 第一區塊。
+- Settings 語言欄位顯示「繁體中文」（後端仍存 `zh-TW`）。
+- 修改密碼成功後前端會直接登出並導回登入頁。
+- Profile 手機版頭像固定為不變形圓形；Profile / Settings / Help 的 TopToolbar 標題與頁內標題一致。
 
 限制與後續：
 

@@ -2014,6 +2014,10 @@ body {
 .profile-avatar {
   width: 56px;
   height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
   color: var(--color-accent-active);

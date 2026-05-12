@@ -34,7 +34,7 @@ class ProfileSettingsRepository:
     def create_preference(
         self,
         user_id: int,
-        theme: str = "light-soft",
+        theme: str = "dark-soft",
         timezone_value: str | None = None,
         language: str = "zh-TW",
         expiration_email_reminder_days: str = "1",

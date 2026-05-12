@@ -1,11 +1,14 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FiEye, FiEyeOff, FiKey, FiMail, FiSave, FiUser } from "react-icons/fi";
 
+import { useAppDispatch } from "../app/hooks";
+import { logout } from "../features/auth/authSlice";
 import { profileApi } from "../services/apiClient";
 import type { ProfileData } from "../features/profile/profileTypes";
 
 /** 個人資料頁面。 */
 export function ProfilePage() {
+  const dispatch = useAppDispatch();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -91,10 +94,8 @@ export function ProfilePage() {
     setError(null);
     try {
       await profileApi.changePassword({ current_password: currentPassword, new_password: newPassword });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setMessage("密碼已更新");
+      await dispatch(logout());
+      window.location.href = "/";
     } catch (apiError) {
       setError(apiError instanceof Error ? apiError.message : "修改密碼失敗");
     } finally {
@@ -108,17 +109,14 @@ export function ProfilePage() {
 
   return (
     <section className="card workspace-card profile-page">
-      <h2 className="workspace-title">
+      {/* <h2 className="workspace-title">
         <FiUser aria-hidden="true" /> 個人資料
-      </h2>
+      </h2> */}
 
       <div className="profile-avatar-row">
         <span className="profile-avatar" aria-label="預設頭像">
           {avatarText}
         </span>
-        <div>
-          <p className="muted-text">未上傳頭像時，使用顯示名稱第一個字元作為預設頭像。</p>
-        </div>
       </div>
 
       <form onSubmit={handleSaveProfile} className="settings-form" noValidate>
@@ -132,7 +130,7 @@ export function ProfilePage() {
         />
 
         <label htmlFor="profile-email">
-          <FiMail aria-hidden="true" /> Email（不可修改）
+          <FiMail aria-hidden="true" /> Email
         </label>
         <input id="profile-email" value={profile?.email ?? ""} disabled aria-disabled="true" />
 

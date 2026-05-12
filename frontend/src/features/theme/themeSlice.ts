@@ -9,7 +9,7 @@ function getInitialThemeMode(): ThemeState["mode"] {
   if (savedTheme === "light-soft" || savedTheme === "dark-soft") {
     return savedTheme;
   }
-  return "light-soft";
+  return "dark-soft";
 }
 
 const initialState: ThemeState = {

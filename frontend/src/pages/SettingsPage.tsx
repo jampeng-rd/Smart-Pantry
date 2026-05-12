@@ -18,7 +18,7 @@ export function SettingsPage() {
   const currentTheme = useAppSelector((state) => state.theme.mode);
 
   const [settings, setSettings] = useState<SettingsData | null>(null);
-  const [theme, setThemeValue] = useState(currentTheme);
+  const [theme, setThemeValue] = useState<"light-soft" | "dark-soft">(currentTheme === "light-soft" ? "light-soft" : "dark-soft");
   const [timezone, setTimezone] = useState("Asia/Taipei");
   const [reminderDays, setReminderDays] = useState<ExpirationReminderDays>("1");
   const [loading, setLoading] = useState(true);
@@ -39,6 +39,8 @@ export function SettingsPage() {
         dispatch(setTheme(data.theme));
       } catch (apiError) {
         setError(apiError instanceof Error ? apiError.message : "載入設定失敗");
+        setThemeValue("dark-soft");
+        dispatch(setTheme("dark-soft"));
       } finally {
         setLoading(false);
       }
@@ -77,9 +79,9 @@ export function SettingsPage() {
 
   return (
     <section className="card workspace-card settings-page">
-      <h2 className="workspace-title">
+      {/* <h2 className="workspace-title">
         <FiSettings aria-hidden="true" /> 系統設定
-      </h2>
+      </h2> */}
 
       <form onSubmit={handleSave} className="settings-form" noValidate>
         <h3 className="workspace-subtitle">1. 外觀設定</h3>
@@ -131,7 +133,7 @@ export function SettingsPage() {
 
         <h3 className="workspace-subtitle">4. 語言</h3>
         <label htmlFor="settings-language">語言</label>
-        <input id="settings-language" value={settings?.language ?? "zh-TW"} disabled aria-disabled="true" />
+        <input id="settings-language" value="繁體中文" disabled aria-disabled="true" />
 
         <h3 className="workspace-subtitle">5. 登出所有裝置</h3>
         <button type="button" className="btn ghost" disabled aria-label="登出所有裝置（未來功能）">

@@ -6,9 +6,9 @@ import { HELP_FAQ_ITEMS } from "../features/help/helpContent";
 export function HelpPage() {
   return (
     <section className="card workspace-card help-page">
-      <h2 className="workspace-title">
+      {/* <h2 className="workspace-title">
         <FiHelpCircle aria-hidden="true" /> 使用說明
-      </h2>
+      </h2> */}
 
       <h3 className="workspace-subtitle">1. 食材庫存基本使用方式</h3>
       <p>到「食材庫存」新增、編輯與刪除食材，並維持名稱、分類、數量與保存位置的正確性。</p>

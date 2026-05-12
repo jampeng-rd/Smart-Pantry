@@ -6,7 +6,10 @@ import {
   FiCamera,
   FiClock,
   FiGrid,
+  FiHelpCircle,
   FiShoppingCart,
+  FiSettings,
+  FiUser,
 } from "react-icons/fi";
 
 import { Sidebar, type NavItem } from "./Sidebar";
@@ -62,13 +65,13 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
 
   const currentTitle = useMemo(() => {
     if (pathname === "/profile") {
-      return { icon: <FiGrid aria-hidden="true" />, text: "個人資料" };
+      return { icon: <FiUser aria-hidden="true" />, text: "個人資料" };
     }
     if (pathname === "/settings") {
-      return { icon: <FiGrid aria-hidden="true" />, text: "系統設定" };
+      return { icon: <FiSettings aria-hidden="true" />, text: "系統設定" };
     }
     if (pathname === "/help") {
-      return { icon: <FiGrid aria-hidden="true" />, text: "使用說明" };
+      return { icon: <FiHelpCircle aria-hidden="true" />, text: "使用說明" };
     }
     if (pathname === "/pantry") {
       return { icon: <FiArchive aria-hidden="true" />, text: "食材庫存" };
