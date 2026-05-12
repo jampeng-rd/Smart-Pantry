@@ -27,7 +27,7 @@ Phase 09-2：Vision Model 食材候選辨識 ✅
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
 Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）✅
 Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
-Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ⏳
+Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
 Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
 Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
@@ -672,3 +672,29 @@ Help 頁面建議包含：
 - Phase 10-1 只儲存提醒偏好，不寄送 Email。
 - 真正寄信排程與 delivery log 留在 Phase 10-2。
 - 未實作 Nutrition、未新增 Email worker、未導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+
+## Phase 10-2：Expiration Email Reminder（已完成）
+
+本階段完成後端排程與寄信流程，但不做前端寄送紀錄 UI。
+
+已完成：
+
+- 新增 `expiration_reminder_deliveries` model（`pending/success/failed`、`morning_08/evening_17`）。
+- 新增 Email abstraction：`BaseEmailClient` + `FakeEmailClient`。
+- 新增 `ExpirationEmailReminderService`：
+  - 依使用者偏好（`none/1/3`）判斷是否寄送。
+  - 使用精準日期規則：
+    - `1` -> `expiration_date = scheduled_date + 1`
+    - `3` -> `expiration_date = scheduled_date + 3`
+  - 建立 delivery log 並更新 success/failed。
+  - 防止同一使用者同一日期同一時段重複成功寄送。
+- 新增手動 runner：
+  - `python -m backend.app.jobs.expiration_email_runner`
+  - 可帶 `--send-window`、`--scheduled-date`。
+- 新增 service/runner 單元測試，使用 fake email client，不寄真信。
+
+維持限制：
+
+- 未導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+- 未串接真實 email provider。
+- 未新增前端寄送紀錄 UI（留到 Phase 10-3）。

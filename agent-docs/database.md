@@ -93,12 +93,12 @@ id、user_id unique indexed、theme、timezone、language、expiration_email_rem
 
 Phase 10-1 實作預設：
 
-- `theme` 預設 `light-soft`。
+- `theme` 預設 `dark-soft`。
 - `language` 預設 `zh-TW`。
 - `expiration_email_reminder_days` 預設 `1`。
 - `timezone` 允許 `null`，前端可 fallback 瀏覽器時區或 `Asia/Taipei`。
 
-### expiration_reminder_deliveries（Phase 10 規劃）
+### expiration_reminder_deliveries（Phase 10-2 已實作）
 
 id、user_id indexed、scheduled_date indexed、send_window、reminder_days、item_ids json/jsonb、email_to、status、sent_at、error_message、created_at。
 
@@ -109,6 +109,7 @@ id、user_id indexed、scheduled_date indexed、send_window、reminder_days、it
 - 系統每天上午 8:00 與下午 5:00 檢查每位使用者的提醒設定與即將到期食材。
 - `expiration_email_reminder_days=none` 的使用者不寄送。
 - Email delivery log 必須可追蹤成功、失敗與錯誤原因。
+- 本階段使用 fake email client 測試流程，不寄真信。
 
 ### recipe_recommendations
 

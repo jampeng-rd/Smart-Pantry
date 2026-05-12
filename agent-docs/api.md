@@ -253,7 +253,7 @@ Response data 範例：
 - UI 顯示順序：不提醒、前 1 天（預設）、前 3 天。
 - `language` MVP 固定 `zh-TW`，可先不開放修改。
 
-## Expiration Email Reminder（Phase 10-2 規劃）
+## Expiration Email Reminder（Phase 10-2 已實作）
 
 系統內部排程每天上午 8:00 與下午 5:00 檢查使用者設定與即將到期食材，不需要由 frontend 手動呼叫寄送 API。
 
@@ -264,3 +264,16 @@ Response data 範例：
 - `3` 到期前 3 天提醒。
 - 同一使用者同一天最多寄送兩封提醒信（上午一次、下午一次）。
 - 需保存 delivery log 避免重複寄送。
+
+### Internal Runner（無公開 API）
+
+Phase 10-2 使用內部手動 runner（非前端 API）：
+
+```bash
+python -m backend.app.jobs.expiration_email_runner
+```
+
+可選參數：
+
+- `--send-window morning_08|evening_17`
+- `--scheduled-date YYYY-MM-DD`

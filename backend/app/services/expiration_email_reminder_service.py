@@ -1,0 +1,126 @@
+"""到期 Email 提醒商業邏輯服務。"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
+
+from backend.app.infra.email_client import BaseEmailClient, EmailMessage
+from backend.app.infra.repository.expiration_email_reminder_repository import ExpirationEmailReminderRepository
+
+VALID_SEND_WINDOWS = {"morning_08", "evening_17"}
+VALID_REMINDER_DAYS = {"none", "1", "3"}
+
+
+@dataclass
+class ExpirationReminderRunResult:
+    """單次提醒排程執行摘要。"""
+
+    scheduled_date: date
+    send_window: str
+    total_users: int
+    skipped_none: int
+    skipped_duplicate: int
+    skipped_no_items: int
+    success_count: int
+    failed_count: int
+
+
+class ExpirationEmailReminderService:
+    """依使用者偏好寄送到期提醒，並記錄 delivery log。"""
+
+    def __init__(self, repository: ExpirationEmailReminderRepository, email_client: BaseEmailClient):
+        """建立提醒服務實例。"""
+        self.repository = repository
+        self.email_client = email_client
+
+    def run_for_window(self, scheduled_date: date, send_window: str) -> ExpirationReminderRunResult:
+        """執行指定日期與時段的到期提醒流程。"""
+        if send_window not in VALID_SEND_WINDOWS:
+            raise ValueError("不支援的 send_window")
+
+        users_with_preferences = self.repository.list_users_with_preferences()
+
+        result = ExpirationReminderRunResult(
+            scheduled_date=scheduled_date,
+            send_window=send_window,
+            total_users=len(users_with_preferences),
+            skipped_none=0,
+            skipped_duplicate=0,
+            skipped_no_items=0,
+            success_count=0,
+            failed_count=0,
+        )
+
+        for user, preference in users_with_preferences:
+            reminder_days = self._resolve_reminder_days(preference.expiration_email_reminder_days if preference else None)
+            if reminder_days == "none":
+                result.skipped_none += 1
+                continue
+
+            if self.repository.has_success_delivery(user_id=user.id, scheduled_date=scheduled_date, send_window=send_window):
+                result.skipped_duplicate += 1
+                continue
+
+            target_date = self._get_target_expiration_date(scheduled_date=scheduled_date, reminder_days=reminder_days)
+            pantry_items = self.repository.list_items_by_user_and_expiration_date(user_id=user.id, expiration_date=target_date)
+            if not pantry_items:
+                result.skipped_no_items += 1
+                continue
+
+            delivery = self.repository.create_delivery(
+                user_id=user.id,
+                scheduled_date=scheduled_date,
+                send_window=send_window,
+                reminder_days=reminder_days,
+                item_ids=[item.id for item in pantry_items],
+                email_to=user.email,
+            )
+
+            message = self._build_email_message(
+                display_name=user.display_name,
+                email_to=user.email,
+                reminder_days=reminder_days,
+                pantry_items=pantry_items,
+            )
+            email_result = self.email_client.send_email(message)
+            if email_result.success:
+                self.repository.mark_delivery_success(row=delivery, sent_at=datetime.now(timezone.utc))
+                result.success_count += 1
+            else:
+                self.repository.mark_delivery_failed(row=delivery, error_message=email_result.error_message or "寄送失敗")
+                result.failed_count += 1
+
+        return result
+
+    def _resolve_reminder_days(self, raw_value: str | None) -> str:
+        """解析提醒天數，不合法值 fallback 為 1 天。"""
+        if raw_value in VALID_REMINDER_DAYS:
+            return raw_value
+        return "1"
+
+    def _get_target_expiration_date(self, scheduled_date: date, reminder_days: str) -> date:
+        """依提醒天數計算本次應提醒的到期日。"""
+        if reminder_days == "1":
+            return scheduled_date + timedelta(days=1)
+        if reminder_days == "3":
+            return scheduled_date + timedelta(days=3)
+        raise ValueError("none 不應進入到期日計算")
+
+    def _build_email_message(self, display_name: str, email_to: str, reminder_days: str, pantry_items: list) -> EmailMessage:
+        """建立純文字提醒信內容。"""
+        reminder_label = "前 1 天" if reminder_days == "1" else "前 3 天"
+        item_lines = "\n".join(
+            [f"- {item.name}（到期日：{item.expiration_date.isoformat()}）" for item in pantry_items]
+        )
+        content = (
+            f"{display_name} 您好，\n\n"
+            f"以下是即將到期的食材提醒（設定：{reminder_label}）：\n"
+            f"{item_lines}\n\n"
+            "此提醒來自智慧食材保存與膳食管理系統。"
+        )
+        return EmailMessage(
+            to_email=email_to,
+            subject="【智慧食材系統】即將到期食材提醒",
+            content_text=content,
+        )
