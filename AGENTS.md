@@ -6,7 +6,7 @@
 
 本專案是全端 MVP，目標是建立智慧食材庫存、過期提醒、購物清單與 AI 膳食輔助系統。
 
-核心順序：先完成人工手動輸入、庫存 CRUD、過期提醒、購物清單、繁體中文 Web UI，再逐步加入 AI 食譜推薦、食材照片辨識、餐點營養粗估。
+核心順序：先完成人工手動輸入、庫存 CRUD、過期提醒、購物清單、繁體中文 Web UI，再逐步加入 AI 食譜推薦、食材照片辨識。餐點營養粗估（Nutrition）因單張照片估算份量與熱量精準度不足，暫不列入下一階段 MVP，後續僅在有使用者份量確認與生活參考聲明時再評估。
 
 系統包含：`backend/` FastAPI、`frontend/` React + Vite + TypeScript + Redux Toolkit、PostgreSQL、Docker Compose、GitHub Actions、`docs/`、`agent-docs/`。
 
@@ -15,7 +15,7 @@
 1. 每次任務開始前，先閱讀本檔案與 `agent-docs/`。
 2. 後端必須分層：API Layer → Service Layer → Domain Layer → Infra Layer。
 3. 不同功能必須分檔：auth、pantry、expiration、shopping、recipes、nutrition 不可混在同一 route/service。
-4. 前端不同功能必須分 feature：auth、pantry、expiration、shopping、recipes、nutrition、theme。
+4. 前端不同功能必須分 feature：auth、pantry、expiration、shopping、recipes、ingredients、profile、settings、help、theme；nutrition 暫緩時不可新增未完成 placeholder 功能。
 5. 前端 UI 主要語言必須是繁體中文。
 6. 前端按鈕需優先使用 `react-icons`；純 icon button 要有 `aria-label`；列表/導覽/選項使用「icon + 繁體中文」。
 7. 前端必須支援柔和亮色與柔和暗色主題切換，不使用純白 `#ffffff` 或純黑 `#000000` 當主要背景。
@@ -86,7 +86,7 @@ frontend/src/styles/{theme.css,globals.css}
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 11 評估 queue。
 - 若任務量成長，再於 Phase 11 升級正式 queue（首選 RQ + Redis）。
 
 ### 6.1 Worker isolation 與 Ollama runtime 隔離差異
@@ -203,7 +203,7 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 
 ## 12.1 AI 功能階段完成門檻（Phase 08～11）
 
-Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。
+Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。Phase 10 已改為 Profile / Settings / Help / Email Reminder，不再視為 AI Nutrition 階段。
 
 每個 AI 功能階段至少需包含：
 
@@ -236,8 +236,56 @@ Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成�
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
-### Phase 10：營養粗估完整功能
+### Phase 10：Profile / Settings / Help / Expiration Email Reminder
 
-- Phase 10-1：Nutrition Job API + Mock Worker
-- Phase 10-2：Vision/Text Model 營養粗估
-- Phase 10-3：Nutrition 前端 UI + 生活參考聲明
+Nutrition 暫緩，不在下一階段實作。Phase 10 改為補齊使用者設定、系統設定、說明頁與到期 Email 提醒。
+
+- Phase 10-0：文件與階段方向調整
+- Phase 10-1：Profile / Settings / Help 前端與偏好資料模型
+- Phase 10-2：Expiration Email Reminder 後端排程與寄信服務
+- Phase 10-3：Expiration Email Reminder 前端設定與寄送紀錄
+
+
+## 13. Phase 10：Profile / Settings / Help / Expiration Email Reminder 規範
+
+Phase 10 不做 Nutrition。理由是單張餐點照片難以準確推估份量、油量、醬料與食材比例，若直接宣稱熱量或營養估算容易造成誤導。後續若恢復 Nutrition，必須加入使用者確認份量與明確生活參考聲明。
+
+### Profile（個人資料）
+
+Profile 只處理帳號與個人基本資料：
+
+- 使用者名稱（可修改）。
+- Email（不可修改，作為登入與通知識別）。
+- 頭像：若未上傳圖片，使用 display_name 第一個字元作為預設頭像，例如 `YG` 顯示 `Y`，`小明` 顯示 `小`。
+- 修改密碼。
+
+### Settings（系統設定）
+
+Settings 處理系統行為與偏好，主題切換需放在第一個區塊：
+
+1. 外觀設定：主題切換（柔和亮色 / 柔和暗色；未來可加跟隨系統）。
+2. 到期 Email 提醒設定：選項順序必須是「不提醒」、「前 1 天（預設）」、「前 3 天」。
+3. 時區：預設可使用瀏覽器時區，後續可讓使用者選擇，例如 `Asia/Taipei`。
+4. 語言：MVP 固定繁體中文，先保留欄位與文件說明。
+5. 登出所有裝置：未來功能。
+6. 最近登入時間：未來功能。
+
+### 到期 Email Reminder 規則
+
+- 提醒設定建議放在 `user_preferences` 或獨立一對一偏好表，不建議直接塞滿 `users` auth 表。
+- 建議欄位：`expiration_email_reminder_days`，允許值：`none`、`1`、`3`，預設 `1`。
+- 寄送時間固定為每天上午 8:00 與下午 5:00。
+- 同一使用者同一天同一批即將到期商品最多寄送兩次（上午一次、下午一次）。
+- 需建立 reminder log / delivery log 以避免同一時段重複寄送。
+- 系統每天在固定時間檢查每位使用者設定與 pantry expiration_date，符合條件才寄送。
+- Email provider 可能產生成本；MVP 可使用有免費額度的 provider，但正式環境需記錄發信量與失敗重試。
+
+### Help（說明）
+
+Help 頁面需提供：
+
+- 食材庫存、到期提醒、購物清單基本使用教學。
+- 食譜建議與食材辨識的使用限制。
+- 食材照片辨識建議：單一或少量食材、避免整桌料理/冰箱全景/模糊照片。
+- 到期 Email 提醒規則：提醒選項、每日 8:00 / 17:00、每天最多兩次。
+- FAQ：AI 結果不準、食譜重複、Email 沒收到、如何修改提醒設定。

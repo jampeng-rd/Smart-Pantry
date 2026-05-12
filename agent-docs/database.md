@@ -79,7 +79,28 @@ id、user_id indexed、source_pantry_item_id nullable、name、quantity、unit�
 
 ### user_preferences
 
-id、user_id unique indexed、diet_preference、allergies、cooking_tools、disliked_foods、created_at、updated_at。
+id、user_id unique indexed、diet_preference、allergies、cooking_tools、disliked_foods、theme、timezone、language、expiration_email_reminder_days、created_at、updated_at。
+
+規則：
+
+- `expiration_email_reminder_days` 建議值：`none`、`1`、`3`，預設 `1`（到期前 1 天提醒）。
+- Settings 偏好建議放在 `user_preferences` 或獨立一對一偏好表，不建議直接塞在 `users` auth 表。
+- `theme` 可保存柔和亮色 / 柔和暗色；若前端仍用 localStorage，後續可同步到後端。
+- `timezone` 可保存使用者指定時區；未設定時前端可使用瀏覽器時區。
+- `language` MVP 固定繁體中文，可先保留欄位。
+
+
+### expiration_reminder_deliveries（Phase 10 規劃）
+
+id、user_id indexed、scheduled_date indexed、send_window、reminder_days、item_ids json/jsonb、email_to、status、sent_at、error_message、created_at。
+
+規則：
+
+- `send_window` 建議固定值：`morning_08`、`evening_17`。
+- 同一使用者、同一天、同一 send_window 只能成功寄送一次，避免重複寄信。
+- 系統每天上午 8:00 與下午 5:00 檢查每位使用者的提醒設定與即將到期食材。
+- `expiration_email_reminder_days=none` 的使用者不寄送。
+- Email delivery log 必須可追蹤成功、失敗與錯誤原因。
 
 ### recipe_recommendations
 

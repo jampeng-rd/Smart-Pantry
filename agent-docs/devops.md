@@ -132,3 +132,21 @@ docker-compose 後續規劃：
 - 避免 Vision 任務拖慢 recipe_recommendation
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+
+## Email Reminder 與成本注意事項（Phase 10）
+
+到期 Email Reminder 會產生寄信成本與寄送限制風險。MVP 可先使用具免費額度的 Email provider 或 fake/log email client；正式環境需選擇 Resend、SendGrid、Amazon SES、Mailgun 等服務之一，並記錄發信量、失敗率、退信與 rate limit。
+
+排程策略：
+
+- 每天上午 8:00 與下午 5:00 執行 expiration reminder worker / scheduler。
+- worker 檢查每位使用者 `expiration_email_reminder_days` 設定。
+- 同一使用者同一天同一 send window 只能成功寄送一次。
+- 使用 delivery log 避免重複寄送。
+- 單元測試不可寄真信，需使用 fake email client。
+
+手機 App 未來通知策略：
+
+- 提醒規則應保留在 server，讓 Web / iOS / Android 共用。
+- 手機 App 未來可新增 push token，由 server 決定何時提醒，mobile 只負責顯示 push notification。

@@ -29,9 +29,10 @@ Phase 09-0：AI Worker 架構調整 / job_type 隔離 ⏳
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
 Phase 09-2：Vision Model 食材候選辨識 ⏳
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
-Phase 10-1：營養粗估 Job API + Mock Worker ⏳
-Phase 10-2：Vision/Text Model 營養粗估 ⏳
-Phase 10-3：Nutrition 前端 UI + 生活參考聲明 ⏳
+Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）✅
+Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ⏳
+Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ⏳
+Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
 Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
@@ -66,7 +67,7 @@ npm run dev
 
 ## AI 功能限制
 
-AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。
+AI 食譜為生活建議；食材照片辨識結果需由使用者確認；Nutrition 暫緩，未來若恢復需加入份量確認與生活參考聲明。
 
 ## 效能與擴充性
 

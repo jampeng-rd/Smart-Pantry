@@ -196,3 +196,71 @@ Phase 08～11 AI 功能統一採 job-based API：
 - pending/running 時 result 可為 null
 - failed 必須回中文友善 error_message
 - 不可暴露 traceback
+
+
+## Profile / Settings（Phase 10 規劃）
+
+### GET /profile
+
+取得目前登入使用者個人資料。
+
+Response data 範例：
+
+```json
+{"display_name":"PG","email":"pg@example.com","avatar_url":null,"avatar_fallback":"P"}
+```
+
+規則：
+
+- Email 不可修改。
+- 若沒有頭像圖片，前端使用 `avatar_fallback` 顯示第一個字元。
+
+### PATCH /profile
+
+更新使用者名稱。
+
+```json
+{"display_name":"小明"}
+```
+
+### POST /profile/change-password
+
+修改密碼，需驗證目前密碼。
+
+```json
+{"current_password":"old-password","new_password":"new-password"}
+```
+
+### GET /settings
+
+取得系統設定與使用者偏好。
+
+```json
+{"theme":"dark-soft","timezone":"Asia/Taipei","language":"zh-TW","expiration_email_reminder_days":"1"}
+```
+
+### PATCH /settings
+
+更新系統設定。
+
+```json
+{"theme":"light-soft","timezone":"Asia/Taipei","expiration_email_reminder_days":"3"}
+```
+
+規則：
+
+- `expiration_email_reminder_days` 允許值：`none`、`1`、`3`。
+- UI 顯示順序：不提醒、前 1 天（預設）、前 3 天。
+- `language` MVP 固定 `zh-TW`，可先不開放修改。
+
+## Expiration Email Reminder（Phase 10 規劃）
+
+系統內部排程每天上午 8:00 與下午 5:00 檢查使用者設定與即將到期食材，不需要由 frontend 手動呼叫寄送 API。
+
+規則：
+
+- `none` 不提醒。
+- `1` 到期前 1 天提醒（預設）。
+- `3` 到期前 3 天提醒。
+- 同一使用者同一天最多寄送兩封提醒信（上午一次、下午一次）。
+- 需保存 delivery log 避免重複寄送。

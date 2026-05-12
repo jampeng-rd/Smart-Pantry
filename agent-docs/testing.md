@@ -106,3 +106,25 @@ Manual E2E：
 - 避免 Vision 任務拖慢 recipe_recommendation
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+
+## Phase 10 Profile / Settings / Email Reminder 測試補充
+
+Backend：
+
+- 測試 profile 取得與更新 display_name。
+- 測試 email 不可修改。
+- 測試修改密碼：目前密碼錯誤、新密碼成功。
+- 測試 settings 取得與更新：theme、timezone、language、expiration_email_reminder_days。
+- 測試 expiration_email_reminder_days 只允許 `none`、`1`、`3`，預設為 `1`。
+- 測試 reminder worker 在上午 8:00 / 下午 5:00 應寄送的使用者與食材。
+- 測試同一使用者同一天同一 send_window 不重複寄送。
+- 測試 fake email client，不可在單元測試寄真信。
+
+Frontend：
+
+- Profile 顯示 Email 不可修改。
+- 沒有頭像時顯示 display_name 第一個字元。
+- Settings 第一個區塊是主題切換。
+- 到期提醒選項順序：不提醒、前 1 天（預設）、前 3 天。
+- Help 頁顯示食材辨識、食譜建議與 Email 提醒說明。

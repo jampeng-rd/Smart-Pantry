@@ -25,9 +25,10 @@ Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
 Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
 Phase 09-2：Vision Model 食材候選辨識 ✅
 Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
-Phase 10-1：營養粗估 Job API + Mock Worker ⏳
-Phase 10-2：Vision/Text Model 營養粗估 ⏳
-Phase 10-3：Nutrition 前端 UI + 生活參考聲明 ⏳
+Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）⏳
+Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ⏳
+Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ⏳
+Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
 Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
@@ -295,7 +296,7 @@ Route 行為：
 
 ## AI 功能限制
 
-AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐點營養估算僅供生活參考。
+AI 食譜為生活建議；食材照片辨識結果需由使用者確認。餐點營養估算（Nutrition）因單張照片估算份量與熱量精準度不足，Phase 10 暫緩，不作為下一階段 MVP。
 
 ## AI Server / Worker 與 Job 架構（Phase 08 前置規範）
 
@@ -324,9 +325,7 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐�
 - worker 維持 job-based 非同步流程：`pending -> running -> success/failed`。
 - `selected_items` 仍只使用 `input_snapshot.resolved_pantry_items`。
 - `auto_from_pantry` 仍僅查 job 所屬 `user_id` 的 pantry，排除 expired。
-- `auto_from_pantry` 候選食材會做輕量 shuffle/截斷（預設最多約 10 筆）；`prioritize_expiring_soon=true` 仍優先即將到期，但同狀態內會打散順序以降低重複。
 - result 格式維持相容：`recipe_name/ingredients_used/missing_ingredients/steps/cooking_time_minutes/note`。
-- `recipe_name` 會做最小清理：移除前後異常連續 `o/O` 字元，避免模型輸出雜訊。
 - LLM 回傳非 JSON、缺欄位、型別錯誤或解析失敗時，job 會 `failed` 並回中文友善錯誤訊息。
 - frontend 仍沿用既有建立 job / 查詢 job API，沒有新增 frontend 直連 ai_server。
 - frontend 不直接呼叫 `ai_server/`，只呼叫 backend。
@@ -363,9 +362,6 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；餐�
   - `note`
 - failed 顯示中文友善錯誤，不顯示 traceback 或技術細節。
 - polling 間隔約 2.5 秒；job 完成與 component unmount 都會停止 polling，避免 memory leak。
-- mobile/desktop 建立任務後，會在 layout 穩定後分段補捲到 status/result（含 fallback），降低只捲到一半的情況。
-- prompt 與結果文字會避免將整數數量顯示為 `10.0` 這類格式；真實小數（如 `1.5`）仍保留。
-- MVP 不保存推薦歷史，僅透過候選抽樣/排序與 prompt 降低重複，不保證每次完全不同。
 
 job-based 流程：
 
@@ -604,3 +600,50 @@ Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 8. 手動整合驗收（backend + frontend + worker + Ollama）
 
 frontend 不可直接呼叫 ai_server，只能透過 backend job API。
+
+
+## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
+
+Phase 10 不做 Nutrition，改補齊產品成熟度更高的使用者設定與通知能力。
+
+### 為什麼暫緩 Nutrition
+
+單張餐點照片難以準確判斷重量、份量、油量、醬料與隱藏食材。若 Web MVP 直接用 LLM/Vision 做熱量估算，容易讓使用者誤以為結果精準。後續若恢復 Nutrition，需加入使用者確認份量與「僅供生活參考」聲明。
+
+### Profile（個人資料）
+
+- 使用者名稱：可修改。
+- Email：不可修改。
+- 頭像：若沒有上傳照片，顯示使用者名稱第一個字元，例如 `YG` 顯示 `Y`、`小明` 顯示 `小`。
+- 修改密碼。
+
+### Settings（系統設定）
+
+Settings 頁面的建議順序：
+
+1. 外觀設定：主題切換（柔和亮色 / 柔和暗色；未來可支援跟隨系統）。
+2. 到期 Email 提醒：選項順序為「不提醒」、「前 1 天（預設）」、「前 3 天」。
+3. 時區：預設使用瀏覽器時區，未來可改為使用者指定時區。
+4. 語言：MVP 固定繁體中文，先保留未來擴充位置。
+5. 登出所有裝置：未來功能。
+6. 最近登入時間：未來功能。
+
+### 到期 Email Reminder 規則
+
+- 提醒設定可存在 `user_preferences` 或獨立一對一偏好表，不建議直接塞在 `users` auth 表。
+- 建議欄位：`expiration_email_reminder_days`，允許值：`none`、`1`、`3`，預設 `1`。
+- 系統固定每日檢查兩個寄送時段：上午 8:00、下午 5:00。
+- 同一使用者同一天針對即將到期商品最多寄送兩封提醒信（上午一次、下午一次）。
+- 需建立 `expiration_reminder_deliveries` 或類似 delivery log，避免同一時段重複寄送。
+- 系統每天依使用者設定檢查 pantry items 的 `expiration_date`，符合提醒條件才寄送。
+- Email provider 可能產生成本；MVP 可先用免費額度服務，但正式環境需監控寄送量、失敗率與退信。
+
+### Help（說明）
+
+Help 頁面建議包含：
+
+- 食材庫存、到期提醒、購物清單基本教學。
+- 食譜建議使用方式與 AI 生活參考限制。
+- 食材辨識拍攝建議與限制。
+- 到期 Email 提醒規則與常見問題。
+- FAQ：AI 辨識不準、食譜重複、Email 沒收到、如何修改提醒設定。

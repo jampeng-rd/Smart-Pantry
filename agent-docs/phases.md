@@ -85,11 +85,11 @@ GitHub Actions、backend pytest、frontend build、Docker build、PostgreSQL 檢
 
 文件：`docs/phase-09-ingredient-photo.md`
 
-## Phase 10：餐點營養粗估
+## Phase 10：Profile / Settings / Help / Expiration Email Reminder
 
-上傳餐點照片；AI 粗估菜色與熱量/蛋白質/碳水/脂肪；建立 meal_logs 與 nutrition_estimates；明確生活參考聲明。
+Nutrition 暫緩，不在下一階段實作。原因是單張餐點照片難以準確推估份量、油量、醬料與熱量，容易造成使用者誤解。Phase 10 改為補齊 Profile、Settings、Help 與到期 Email 提醒。
 
-文件：`docs/phase-10-nutrition-estimate.md`
+文件：`docs/phase-10-profile-settings-help-email-reminder.md`
 
 ## Phase 11：AI Queue / Worker Scaling（視需要）
 
@@ -227,13 +227,23 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 
 ### Phase 09-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
 
-## Phase 10：營養粗估完整功能
+## Phase 10：Profile / Settings / Help / Expiration Email Reminder
 
-### Phase 10-1：Nutrition Job API + Mock Worker
+### Phase 10-0：Phase 10 文件與方向調整
 
-### Phase 10-2：Vision/Text Model 營養粗估
+暫緩 Nutrition，更新 AGENTS.md、README.md、agent-docs/*。
 
-### Phase 10-3：Nutrition 前端 UI + 生活參考聲明
+### Phase 10-1：Profile / Settings / Help 前端與偏好資料模型
+
+完成 Profile、Settings、Help 頁面；Settings 第一項為主題切換；到期 Email 提醒設定順序為不提醒、前 1 天（預設）、前 3 天。
+
+### Phase 10-2：Expiration Email Reminder 後端排程與寄信服務
+
+建立 user_preferences/reminder 設定、delivery log、email client abstraction、scheduler/worker。每天上午 8:00 與下午 5:00 檢查並寄送。
+
+### Phase 10-3：Expiration Email Reminder 前端設定與寄送紀錄
+
+完成提醒設定 UI、寄送狀態/說明、錯誤提示與 Help 文件。
 
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 

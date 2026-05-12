@@ -168,9 +168,9 @@ Sidebar 功能導覽至少包含：
 
 至少包含：
 
-- Profile
-- Settings
-- Help
+- Profile（個人資料）
+- Settings（系統設定）
+- Help（說明）
 - Log out
 
 ### Workspace 規範
@@ -262,3 +262,30 @@ Nutrition UI：
 
 - nutrition estimate result
 - AI 生活參考聲明
+
+
+## Profile / Settings / Help 頁面規範（Phase 10）
+
+### Profile（個人資料）
+
+Profile 是帳號本身資料：
+
+- 使用者名稱可修改。
+- Email 不可修改。
+- 頭像若未上傳圖片，顯示 display_name 第一個字元；例如 `YG` 顯示 `Y`，`小明` 顯示 `小`。
+- 提供修改密碼入口。
+
+### Settings（系統設定）
+
+Settings 是系統行為偏好。頁面區塊建議順序：
+
+1. 外觀設定：主題切換放第一個區塊。
+2. 到期 Email 提醒：選項順序為「不提醒」、「前 1 天（預設）」、「前 3 天」。
+3. 時區：預設瀏覽器時區，未來可讓使用者指定。
+4. 語言：MVP 固定繁體中文，保留欄位。
+5. 登出所有裝置：未來功能。
+6. 最近登入時間：未來功能。
+
+### Help（說明）
+
+Help 應包含：基本操作教學、AI 食譜限制、食材辨識拍攝建議、Email 提醒規則與 FAQ。Help 文字需使用繁體中文，並避免過度技術化。

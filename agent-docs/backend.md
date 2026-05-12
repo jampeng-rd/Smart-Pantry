@@ -95,3 +95,31 @@ backend/app/infra/{database,repository,settings,security,llm_client,ingredient_c
 - `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 未設定時會 fallback 到 `OLLAMA_BASE_URL`，text/vision 仍共用同一 runtime。
 - 同機部署下若共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能影響 recipe latency。
 - 若要降低影響，至少拆分不同 runtime URL；若要明顯改善，需分開 GPU 或分開機器。
+
+
+## Phase 10：Profile / Settings / Help / Expiration Email Reminder 後端規範
+
+Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 Email 提醒。
+
+### Profile API
+
+- 取得目前使用者 profile。
+- 更新使用者名稱。
+- Email 不可修改。
+- 修改密碼需驗證目前密碼。
+- 若沒有頭像圖片，前端以 display_name 第一個字元產生預設頭像；後端可暫不儲存 avatar。
+
+### Settings / Preferences API
+
+- 儲存主題、時區、語言、到期 Email 提醒設定。
+- 到期提醒選項順序：不提醒、前 1 天（預設）、前 3 天。
+- 建議存在 `user_preferences`，不要直接塞在 `users` auth 表。
+
+### Expiration Email Reminder
+
+- 每天固定上午 8:00 與下午 5:00 執行檢查。
+- 依每位使用者 `expiration_email_reminder_days` 找出符合到期提醒的 pantry items。
+- 同一天同一使用者最多寄送兩次：上午一次、下午一次。
+- 需有 delivery log 避免重複寄送。
+- Email provider 需封裝於 infra，例如 `email_client.py`，service 不直接綁特定 provider。
+- MVP 可先提供 fake email client / log email client 測試，不可在單元測試寄真信。
