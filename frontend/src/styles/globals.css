@@ -1475,6 +1475,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .common-pagination-controls label,
@@ -1482,6 +1483,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .common-pagination-controls select,
@@ -2202,6 +2205,16 @@ body {
   border-radius: var(--radius-md);
   background: var(--color-surface-hover);
   padding: 0.65rem 0.75rem;
+  transition:
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    transform 180ms ease;
+}
+
+.help-faq-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 32%, var(--color-border));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  transform: translateY(-1px);
 }
 
 .help-faq-item h4 {
