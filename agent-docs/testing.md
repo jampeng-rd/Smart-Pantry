@@ -27,6 +27,8 @@
 - 不可在 CI 使用 Gmail SMTP 或 Production provider 真實憑證。
 - `.env.example` 只放欄位，不放真值；測試 secret 由 CI secret 管理。
 - Gmail SMTP client 單元測試需以 stub/mock SMTP server 驗證，不可真實連線 Gmail。
+- Resend client 單元測試必須 mock/stub HTTP client，不可真的呼叫 Resend API。
+- production provider 測試至少覆蓋 `resend` 成功路徑、缺少必要設定、`sendgrid/ses` 尚未實作錯誤與不支援 provider 錯誤。
 
 AI job 測試原則（Phase 08～11）：
 

@@ -159,6 +159,8 @@ Secret 管理：
 - Gmail app password、provider API key、AWS 憑證只可放 `.env` 或秘密管理服務。
 - `.env.example` 不可放任何真實 secret。
 - repository 不可提交實際 secret。
+- production provider 三選一即可，不需同時申請 Resend/SendGrid/SES 三組帳號。
+- Phase 11-2 目前僅支援 Resend；SendGrid/SES 仍為未實作預留。
 
 Gmail SMTP 額外限制：
 

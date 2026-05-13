@@ -143,6 +143,9 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 
 - 正式環境建議使用 Resend / SendGrid / Amazon SES。
 - service 層維持 provider abstraction，不直接綁定單一廠商 SDK。
+- Phase 11-2 僅實作 Resend；SendGrid / SES 僅保留設定鍵與錯誤訊息，避免假成功。
+- `EMAIL_PROVIDER=production` 時需有 `EMAIL_FROM_ADDRESS`。
+- `PRODUCTION_EMAIL_PROVIDER=resend` 時需有 `RESEND_API_KEY`。
 
 ### Phase 11-3：正式 scheduler / cron / docker deployment
 

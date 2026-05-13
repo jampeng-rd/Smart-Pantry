@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 EmailProvider = str
@@ -74,6 +74,26 @@ class Settings(BaseSettings):
         if normalized not in allowed:
             raise ValueError("EMAIL_PROVIDER 僅允許 fake、gmail_smtp、production")
         return normalized
+
+    @field_validator("production_email_provider")
+    @classmethod
+    def validate_production_email_provider(cls, value: str) -> str:
+        """驗證 PRODUCTION_EMAIL_PROVIDER 值。"""
+        normalized = value.strip().lower()
+        allowed = {"resend", "sendgrid", "ses"}
+        if normalized not in allowed:
+            raise ValueError("PRODUCTION_EMAIL_PROVIDER 僅允許 resend、sendgrid、ses")
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_email_provider_requirements(self):
+        """驗證不同 Email provider 模式的必要欄位。"""
+        if self.email_provider == "production":
+            if not self.email_from_address.strip():
+                raise ValueError("EMAIL_PROVIDER=production 時，EMAIL_FROM_ADDRESS 不可為空")
+            if self.production_email_provider == "resend" and not self.resend_api_key.strip():
+                raise ValueError("EMAIL_PROVIDER=production 且 PRODUCTION_EMAIL_PROVIDER=resend 時，RESEND_API_KEY 不可為空")
+        return self
 
 
 def get_cors_origin_list(settings: Settings) -> list[str]:

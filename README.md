@@ -31,7 +31,7 @@ Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
 Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
 Phase 11-0：Email Provider 策略與文件調整 ✅
 Phase 11-1：Gmail SMTP 真實寄信 ✅
-Phase 11-2：Production Email Provider ⏳
+Phase 11-2：Production Email Provider（Resend）✅
 Phase 11-3：正式 scheduler / cron / docker deployment ⏳
 Phase 11-4：retry / failure handling / monitoring ⏳
 Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
@@ -50,11 +50,14 @@ Email provider 模式：
 - `EMAIL_PROVIDER=fake`：預設，不寄真信。
 - `EMAIL_PROVIDER=gmail_smtp`：僅建議開發/測試/少量寄送。
 - `EMAIL_PROVIDER=production`：正式環境建議，搭配 `PRODUCTION_EMAIL_PROVIDER`（`resend`/`sendgrid`/`ses`）。
+- `PRODUCTION_EMAIL_PROVIDER` 三選一，不需要同時申請三組 provider。
+- Phase 11-2 目前只實作 `resend`；`sendgrid` 與 `ses` 為預留，會明確回尚未實作。
 
 安全限制：
 
 - Gmail app password 只能放 `.env`，不可放 `.env.example` 真值。
 - API keys / SMTP 密碼 / AWS 憑證不可提交到 git。
+- `RESEND_API_KEY` 只能放 `.env` 或 secret manager，不可提交到 git。
 - 單元測試不可寄真信，必須使用 fake email client。
 
 Gmail SMTP 使用注意：
@@ -770,4 +773,50 @@ Help 頁面建議包含：
 
 - 本階段不導入 Resend / SendGrid / SES SDK（留到 Phase 11-2）。
 - 不做正式 scheduler/cron（留到 Phase 11-3）。
+- 不做 retry/monitoring（留到 Phase 11-4）。
+
+## Phase 11-2：Production Email Provider - Resend（已完成）
+
+本階段新增正式 provider 的 Resend 實作，並維持 provider 抽象，避免 service 層與特定廠商耦合。
+
+已完成：
+
+- 新增獨立封裝 `ResendEmailClient`，與 `GmailSmtpEmailClient` 分離，不混在同一 class。
+- `email_client_factory` 支援：
+  - `EMAIL_PROVIDER=fake` -> `FakeEmailClient`
+  - `EMAIL_PROVIDER=gmail_smtp` -> `GmailSmtpEmailClient`
+  - `EMAIL_PROVIDER=production + PRODUCTION_EMAIL_PROVIDER=resend` -> `ResendEmailClient`
+  - `production + sendgrid/ses` -> 明確中文「尚未實作」
+- `settings` 補強驗證：
+  - `EMAIL_PROVIDER=production` 時 `EMAIL_FROM_ADDRESS` 必填
+  - `production + resend` 時 `RESEND_API_KEY` 必填
+- 新增 Resend client 單元測試（HTTP 全 mock/stub，不會呼叫真實 Resend API）。
+- 既有 fake / gmail_smtp 測試與 reminder service 抽象依賴皆維持通過。
+
+Resend 使用注意：
+
+- 需先在 Resend 驗證寄件網域或使用其允許的 sender。
+- `EMAIL_FROM_ADDRESS` 應使用已驗證寄件地址。
+- API key 僅能放 `.env` 或部署平台 secret manager，不可寫入程式碼、log、exception、delivery log。
+
+手動測試（Resend）：
+
+1. `.env` 設定：
+   - `EMAIL_PROVIDER=production`
+   - `PRODUCTION_EMAIL_PROVIDER=resend`
+   - `RESEND_API_KEY=<your_key>`
+   - `EMAIL_FROM_NAME=Smart Pantry`
+   - `EMAIL_FROM_ADDRESS=<verified_sender@example.com>`
+2. 準備一位使用者，並在 pantry 建立符合提醒日期的食材（例如明天到期，搭配 reminder=1）。
+3. 執行 runner：
+   - `python -m backend.app.jobs.expiration_email_runner --send-window morning_08 --scheduled-date 2026-05-13`
+4. 檢查結果：
+   - runner summary `success_count` 增加
+   - `expiration_reminder_deliveries` 新增 `status=success` 紀錄
+   - 收件匣收到提醒信
+
+限制：
+
+- 本階段只實作 Resend，不實作 SendGrid/Amazon SES。
+- 不導入正式 scheduler/cron（留到 Phase 11-3）。
 - 不做 retry/monitoring（留到 Phase 11-4）。

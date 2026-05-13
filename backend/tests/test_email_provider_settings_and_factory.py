@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import get_type_hints
+
 import pytest
 
 from backend.app.infra.email_client import FakeEmailClient, GmailSmtpEmailClient
 from backend.app.infra.email_client_factory import build_email_client
+from backend.app.infra.resend_email_client import ResendEmailClient
 from backend.app.infra.settings import Settings
+from backend.app.services.expiration_email_reminder_service import ExpirationEmailReminderService
 
 
 def test_settings_should_read_email_provider_fake() -> None:
@@ -95,11 +99,80 @@ def test_factory_should_fail_with_friendly_error_when_gmail_credentials_missing(
     assert "gmail_smtp 模式需要設定" in str(exc.value)
 
 
-def test_factory_should_raise_not_implemented_for_production_provider() -> None:
-    """production 模式本階段應回尚未實作錯誤。"""
-    settings = Settings(email_provider="production")
+def test_factory_should_return_resend_client_when_production_resend() -> None:
+    """production + resend 時，factory 應回 ResendEmailClient。"""
+    settings = Settings(
+        email_provider="production",
+        production_email_provider="resend",
+        email_from_name="Smart Pantry",
+        email_from_address="no-reply@example.com",
+        resend_api_key="re_test_123",
+    )
+    client = build_email_client(settings)
+    assert isinstance(client, ResendEmailClient)
+    assert client.from_address == "no-reply@example.com"
 
+
+def test_settings_should_fail_when_production_resend_missing_api_key() -> None:
+    """production + resend 缺少 API key 應回中文友善錯誤。"""
+    with pytest.raises(ValueError) as exc:
+        Settings(
+            email_provider="production",
+            production_email_provider="resend",
+            email_from_address="no-reply@example.com",
+            resend_api_key="",
+        )
+    assert "RESEND_API_KEY" in str(exc.value)
+
+
+def test_settings_should_fail_when_production_missing_from_address() -> None:
+    """production 模式缺少寄件地址應回中文友善錯誤。"""
+    with pytest.raises(ValueError) as exc:
+        Settings(
+            email_provider="production",
+            production_email_provider="resend",
+            email_from_address="",
+            resend_api_key="re_test_123",
+        )
+    assert "EMAIL_FROM_ADDRESS" in str(exc.value)
+
+
+def test_factory_should_raise_not_implemented_for_sendgrid() -> None:
+    """production + sendgrid 應回尚未實作。"""
+    settings = Settings(
+        email_provider="production",
+        production_email_provider="sendgrid",
+        email_from_address="no-reply@example.com",
+    )
     with pytest.raises(NotImplementedError) as exc:
         build_email_client(settings)
+    assert "SendGrid provider 尚未實作" in str(exc.value)
 
-    assert "尚未實作" in str(exc.value)
+
+def test_factory_should_raise_not_implemented_for_ses() -> None:
+    """production + ses 應回尚未實作。"""
+    settings = Settings(
+        email_provider="production",
+        production_email_provider="ses",
+        email_from_address="no-reply@example.com",
+    )
+    with pytest.raises(NotImplementedError) as exc:
+        build_email_client(settings)
+    assert "Amazon SES provider 尚未實作" in str(exc.value)
+
+
+def test_factory_should_raise_friendly_error_for_unsupported_production_provider() -> None:
+    """不支援的 production provider 應回中文友善錯誤。"""
+    with pytest.raises(ValueError) as exc:
+        Settings(
+            email_provider="production",
+            production_email_provider="mailgun",
+            email_from_address="no-reply@example.com",
+        )
+    assert "PRODUCTION_EMAIL_PROVIDER" in str(exc.value)
+
+
+def test_expiration_reminder_service_should_only_depend_on_base_email_client() -> None:
+    """提醒服務建構子應只依賴 BaseEmailClient 抽象，不綁定 Resend。"""
+    annotation_name = get_type_hints(ExpirationEmailReminderService.__init__)["email_client"].__name__
+    assert annotation_name == "BaseEmailClient"
