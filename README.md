@@ -28,7 +28,7 @@ Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
 Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）✅
 Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
 Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
-Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
+Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
 Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
@@ -698,3 +698,27 @@ Help 頁面建議包含：
 - 未導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
 - 未串接真實 email provider。
 - 未新增前端寄送紀錄 UI（留到 Phase 10-3）。
+
+## Phase 10-3：Expiration Email Reminder 前端設定與寄送紀錄（已完成）
+
+本階段完成 reminder delivery log 查詢 API 與 Settings 前端寄送紀錄 UI。
+
+已完成：
+
+- 新增 API：`GET /settings/expiration-reminder-deliveries?page=1&page_size=10`（`page_size` 最大 50）。
+- API 僅允許查詢目前登入使用者資料，依 `created_at desc, id desc` 回傳最新紀錄。
+- 回傳資料包含 `item_count`（由 `item_ids` 長度計算）、`failed` 錯誤訊息、timezone-aware datetime。
+- Settings 在「到期 Email 提醒」下方新增「最近寄送紀錄」：
+  - loading、error + 重試、empty state。
+  - 每頁 10 筆，支援上一頁 / 下一頁。
+  - 桌機使用 table，手機使用 card-like 顯示，避免嚴重橫向捲動。
+- Help FAQ 補充：
+  - 可在「系統設定 > 到期 Email 提醒 > 最近寄送紀錄」查看。
+  - Phase 10-3 仍是 fake email client，不代表真實寄信。
+  - 真實 email provider 留待後續 Production Infrastructure / External Services 階段。
+
+維持限制：
+
+- 不串真實 Email provider。
+- 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+- 不做 production cron/scheduler（沿用 Phase 10-2 fake runner）。

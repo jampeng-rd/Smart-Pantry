@@ -2,7 +2,12 @@
 
 from fastapi import HTTPException, status
 
-from backend.app.domain.schemas.profile_settings_schema import ProfileResponseData, SettingsResponseData
+from backend.app.domain.schemas.profile_settings_schema import (
+    ExpirationReminderDeliveryItem,
+    ExpirationReminderDeliveryListResponseData,
+    ProfileResponseData,
+    SettingsResponseData,
+)
 from backend.app.infra.repository.profile_settings_repository import ProfileSettingsRepository
 from backend.app.infra.security import hash_password, verify_password
 
@@ -83,6 +88,29 @@ class ProfileSettingsService:
 
         updated_preference = self.repository.save_preference(preference)
         return self._to_settings_response(updated_preference)
+
+    def list_expiration_reminder_deliveries(self, user_id: int, page: int, page_size: int) -> ExpirationReminderDeliveryListResponseData:
+        """查詢目前登入使用者到期提醒寄送紀錄。"""
+        self._ensure_user_exists(user_id=user_id)
+        rows, total = self.repository.list_expiration_reminder_deliveries(user_id=user_id, page=page, page_size=page_size)
+
+        items = [
+            ExpirationReminderDeliveryItem(
+                id=row.id,
+                scheduled_date=row.scheduled_date,
+                send_window=row.send_window,
+                reminder_days=row.reminder_days,
+                item_ids=row.item_ids,
+                item_count=len(row.item_ids),
+                email_to=row.email_to,
+                status=row.status,
+                sent_at=row.sent_at,
+                error_message=row.error_message,
+                created_at=row.created_at,
+            )
+            for row in rows
+        ]
+        return ExpirationReminderDeliveryListResponseData(items=items, page=page, page_size=page_size, total=total)
 
     def _ensure_user_exists(self, user_id: int) -> None:
         """確認使用者存在。"""

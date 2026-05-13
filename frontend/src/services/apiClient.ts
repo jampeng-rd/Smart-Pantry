@@ -24,7 +24,11 @@ import type {
   RecipeRecommendationJobStatusData,
 } from "../features/recipes/recipeTypes";
 import type { ChangePasswordPayload, ProfileData, ProfileUpdatePayload } from "../features/profile/profileTypes";
-import type { SettingsData, SettingsUpdatePayload } from "../features/settings/settingsTypes";
+import type {
+  ExpirationReminderDeliveryListResponse,
+  SettingsData,
+  SettingsUpdatePayload,
+} from "../features/settings/settingsTypes";
 import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon, saveTokens } from "./tokenService";
 
 /** API 基底網址。 */
@@ -157,6 +161,14 @@ export const profileApi = {
 export const settingsApi = {
   get: () => requestWithAuth<SettingsData>("/settings", { method: "GET" }),
   update: (payload: SettingsUpdatePayload) => requestWithAuth<SettingsData>("/settings", { method: "PATCH", body: JSON.stringify(payload) }),
+  /** 查詢到期 Email 提醒寄送紀錄（分頁）。 */
+  getExpirationReminderDeliveries: (params: { page: number; pageSize: number }) => {
+    const query = new URLSearchParams({
+      page: String(params.page),
+      page_size: String(params.pageSize),
+    });
+    return requestWithAuth<ExpirationReminderDeliveryListResponse>(`/settings/expiration-reminder-deliveries?${query.toString()}`, { method: "GET" });
+  },
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

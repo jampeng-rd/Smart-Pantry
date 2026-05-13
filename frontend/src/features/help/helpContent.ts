@@ -15,7 +15,8 @@ export const HELP_FAQ_ITEMS: HelpFaqItem[] = [
   },
   {
     question: "Email 沒收到怎麼辦？",
-    answer: "Phase 10-1 僅儲存提醒偏好，尚未啟用實際寄信，寄送排程會在 Phase 10-2 實作。",
+    answer:
+      "可先到「系統設定 > 到期 Email 提醒 > 最近寄送紀錄」確認狀態。Phase 10-3 仍使用 fake email client，紀錄不代表真的寄出；真實 provider 會在後續 Production Infrastructure / External Services 階段串接。",
   },
   {
     question: "如何修改提醒設定？",

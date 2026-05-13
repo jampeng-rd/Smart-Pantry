@@ -108,7 +108,7 @@ Manual E2E：
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
 
-## Phase 10 Profile / Settings / Email Reminder 測試補充（10-1 已完成，10-2 待做）（10-1 已完成，10-2 待做）
+## Phase 10 Profile / Settings / Email Reminder 測試補充（10-1/10-2/10-3）
 
 Backend：
 
@@ -117,8 +117,15 @@ Backend：
 - 測試修改密碼：目前密碼錯誤、新密碼成功。
 - 測試 settings 取得與更新：theme、timezone、language、expiration_email_reminder_days。
 - 測試 expiration_email_reminder_days 只允許 `none`、`1`、`3`，預設為 `1`。
-- Phase 10-1 不測寄信 worker。
-- reminder worker、8:00/17:00 寄送與 delivery log 去重測試留在 Phase 10-2。
+- reminder worker、8:00/17:00 寄送與 delivery log 去重測試在 Phase 10-2。
+- 測試 `GET /settings/expiration-reminder-deliveries`：
+  - 未登入回 401。
+  - 只能查自己的 delivery logs。
+  - pagination 正確。
+  - 最新紀錄在前。
+  - `item_count` 依 `item_ids` 計算。
+  - `failed` 回傳 `error_message`。
+  - datetime 含 timezone。
 
 Frontend：
 
@@ -126,4 +133,6 @@ Frontend：
 - 沒有頭像時顯示 display_name 第一個字元。
 - Settings 第一個區塊是主題切換。
 - 到期提醒選項順序：不提醒、前 1 天（預設）、前 3 天。
+- Settings「最近寄送紀錄」有 loading / error+重試 / empty / pagination。
+- 手機版寄送紀錄為 card-like 顯示，避免表格過度橫向捲動。
 - Help 頁顯示食材辨識、食譜建議與 Email 提醒說明。

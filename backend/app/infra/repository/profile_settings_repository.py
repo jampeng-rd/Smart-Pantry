@@ -1,8 +1,9 @@
 """Profile 與 Settings 資料存取層。"""
 
-from sqlalchemy import select
+from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
+from backend.app.domain.models.expiration_reminder_delivery_model import ExpirationReminderDelivery
 from backend.app.domain.models.user_model import User
 from backend.app.domain.models.user_preference_model import UserPreference
 
@@ -58,3 +59,23 @@ class ProfileSettingsRepository:
         self.db.commit()
         self.db.refresh(preference)
         return preference
+
+    def list_expiration_reminder_deliveries(
+        self,
+        user_id: int,
+        page: int,
+        page_size: int,
+    ) -> tuple[list[ExpirationReminderDelivery], int]:
+        """查詢使用者到期提醒寄送紀錄（分頁、最新優先）。"""
+        total_statement = select(func.count(ExpirationReminderDelivery.id)).where(ExpirationReminderDelivery.user_id == user_id)
+        total = self.db.execute(total_statement).scalar_one()
+
+        statement = (
+            select(ExpirationReminderDelivery)
+            .where(ExpirationReminderDelivery.user_id == user_id)
+            .order_by(desc(ExpirationReminderDelivery.created_at), desc(ExpirationReminderDelivery.id))
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        items = list(self.db.execute(statement).scalars().all())
+        return items, total

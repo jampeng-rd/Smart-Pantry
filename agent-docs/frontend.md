@@ -297,3 +297,23 @@ Phase 10-1 已完成重點：
 - Settings：第一區塊為主題切換，並與 themeSlice 同步；可儲存 theme/timezone/expiration_email_reminder_days。
 - 到期提醒選項順序固定：不提醒、前 1 天（預設）、前 3 天。
 - Help：完成繁體中文教學、AI/Vision 使用限制、Email 提醒規則與 FAQ。
+
+## Phase 10-3：Settings 寄送紀錄 UI（已完成）
+
+- Settings「到期 Email 提醒」區塊下方新增「最近寄送紀錄」。
+- 顯示欄位：排程日期、寄送時段、提醒天數、食材數量、收件 Email、狀態、寄送時間、錯誤訊息（failed 才顯示）。
+- 狀態對應：
+  - `success` -> 成功
+  - `failed` -> 失敗
+  - `pending` -> 處理中
+- 寄送時段對應：
+  - `morning_08` -> 上午 8:00
+  - `evening_17` -> 下午 5:00
+- 提醒天數對應：
+  - `1` -> 前 1 天
+  - `3` -> 前 3 天
+  - `none` -> 不提醒
+- UI 狀態需涵蓋 loading、error + 重試、empty state。
+- 分頁先固定每頁 10 筆，支援上一頁 / 下一頁。
+- RWD：桌機 table；手機 card-like，避免嚴重橫向捲動。
+- Help FAQ 補充可查看寄送紀錄位置，並註明目前為 fake email client。

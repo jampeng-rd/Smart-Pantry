@@ -1,5 +1,6 @@
 """Profile 與 Settings 模組 Schema。"""
 
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -46,3 +47,28 @@ class SettingsUpdateRequest(BaseModel):
     timezone: str | None = None
     expiration_email_reminder_days: ReminderDays | None = None
     language: str | None = None
+
+
+class ExpirationReminderDeliveryItem(BaseModel):
+    """到期提醒寄送紀錄單筆資料。"""
+
+    id: int
+    scheduled_date: date
+    send_window: str
+    reminder_days: ReminderDays
+    item_ids: list[int]
+    item_count: int
+    email_to: str
+    status: str
+    sent_at: datetime | None
+    error_message: str | None
+    created_at: datetime
+
+
+class ExpirationReminderDeliveryListResponseData(BaseModel):
+    """到期提醒寄送紀錄列表回應資料。"""
+
+    items: list[ExpirationReminderDeliveryItem]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=50)
+    total: int = Field(ge=0)

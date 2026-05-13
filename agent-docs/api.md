@@ -253,6 +253,47 @@ Response data 範例：
 - UI 顯示順序：不提醒、前 1 天（預設）、前 3 天。
 - `language` MVP 固定 `zh-TW`，可先不開放修改。
 
+### GET /settings/expiration-reminder-deliveries
+
+查詢目前登入使用者最近到期提醒寄送紀錄（Phase 10-3）。
+
+Query：
+
+- `page`：預設 `1`
+- `page_size`：預設 `10`，最大 `50`
+
+Response `data`：
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "scheduled_date": "2026-05-13",
+      "send_window": "morning_08",
+      "reminder_days": "1",
+      "item_ids": [1, 4, 26],
+      "item_count": 3,
+      "email_to": "pg@example.com",
+      "status": "success",
+      "sent_at": "2026-05-12T17:33:26.479836+00:00",
+      "error_message": null,
+      "created_at": "2026-05-12T17:33:26+00:00"
+    }
+  ],
+  "page": 1,
+  "page_size": 10,
+  "total": 3
+}
+```
+
+規則：
+
+- 僅可查詢目前登入使用者自己的 delivery logs，不可跨使用者。
+- 排序為 `created_at desc, id desc`（最新在前）。
+- `item_count` 由 `item_ids` 長度計算。
+- datetime 回傳需帶 timezone（`Z` 或 `+00:00`）。
+
 ## Expiration Email Reminder（Phase 10-2 已實作）
 
 系統內部排程每天上午 8:00 與下午 5:00 檢查使用者設定與即將到期食材，不需要由 frontend 手動呼叫寄送 API。
