@@ -37,6 +37,12 @@
   - `gmail_smtp` -> `GmailSmtpEmailClient`
   - `production + resend` -> `ResendEmailClient`
   - `production + sendgrid/ses` -> 明確「尚未實作」
+- 更新：`backend/app/services/expiration_email_reminder_service.py`
+  - subject：`【智慧食材保存系統】食材即將到期提醒`
+  - body：純文字表格（不引入 HTML email）
+  - 欄位至少包含：`食材名稱 / 數量 / 單位 / 保存位置 / 到期日`
+  - `storage_location` 空值時顯示 `未設定`
+  - 結尾固定：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
 
 ## 安全注意事項
 

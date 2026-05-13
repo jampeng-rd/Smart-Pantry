@@ -792,6 +792,11 @@ Help 頁面建議包含：
   - `production + resend` 時 `RESEND_API_KEY` 必填
 - 新增 Resend client 單元測試（HTTP 全 mock/stub，不會呼叫真實 Resend API）。
 - 既有 fake / gmail_smtp 測試與 reminder service 抽象依賴皆維持通過。
+- 到期提醒信內容調整為純文字表格：
+  - subject：`【智慧食材保存系統】食材即將到期提醒`
+  - 內容包含：使用者名稱、設定的到期日、`食材名稱/數量/單位/保存位置/到期日`
+  - `保存位置` 空值顯示 `未設定`
+  - 結尾固定：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
 
 Resend 使用注意：
 

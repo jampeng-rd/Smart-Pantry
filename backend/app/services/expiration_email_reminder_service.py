@@ -85,7 +85,7 @@ class ExpirationEmailReminderService:
             message = self._build_email_message(
                 display_name=user.display_name,
                 email_to=user.email,
-                reminder_days=reminder_days,
+                target_expiration_date=target_date,
                 pantry_items=pantry_items,
             )
             email_result = self.email_client.send_email(message)
@@ -112,20 +112,39 @@ class ExpirationEmailReminderService:
             return scheduled_date + timedelta(days=3)
         raise ValueError("none 不應進入到期日計算")
 
-    def _build_email_message(self, display_name: str, email_to: str, reminder_days: str, pantry_items: list) -> EmailMessage:
+    def _build_email_message(
+        self,
+        display_name: str,
+        email_to: str,
+        target_expiration_date: date,
+        pantry_items: list,
+    ) -> EmailMessage:
         """建立純文字提醒信內容。"""
-        reminder_label = "前 1 天" if reminder_days == "1" else "前 3 天"
-        item_lines = "\n".join(
-            [f"- {item.name}（到期日：{item.expiration_date.isoformat()}）" for item in pantry_items]
-        )
+        item_lines = "\n".join([
+            (
+                f"{item.name} | {item.quantity} | {item.unit} | "
+                f"{self._format_storage_location(item.storage_location)} | {item.expiration_date.isoformat()}"
+            )
+            for item in pantry_items
+        ])
         content = (
-            f"{display_name} 您好，\n\n"
-            f"以下是即將到期的食材提醒（設定：{reminder_label}）：\n"
+            f"{display_name} 您好：\n\n"
+            f"以下是 {target_expiration_date.isoformat()} 即將到期的食材：\n\n"
+            "食材名稱 | 數量 | 單位 | 保存位置 | 到期日\n"
             f"{item_lines}\n\n"
-            "此提醒來自智慧食材保存與膳食管理系統。"
+            "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。"
         )
         return EmailMessage(
             to_email=email_to,
-            subject="【智慧食材系統】即將到期食材提醒",
+            subject="【智慧食材保存系統】食材即將到期提醒",
             content_text=content,
         )
+
+    def _format_storage_location(self, storage_location: str | None) -> str:
+        """格式化保存位置，空值顯示未設定。"""
+        if storage_location is None:
+            return "未設定"
+        cleaned = storage_location.strip()
+        if not cleaned:
+            return "未設定"
+        return cleaned

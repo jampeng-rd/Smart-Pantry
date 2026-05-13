@@ -229,7 +229,7 @@ export function SettingsPage() {
                 <table className="settings-delivery-table">
                   <thead>
                     <tr>
-                      <th>到期日期</th>
+                      <th>提醒日期</th>
                       <th>寄送時段</th>
                       <th>提醒時間</th>
                       <th>食材數量</th>
@@ -277,7 +277,7 @@ export function SettingsPage() {
                     {expandedDeliveryIds.includes(item.id) ? (
                       <div id={`delivery-detail-${item.id}`} className="settings-delivery-accordion-content">
                         <p>
-                          <span>到期日期</span>
+                          <span>提醒日期</span>
                           <strong>{item.scheduled_date}</strong>
                         </p>
                         <p>

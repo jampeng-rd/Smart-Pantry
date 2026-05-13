@@ -123,6 +123,11 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - 需有 delivery log 避免重複寄送。
 - Email provider 需封裝於 infra，例如 `email_client.py`，service 不直接綁特定 provider。
 - MVP 可先提供 fake email client / log email client 測試，不可在單元測試寄真信。
+- MVP 信件內容先使用純文字（不強制 HTML）：
+  - subject：`【智慧食材保存系統】食材即將到期提醒`
+  - body 應包含：使用者名稱、設定的到期日、`食材名稱/數量/單位/保存位置/到期日`
+  - `保存位置` 空值顯示 `未設定`
+  - 結尾需包含：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
 
 ## Phase 11：Email Provider / Scheduler / Reliability 後端規劃
 
