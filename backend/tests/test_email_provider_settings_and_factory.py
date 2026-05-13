@@ -73,6 +73,25 @@ def test_factory_should_return_fake_client_when_email_provider_fake() -> None:
     assert isinstance(client, FakeEmailClient)
 
 
+def test_factory_log_should_not_include_secret_for_production_resend(caplog) -> None:
+    """factory 安全 log 應包含 provider 與 client class，且不可含 API key。"""
+    settings = Settings(
+        email_provider="production",
+        production_email_provider="resend",
+        email_from_name="Smart Pantry",
+        email_from_address="no-reply@example.com",
+        resend_api_key="re_test_secret_key",
+    )
+    with caplog.at_level("INFO"):
+        client = build_email_client(settings)
+
+    assert isinstance(client, ResendEmailClient)
+    assert "provider=production" in caplog.text
+    assert "production_provider=resend" in caplog.text
+    assert "client_class=ResendEmailClient" in caplog.text
+    assert "re_test_secret_key" not in caplog.text
+
+
 def test_factory_should_return_gmail_client_when_email_provider_gmail_smtp() -> None:
     """EMAIL_PROVIDER=gmail_smtp 時，factory 應回 GmailSmtpEmailClient。"""
     settings = Settings(

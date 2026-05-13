@@ -75,3 +75,17 @@
    - runner summary `success_count` > 0
    - delivery log 出現 `success`
    - 收件匣收到提醒信
+
+## 本地 Debug 指令（provider/factory/resend）
+
+可直接使用目前 `.env` 設定透過 factory 建立實際 client，送一封最小測試信：
+
+```bash
+python -m backend.app.jobs.email_provider_debug --to your_email@example.com
+```
+
+觀察 log 重點：
+
+- factory 會印出 `provider / production_provider / from_address / client_class`
+- resend client 會印出呼叫前後與失敗摘要（不含 API key）
+- 若是 Resend HTTPError，`error_message` 會包含 `HTTP status + Resend 原始 message/error/name 摘要`

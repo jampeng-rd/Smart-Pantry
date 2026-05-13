@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from urllib import error, request
 
 from backend.app.infra.email_client import BaseEmailClient, EmailMessage, EmailSendResult
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ResendEmailClient(BaseEmailClient):
@@ -26,6 +29,7 @@ class ResendEmailClient(BaseEmailClient):
 
     def send_email(self, message: EmailMessage) -> EmailSendResult:
         """呼叫 Resend API 寄信，失敗時回傳不含 secret 的友善訊息。"""
+        url = f"{self.api_base_url}/emails"
         payload = {
             "from": f"{self.from_name} <{self.from_address}>",
             "to": [message.to_email],
@@ -34,24 +38,101 @@ class ResendEmailClient(BaseEmailClient):
         }
         body = json.dumps(payload).encode("utf-8")
         request_obj = request.Request(
-            url=f"{self.api_base_url}/emails",
+            url=url,
             data=body,
             method="POST",
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
+                "User-Agent": "Smart Pantry Backend/1.0",
             },
         )
 
         try:
+            LOGGER.info(
+                "resend send start api_base_url=%s from_address=%s to_email=%s subject=%s",
+                self.api_base_url,
+                self.from_address,
+                message.to_email,
+                message.subject,
+            )
             with request.urlopen(request_obj, timeout=30) as response:
                 status_code = getattr(response, "status", None)
                 if status_code is None or 200 <= status_code < 300:
+                    LOGGER.info(
+                        "resend send success api_base_url=%s from_address=%s to_email=%s subject=%s status_code=%s",
+                        self.api_base_url,
+                        self.from_address,
+                        message.to_email,
+                        message.subject,
+                        status_code,
+                    )
                     return EmailSendResult(success=True, error_message=None)
+                LOGGER.error(
+                    "resend send unexpected status api_base_url=%s from_address=%s to_email=%s subject=%s status_code=%s",
+                    self.api_base_url,
+                    self.from_address,
+                    message.to_email,
+                    message.subject,
+                    status_code,
+                )
                 return EmailSendResult(success=False, error_message="Resend 寄送失敗，請稍後再試")
         except error.HTTPError as exc:
-            if 400 <= exc.code < 500:
-                return EmailSendResult(success=False, error_message="Resend 寄送失敗，請檢查寄件者網域或收件資訊")
-            return EmailSendResult(success=False, error_message="Resend 服務暫時無法使用，請稍後再試")
-        except Exception:
-            return EmailSendResult(success=False, error_message="Resend 寄送失敗，請檢查網路連線後再試")
+            response_body = ""
+            if exc.fp is not None:
+                response_body = exc.fp.read().decode("utf-8", errors="replace")
+            response_summary = self._summarize_error_body(response_body=response_body)
+            LOGGER.error(
+                "resend send http error api_base_url=%s from_address=%s to_email=%s subject=%s status_code=%s summary=%s",
+                self.api_base_url,
+                self.from_address,
+                message.to_email,
+                message.subject,
+                exc.code,
+                response_summary,
+            )
+            return EmailSendResult(
+                success=False,
+                error_message=f"Resend 寄送失敗（HTTP {exc.code}）：{response_summary}",
+            )
+        except Exception as exc:
+            safe_summary = self._sanitize_error_text(str(exc)) or "未知錯誤"
+            exception_type = exc.__class__.__name__
+            LOGGER.error(
+                "resend send exception api_base_url=%s from_address=%s to_email=%s subject=%s exception_type=%s summary=%s",
+                self.api_base_url,
+                self.from_address,
+                message.to_email,
+                message.subject,
+                exception_type,
+                safe_summary,
+            )
+            return EmailSendResult(
+                success=False,
+                error_message=f"Resend 寄送失敗（{exception_type}）：{safe_summary}",
+            )
+
+    def _summarize_error_body(self, response_body: str) -> str:
+        """解析 Resend 錯誤回應摘要，避免洩漏敏感資訊。"""
+        body = response_body.strip()
+        if not body:
+            return "無回應內容"
+
+        try:
+            payload = json.loads(body)
+            if isinstance(payload, dict):
+                for key in ("message", "error", "name"):
+                    value = payload.get(key)
+                    if isinstance(value, str) and value.strip():
+                        return self._sanitize_error_text(value.strip()) or "無法解析錯誤摘要"
+            return "JSON 錯誤回應格式不符預期"
+        except json.JSONDecodeError:
+            text = self._sanitize_error_text(body)
+            if text:
+                return f"非 JSON 回應：{text[:200]}"
+            return "非 JSON 回應（內容已隱藏）"
+
+    def _sanitize_error_text(self, text: str) -> str:
+        """移除可能包含 secret 的片段，保留可除錯摘要。"""
+        safe_text = text.replace(self.api_key, "[REDACTED]")
+        return safe_text
