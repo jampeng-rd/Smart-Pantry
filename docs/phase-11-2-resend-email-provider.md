@@ -46,6 +46,7 @@
   - `storage_location` 空值時顯示 `未設定`
   - 結尾固定：`此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。`
   - HTML 使用 inline style、不依賴外部 CSS/圖片，確保 Gmail 可讀性
+  - HTML 結構已簡化為單一主要容器，`table` 後直接接 footer `<p>`，降低 Gmail 折疊 footer 的機率
 - 更新：`backend/app/infra/email_client.py`
   - `EmailMessage` 新增 `content_html`（可為 `null`）
   - Gmail SMTP 若有 `content_html` 會寄 `multipart/alternative`（`text/plain + text/html`）

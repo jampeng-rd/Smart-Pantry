@@ -183,6 +183,11 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert "max-height:0" not in sent.content_html
     assert "opacity:0" not in sent.content_html
     assert "overflow:hidden" not in sent.content_html
+    assert f"</table><p style=\"margin:14px 0 0 0;\">{EXPECTED_FOOTER}</p>" in sent.content_html
+    html_after_table = sent.content_html.split("</table>", maxsplit=1)[1]
+    assert "<!--" not in html_after_table
+    assert "<hr" not in html_after_table
+    assert "<div" not in html_after_table
 
 
 def test_reminder_days_3_should_send_correct_items() -> None:
