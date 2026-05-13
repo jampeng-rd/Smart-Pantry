@@ -29,8 +29,8 @@ Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Setting
 Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
 Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
 Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
-Phase 11-0：Email Provider 策略與文件調整 ⏳
-Phase 11-1：Gmail SMTP 真實寄信 ⏳
+Phase 11-0：Email Provider 策略與文件調整 ✅
+Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider ⏳
 Phase 11-3：正式 scheduler / cron / docker deployment ⏳
 Phase 11-4：retry / failure handling / monitoring ⏳
@@ -56,6 +56,12 @@ Email provider 模式：
 - Gmail app password 只能放 `.env`，不可放 `.env.example` 真值。
 - API keys / SMTP 密碼 / AWS 憑證不可提交到 git。
 - 單元測試不可寄真信，必須使用 fake email client。
+
+Gmail SMTP 使用注意：
+
+- 需先開啟 Google 帳號兩步驟驗證，建立 App Password。
+- App Password 僅能放在 `.env`，不可提交到 git。
+- Gmail SMTP 不適合作為正式大量寄送方案。
 
 ## 後端啟動
 
@@ -743,3 +749,25 @@ Help 頁面建議包含：
 - 不串真實 Email provider。
 - 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
 - 不做 production cron/scheduler（沿用 Phase 10-2 fake runner）。
+
+## Phase 11-1：Gmail SMTP 真實寄信（已完成）
+
+本階段完成 Email provider 基礎切換與 Gmail SMTP 寄信能力，並維持預設 `fake` 模式。
+
+已完成：
+
+- backend settings 新增 Email provider 相關 env 欄位，`.env` 加入 EMAIL_PROVIDER/GMAIL_SMTP_* 不再觸發 extra forbidden。
+- 新增 `GmailSmtpEmailClient`（STARTTLS:587，純文字 subject/body/to）。
+- 新增 Email client factory：
+  - `fake` -> `FakeEmailClient`
+  - `gmail_smtp` -> `GmailSmtpEmailClient`
+  - `production` -> 明確回覆「尚未實作」
+- runner 改為透過 factory 建立 provider，不再硬編碼 FakeEmailClient。
+- 保持 service 層依賴 `BaseEmailClient` 抽象，不直接綁 Gmail 細節。
+- 新增 settings/factory/SMTP client 測試，SMTP 測試使用 stub，不寄真信。
+
+限制：
+
+- 本階段不導入 Resend / SendGrid / SES SDK（留到 Phase 11-2）。
+- 不做正式 scheduler/cron（留到 Phase 11-3）。
+- 不做 retry/monitoring（留到 Phase 11-4）。

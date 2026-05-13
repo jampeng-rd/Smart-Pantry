@@ -5,6 +5,8 @@ from functools import lru_cache
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+EmailProvider = str
+
 
 class Settings(BaseSettings):
     """系統環境設定模型。"""
@@ -33,8 +35,25 @@ class Settings(BaseSettings):
     ai_job_timeout_seconds: int = 300
     ai_vision_timeout_seconds: int = 60
     ollama_base_url: str = "http://localhost:11434"
+    ollama_text_base_url: str = ""
+    ollama_vision_base_url: str = ""
     llm_text_model: str = "qwen2.5:7b"
     llm_vision_model: str = "qwen3-vl:8b"
+
+    # Phase 11 Email provider 設定
+    email_provider: EmailProvider = "fake"
+    email_from_name: str = "Smart Pantry"
+    email_from_address: str = "no-reply@example.com"
+    gmail_smtp_host: str = "smtp.gmail.com"
+    gmail_smtp_port: int = 587
+    gmail_smtp_username: str = ""
+    gmail_smtp_app_password: str = ""
+    production_email_provider: str = "resend"
+    resend_api_key: str = ""
+    sendgrid_api_key: str = ""
+    aws_ses_region: str = ""
+    aws_ses_access_key_id: str = ""
+    aws_ses_secret_access_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
@@ -45,6 +64,16 @@ class Settings(BaseSettings):
         if not value.strip():
             raise ValueError("CORS_ORIGINS 不可為空")
         return value
+
+    @field_validator("email_provider")
+    @classmethod
+    def validate_email_provider(cls, value: str) -> str:
+        """驗證 EMAIL_PROVIDER 僅允許 fake/gmail_smtp/production。"""
+        allowed = {"fake", "gmail_smtp", "production"}
+        normalized = value.strip().lower()
+        if normalized not in allowed:
+            raise ValueError("EMAIL_PROVIDER 僅允許 fake、gmail_smtp、production")
+        return normalized
 
 
 def get_cors_origin_list(settings: Settings) -> list[str]:

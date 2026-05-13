@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
-from backend.app.infra.email_client import FakeEmailClient
+from backend.app.infra.email_client import FakeEmailClient, GmailSmtpEmailClient
 from backend.app.services.expiration_email_reminder_service import ExpirationEmailReminderService
 
 
@@ -402,3 +402,54 @@ def test_cleanup_should_not_affect_today_new_delivery() -> None:
     assert result.success_count == 1
     assert len(repository.deliveries) == 1
     assert repository.deliveries[0].scheduled_date == date(2026, 5, 13)
+
+
+def test_gmail_smtp_failed_result_should_be_recorded_to_delivery_log(monkeypatch) -> None:
+    """SMTP 失敗時 service 應將 delivery log 寫為 failed。"""
+    class FailingSmtp:
+        """測試用失敗 SMTP。"""
+
+        def __init__(self, host: str, port: int, timeout: int):
+            self.host = host
+            self.port = port
+            self.timeout = timeout
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def ehlo(self) -> None:
+            """模擬 EHLO。"""
+
+        def starttls(self) -> None:
+            """模擬 STARTTLS。"""
+
+        def login(self, username: str, password: str) -> None:
+            """模擬 login。"""
+
+        def send_message(self, message) -> None:
+            """模擬寄送失敗。"""
+            raise RuntimeError("smtp down")
+
+    monkeypatch.setattr("backend.app.infra.email_client.smtplib.SMTP", FailingSmtp)
+
+    repository = FakeExpirationEmailReminderRepository()
+    repository.users = [(FakeUser(id=1, email="u1@example.com", display_name="小明"), FakePreference(expiration_email_reminder_days="1"))]
+    repository.items = [FakePantryItem(id=1, user_id=1, name="牛奶", expiration_date=date(2026, 5, 14))]
+    email_client = GmailSmtpEmailClient(
+        host="smtp.gmail.com",
+        port=587,
+        username="dev@gmail.com",
+        app_password="app-password",
+        from_name="Smart Pantry",
+        from_address="no-reply@example.com",
+    )
+    service = ExpirationEmailReminderService(repository=repository, email_client=email_client)
+
+    result = service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
+
+    assert result.failed_count == 1
+    assert repository.deliveries[0].status == "failed"
+    assert repository.deliveries[0].error_message is not None

@@ -9,8 +9,9 @@ from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 
 from backend.app.infra.database import SessionLocal
-from backend.app.infra.email_client import FakeEmailClient
+from backend.app.infra.email_client_factory import build_email_client
 from backend.app.infra.repository.expiration_email_reminder_repository import ExpirationEmailReminderRepository
+from backend.app.infra.settings import get_settings
 from backend.app.services.expiration_email_reminder_service import ExpirationEmailReminderService
 
 LOGGER = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def run_once(now: datetime | None = None, send_window: str | None = None) -> dic
 def _run_once_with_session(db: Session, scheduled_date: date, send_window: str):
     """以指定 DB session 執行一次提醒流程。"""
     repository = ExpirationEmailReminderRepository(db=db)
-    email_client = FakeEmailClient()
+    email_client = build_email_client(get_settings())
     service = ExpirationEmailReminderService(repository=repository, email_client=email_client)
     return service.run_for_window(scheduled_date=scheduled_date, send_window=send_window)
 

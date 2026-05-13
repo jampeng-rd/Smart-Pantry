@@ -160,6 +160,11 @@ Secret 管理：
 - `.env.example` 不可放任何真實 secret。
 - repository 不可提交實際 secret。
 
+Gmail SMTP 額外限制：
+
+- Gmail SMTP 僅建議開發/測試/少量寄送。
+- 正式大量寄送請改用 production provider（Phase 11-2）。
+
 手機 App 未來通知策略：
 
 - 提醒規則應保留在 server，讓 Web / iOS / Android 共用。

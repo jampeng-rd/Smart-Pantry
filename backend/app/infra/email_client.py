@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import smtplib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from email.message import EmailMessage as SmtpEmailMessage
 
 
 @dataclass
@@ -45,4 +47,45 @@ class FakeEmailClient(BaseEmailClient):
         self.sent_messages.append(message)
         if self.force_fail or message.to_email in self.fail_targets:
             return EmailSendResult(success=False, error_message="FakeEmailClient 模擬寄送失敗")
+        return EmailSendResult(success=True, error_message=None)
+
+
+class GmailSmtpEmailClient(BaseEmailClient):
+    """使用 Gmail SMTP（STARTTLS）寄送純文字信件。"""
+
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        username: str,
+        app_password: str,
+        from_name: str,
+        from_address: str,
+    ):
+        """建立 Gmail SMTP client。"""
+        self.host = host
+        self.port = port
+        self.username = username
+        self.app_password = app_password
+        self.from_name = from_name
+        self.from_address = from_address
+
+    def send_email(self, message: EmailMessage) -> EmailSendResult:
+        """透過 SMTP 寄信，成功回 success，失敗回安全錯誤訊息。"""
+        smtp_message = SmtpEmailMessage()
+        smtp_message["Subject"] = message.subject
+        smtp_message["To"] = message.to_email
+        smtp_message["From"] = f"{self.from_name} <{self.from_address}>"
+        smtp_message.set_content(message.content_text)
+
+        try:
+            with smtplib.SMTP(self.host, self.port, timeout=30) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(self.username, self.app_password)
+                smtp.send_message(smtp_message)
+        except Exception:
+            return EmailSendResult(success=False, error_message="Gmail SMTP 寄送失敗，請檢查帳號、App Password 或網路連線")
+
         return EmailSendResult(success=True, error_message=None)

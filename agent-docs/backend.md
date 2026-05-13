@@ -136,6 +136,8 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - 目標：支援開發/測試/個人或工作室帳號真實寄送。
 - 限制：僅適合少量寄送，不建議正式大量使用。
 - 安全：Gmail app password 只能存在 `.env`，不可提交 git。
+- 實作：以 `smtplib + email.message.EmailMessage + STARTTLS(587)` 封裝於 infra email client。
+- service 層僅依賴 `BaseEmailClient`，不可直接依賴 Gmail 細節。
 
 ### Phase 11-2：Production Email Provider
 
