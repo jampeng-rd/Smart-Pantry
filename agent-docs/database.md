@@ -107,6 +107,8 @@ id、user_id indexed、scheduled_date indexed、send_window、reminder_days、it
 - `send_window` 建議固定值：`morning_08`、`evening_17`。
 - 同一使用者、同一天、同一 send_window 只能成功寄送一次，避免重複寄信。
 - 系統每天上午 8:00 與下午 5:00 檢查每位使用者的提醒設定與即將到期食材。
+- delivery logs 保留最近 7 天，清除條件定義為 `scheduled_date < (today - 7 days)`。
+- cleanup 僅在 `morning_08` runner 執行；`evening_17` 不執行 cleanup，避免同日重複清理。
 - `expiration_email_reminder_days=none` 的使用者不寄送。
 - Email delivery log 必須可追蹤成功、失敗與錯誤原因。
 - 本階段使用 fake email client 測試流程，不寄真信。

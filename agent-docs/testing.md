@@ -126,6 +126,11 @@ Backend：
   - `item_count` 依 `item_ids` 計算。
   - `failed` 回傳 `error_message`。
   - datetime 含 timezone。
+- 測試 cleanup 保留規則：
+  - `morning_08` 會清除超過 7 天 delivery logs。
+  - `morning_08` 不會清除 7 天內紀錄。
+  - `evening_17` 不執行 cleanup。
+  - cleanup 不影響當天新產生的 delivery logs。
 
 Frontend：
 
@@ -133,6 +138,6 @@ Frontend：
 - 沒有頭像時顯示 display_name 第一個字元。
 - Settings 第一個區塊是主題切換。
 - 到期提醒選項順序：不提醒、前 1 天（預設）、前 3 天。
-- Settings「最近寄送紀錄」有 loading / error+重試 / empty / pagination。
+- Settings「最近寄送紀錄」有 loading / error+重試 / empty / pagination（使用共用 Pagination）。
 - 手機版寄送紀錄為 card-like 顯示，避免表格過度橫向捲動。
 - Help 頁顯示食材辨識、食譜建議與 Email 提醒說明。

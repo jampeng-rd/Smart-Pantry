@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import asc, select
+from sqlalchemy import asc, delete, select
 from sqlalchemy.orm import Session
 
 from backend.app.domain.models.expiration_reminder_delivery_model import ExpirationReminderDelivery
@@ -90,3 +90,10 @@ class ExpirationEmailReminderRepository:
         self.db.commit()
         self.db.refresh(row)
         return row
+
+    def delete_old_deliveries_before(self, cutoff_scheduled_date: date) -> int:
+        """刪除 scheduled_date 早於 cutoff 的寄送紀錄。"""
+        statement = delete(ExpirationReminderDelivery).where(ExpirationReminderDelivery.scheduled_date < cutoff_scheduled_date)
+        result = self.db.execute(statement)
+        self.db.commit()
+        return int(result.rowcount or 0)

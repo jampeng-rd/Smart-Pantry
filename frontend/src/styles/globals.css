@@ -2150,6 +2150,22 @@ body {
   gap: 0.5rem;
 }
 
+@media (max-width: 700px) {
+  .settings-delivery-table-wrap {
+    display: none;
+  }
+
+  .settings-delivery-cards {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .settings-delivery-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .help-list {
   margin: 0;
   padding-left: 1.2rem;

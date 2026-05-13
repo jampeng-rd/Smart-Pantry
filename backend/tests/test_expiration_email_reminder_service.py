@@ -60,6 +60,7 @@ class FakeExpirationEmailReminderRepository:
         self.items: list[FakePantryItem] = []
         self.deliveries: list[FakeDelivery] = []
         self._delivery_seq = 1
+        self.cleanup_cutoff_dates: list[date] = []
 
     def list_users_with_preferences(self) -> list[tuple[FakeUser, FakePreference | None]]:
         """列出使用者與偏好。"""
@@ -115,6 +116,13 @@ class FakeExpirationEmailReminderRepository:
         row.status = "failed"
         row.error_message = error_message
         return row
+
+    def delete_old_deliveries_before(self, cutoff_scheduled_date: date) -> int:
+        """刪除 scheduled_date 早於 cutoff 的寄送紀錄。"""
+        self.cleanup_cutoff_dates.append(cutoff_scheduled_date)
+        before = len(self.deliveries)
+        self.deliveries = [row for row in self.deliveries if row.scheduled_date >= cutoff_scheduled_date]
+        return before - len(self.deliveries)
 
 
 def test_none_preference_should_not_send() -> None:
@@ -279,3 +287,118 @@ def test_no_matching_items_should_not_send() -> None:
     assert result.success_count == 0
     assert result.skipped_no_items == 1
     assert len(fake_email.sent_messages) == 0
+
+
+def test_morning_should_cleanup_logs_older_than_7_days() -> None:
+    """morning_08 應清除超過 7 天紀錄。"""
+    repository = FakeExpirationEmailReminderRepository()
+    repository.deliveries = [
+        FakeDelivery(
+            id=1,
+            user_id=1,
+            scheduled_date=date(2026, 5, 5),
+            send_window="morning_08",
+            reminder_days="1",
+            item_ids=[1],
+            email_to="u1@example.com",
+            status="success",
+        ),
+        FakeDelivery(
+            id=2,
+            user_id=1,
+            scheduled_date=date(2026, 5, 6),
+            send_window="evening_17",
+            reminder_days="1",
+            item_ids=[2],
+            email_to="u1@example.com",
+            status="success",
+        ),
+    ]
+    service = ExpirationEmailReminderService(repository=repository, email_client=FakeEmailClient())
+
+    service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
+
+    assert repository.cleanup_cutoff_dates == [date(2026, 5, 6)]
+    assert [row.id for row in repository.deliveries] == [2]
+
+
+def test_morning_should_not_cleanup_logs_within_7_days() -> None:
+    """morning_08 不應刪除 7 天內紀錄。"""
+    repository = FakeExpirationEmailReminderRepository()
+    repository.deliveries = [
+        FakeDelivery(
+            id=1,
+            user_id=1,
+            scheduled_date=date(2026, 5, 6),
+            send_window="morning_08",
+            reminder_days="1",
+            item_ids=[1],
+            email_to="u1@example.com",
+            status="success",
+        ),
+        FakeDelivery(
+            id=2,
+            user_id=1,
+            scheduled_date=date(2026, 5, 7),
+            send_window="evening_17",
+            reminder_days="1",
+            item_ids=[2],
+            email_to="u1@example.com",
+            status="success",
+        ),
+    ]
+    service = ExpirationEmailReminderService(repository=repository, email_client=FakeEmailClient())
+
+    service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
+
+    assert repository.cleanup_cutoff_dates == [date(2026, 5, 6)]
+    assert [row.id for row in repository.deliveries] == [1, 2]
+
+
+def test_evening_should_not_run_cleanup() -> None:
+    """evening_17 不應執行 cleanup。"""
+    repository = FakeExpirationEmailReminderRepository()
+    repository.deliveries = [
+        FakeDelivery(
+            id=1,
+            user_id=1,
+            scheduled_date=date(2026, 5, 1),
+            send_window="morning_08",
+            reminder_days="1",
+            item_ids=[1],
+            email_to="u1@example.com",
+            status="success",
+        )
+    ]
+    service = ExpirationEmailReminderService(repository=repository, email_client=FakeEmailClient())
+
+    service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="evening_17")
+
+    assert repository.cleanup_cutoff_dates == []
+    assert [row.id for row in repository.deliveries] == [1]
+
+
+def test_cleanup_should_not_affect_today_new_delivery() -> None:
+    """cleanup 不應影響當天新產生寄送紀錄。"""
+    repository = FakeExpirationEmailReminderRepository()
+    repository.users = [(FakeUser(id=1, email="u1@example.com", display_name="小明"), FakePreference(expiration_email_reminder_days="1"))]
+    repository.items = [FakePantryItem(id=101, user_id=1, name="牛奶", expiration_date=date(2026, 5, 14))]
+    repository.deliveries = [
+        FakeDelivery(
+            id=1,
+            user_id=1,
+            scheduled_date=date(2026, 5, 1),
+            send_window="morning_08",
+            reminder_days="1",
+            item_ids=[1],
+            email_to="u1@example.com",
+            status="success",
+        )
+    ]
+    service = ExpirationEmailReminderService(repository=repository, email_client=FakeEmailClient())
+
+    result = service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
+
+    assert result.success_count == 1
+    assert len(repository.deliveries) == 1
+    assert repository.deliveries[0].scheduled_date == date(2026, 5, 13)

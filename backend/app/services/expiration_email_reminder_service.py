@@ -39,6 +39,11 @@ class ExpirationEmailReminderService:
         if send_window not in VALID_SEND_WINDOWS:
             raise ValueError("不支援的 send_window")
 
+        # 每日僅在 morning_08 清理一次超過 7 天的寄送紀錄，避免重複清理。
+        if send_window == "morning_08":
+            cutoff_date = scheduled_date - timedelta(days=7)
+            self.repository.delete_old_deliveries_before(cutoff_scheduled_date=cutoff_date)
+
         users_with_preferences = self.repository.list_users_with_preferences()
 
         result = ExpirationReminderRunResult(

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { FiAlertCircle, FiGlobe, FiMoon, FiRefreshCw, FiSave, FiSun } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { Pagination } from "../components/common/Pagination";
 import type { ExpirationReminderDays, ExpirationReminderDelivery, SettingsData } from "../features/settings/settingsTypes";
 import { setTheme } from "../features/theme/themeSlice";
 import { settingsApi } from "../services/apiClient";
@@ -291,29 +292,16 @@ export function SettingsPage() {
               </div>
 
               <div className="settings-delivery-pagination">
-                <p className="muted-text">
-                  第 {deliveryPage} 頁，共 {Math.max(1, Math.ceil(deliveryTotal / DELIVERY_PAGE_SIZE))} 頁
-                </p>
-                <div className="settings-delivery-pagination-actions">
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    aria-label="寄送紀錄上一頁"
-                    onClick={() => setDeliveryPage((prev) => Math.max(1, prev - 1))}
-                    disabled={deliveryPage <= 1 || deliveryLoading}
-                  >
-                    上一頁
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    aria-label="寄送紀錄下一頁"
-                    onClick={() => setDeliveryPage((prev) => prev + 1)}
-                    disabled={deliveryPage >= Math.max(1, Math.ceil(deliveryTotal / DELIVERY_PAGE_SIZE)) || deliveryLoading}
-                  >
-                    下一頁
-                  </button>
-                </div>
+                <Pagination
+                  page={deliveryPage}
+                  pageSize={DELIVERY_PAGE_SIZE}
+                  total={deliveryTotal}
+                  onPageChange={(page) => setDeliveryPage(page)}
+                  onPageSizeChange={() => {
+                    // Phase 10-3 固定每頁 10 筆，保留共用元件介面。
+                  }}
+                  pageSizeOptions={[10]}
+                />
               </div>
             </>
           ) : null}

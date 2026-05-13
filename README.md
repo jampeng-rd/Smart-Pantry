@@ -710,10 +710,15 @@ Help 頁面建議包含：
 - 回傳資料包含 `item_count`（由 `item_ids` 長度計算）、`failed` 錯誤訊息、timezone-aware datetime。
 - Settings 在「到期 Email 提醒」下方新增「最近寄送紀錄」：
   - loading、error + 重試、empty state。
-  - 每頁 10 筆，支援上一頁 / 下一頁。
+  - 每頁 10 筆，使用共用 `Pagination` 元件。
   - 桌機使用 table，手機使用 card-like 顯示，避免嚴重橫向捲動。
+- delivery log 保留規則：
+  - 只保留最近 7 天。
+  - 清除條件：`scheduled_date < (today - 7 days)`。
+  - 每天僅 `morning_08` runner 會執行 cleanup；`evening_17` 不清理，避免同日重複執行。
 - Help FAQ 補充：
   - 可在「系統設定 > 到期 Email 提醒 > 最近寄送紀錄」查看。
+  - 最近寄送紀錄只保留 7 天，並在每天上午 8:00 runner 順便清理。
   - Phase 10-3 仍是 fake email client，不代表真實寄信。
   - 真實 email provider 留待後續 Production Infrastructure / External Services 階段。
 
