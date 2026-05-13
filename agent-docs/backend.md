@@ -123,3 +123,31 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - 需有 delivery log 避免重複寄送。
 - Email provider 需封裝於 infra，例如 `email_client.py`，service 不直接綁特定 provider。
 - MVP 可先提供 fake email client / log email client 測試，不可在單元測試寄真信。
+
+## Phase 11：Email Provider / Scheduler / Reliability 後端規劃
+
+### Phase 11-0：Email Provider 策略與文件調整
+
+- 明確定義 `fake` / `gmail_smtp` / `production` 三種 provider 模式。
+- `.env.example` 只保留鍵名與範例，不放任何真實 secret。
+
+### Phase 11-1：Gmail SMTP 真實寄信
+
+- 目標：支援開發/測試/個人或工作室帳號真實寄送。
+- 限制：僅適合少量寄送，不建議正式大量使用。
+- 安全：Gmail app password 只能存在 `.env`，不可提交 git。
+
+### Phase 11-2：Production Email Provider
+
+- 正式環境建議使用 Resend / SendGrid / Amazon SES。
+- service 層維持 provider abstraction，不直接綁定單一廠商 SDK。
+
+### Phase 11-3：正式 scheduler / cron / docker deployment
+
+- 將目前手動 runner 轉為正式排程（scheduler / cron / container deployment）。
+- 需保留上午 8:00、下午 5:00 的寄送策略與 delivery log 去重機制。
+
+### Phase 11-4：retry / failure handling / monitoring
+
+- 補齊失敗重試、退避策略、可觀測性（log/metrics/告警）與寄送失敗追蹤。
+- 需可區分 provider error、網路錯誤與無效收件地址類型。

@@ -20,6 +20,13 @@
 
 不可在單元測試直接呼叫真實 Ollama。使用 fake client / stub client。
 
+## Email Provider 測試原則（Phase 11）
+
+- 單元測試不可寄真信。
+- Email reminder 測試必須使用 fake/stub email client。
+- 不可在 CI 使用 Gmail SMTP 或 Production provider 真實憑證。
+- `.env.example` 只放欄位，不放真值；測試 secret 由 CI secret 管理。
+
 AI job 測試原則（Phase 08～11）：
 
 - 不可在單元測試中呼叫真實 Ollama。

@@ -86,8 +86,8 @@ frontend/src/styles/{theme.css,globals.css}
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 11 評估 queue。
-- 若任務量成長，再於 Phase 11 升級正式 queue（首選 RQ + Redis）。
+- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 12 評估 queue。
+- 若任務量成長，再於 Phase 12 升級正式 queue（首選 RQ + Redis）。
 
 ### 6.1 Worker isolation 與 Ollama runtime 隔離差異
 
@@ -194,7 +194,7 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 08-2：AI 食譜推薦 LangChain + Ollama
 - Phase 09：食材照片辨識（沿用 `ai_jobs`）
 - Phase 10：餐點營養粗估（沿用 `ai_jobs`）
-- Phase 11：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
+- Phase 12：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
 
 策略：
 
@@ -245,6 +245,13 @@ Nutrition 暫緩，不在下一階段實作。Phase 10 改為補齊使用者設�
 - Phase 10-2：Expiration Email Reminder 後端排程與寄信服務
 - Phase 10-3：Expiration Email Reminder 前端設定與寄送紀錄
 
+### Phase 11：Email Provider / Scheduler / Reliability
+
+- Phase 11-0：Email Provider 策略與文件調整
+- Phase 11-1：Gmail SMTP 真實寄信（開發/測試/個人或工作室帳號）
+- Phase 11-2：Production Email Provider（Resend / SendGrid / Amazon SES）
+- Phase 11-3：正式 scheduler / cron / docker deployment
+- Phase 11-4：retry / failure handling / monitoring
 
 ## 13. Phase 10：Profile / Settings / Help / Expiration Email Reminder 規範
 
@@ -279,6 +286,15 @@ Settings 處理系統行為與偏好，主題切換需放在第一個區塊：
 - 需建立 reminder log / delivery log 以避免同一時段重複寄送。
 - 系統每天在固定時間檢查每位使用者設定與 pantry expiration_date，符合條件才寄送。
 - Email provider 可能產生成本；MVP 可使用有免費額度的 provider，但正式環境需記錄發信量與失敗重試。
+
+### Email Provider 階段規範（Phase 11）
+
+- `fake`：預設模式，不寄真信。
+- `gmail_smtp`：僅建議開發/測試/少量寄送，不建議正式大量寄送。
+- `production provider`：正式環境建議使用（Resend / SendGrid / Amazon SES）。
+- 單元測試不可寄真信，必須使用 fake/stub email client。
+- 所有 secret（SMTP 密碼、API key、AWS 憑證）不可提交到 git。
+- Gmail app password 只能放在 `.env`，不可在 `.env.example` 放真值。
 
 ### Help（說明）
 

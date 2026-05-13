@@ -91,21 +91,36 @@ Nutrition 暫緩，不在下一階段實作。原因是單張餐點照片難以�
 
 文件：`docs/phase-10-profile-settings-help-email-reminder.md`
 
-## Phase 11：AI Queue / Worker Scaling（視需要）
+## Phase 11：Email Provider / Scheduler / Reliability
 
-當 job 延遲與數量增加，再由 DB polling 升級正式 queue。
+### Phase 11-0：Email Provider 策略與文件調整
 
-- 首選：RQ + Redis
-- 備選：Dramatiq + Redis
-- Celery + RabbitMQ：僅在複雜 routing、多服務事件流或更高階 broker 需求時評估
+- 補齊 `fake` / `gmail_smtp` / `production` provider 模式與文件。
 
-文件：`docs/phase-11-ai-queue-worker-scaling.md`
+### Phase 11-1：Gmail SMTP 真實寄信
 
-## AI Queue 策略補充
+- 適用開發/測試/個人或工作室帳號真實寄送。
+- 僅建議少量寄送，不作為正式大量寄送方案。
+
+### Phase 11-2：Production Email Provider
+
+- 正式環境建議使用 Resend / SendGrid / Amazon SES。
+
+### Phase 11-3：正式 scheduler / cron / docker deployment
+
+- 以正式排程取代手動觸發 runner。
+
+### Phase 11-4：retry / failure handling / monitoring
+
+- 補齊失敗重試、錯誤分類、監控與告警。
+
+文件：`docs/phase-11-email-provider-scheduler-reliability.md`
+
+## AI Queue 策略補充（Phase 12 起）
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker，不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
 - Phase 09～10：若 DB polling worker 可接受，持續沿用，Vision/Nutrition 共用 `ai_jobs`。
-- 任務量與延遲明顯上升時才進入 Phase 11 升級。
+- 任務量與延遲明顯上升時才進入 Phase 12 升級。
 
 ## Phase 06 子階段規劃
 
@@ -257,6 +272,6 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - `job_type` 隔離是 worker process 層級，不是 Ollama runtime/GPU 隔離。
 - 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 共用同一 runtime。
 - 本地或雲端只要同機共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe。
-- Phase 11 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
+- Phase 12 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
 
 收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。

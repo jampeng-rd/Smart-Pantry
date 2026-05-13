@@ -29,7 +29,12 @@ Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Setting
 Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
 Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
 Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
-Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
+Phase 11-0：Email Provider 策略與文件調整 ⏳
+Phase 11-1：Gmail SMTP 真實寄信 ⏳
+Phase 11-2：Production Email Provider ⏳
+Phase 11-3：正式 scheduler / cron / docker deployment ⏳
+Phase 11-4：retry / failure handling / monitoring ⏳
+Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
 ## 環境需求
@@ -39,6 +44,18 @@ Python 3.10+、Node.js 20+、Docker、PostgreSQL、Ollama（AI 階段）。
 ## 環境變數
 
 請先複製 `.env.example` 為 `.env`，並填入本機設定。`.env` 不可提交到版本控制，`.env.example` 僅放範例值，不可放真實 secret。
+
+Email provider 模式：
+
+- `EMAIL_PROVIDER=fake`：預設，不寄真信。
+- `EMAIL_PROVIDER=gmail_smtp`：僅建議開發/測試/少量寄送。
+- `EMAIL_PROVIDER=production`：正式環境建議，搭配 `PRODUCTION_EMAIL_PROVIDER`（`resend`/`sendgrid`/`ses`）。
+
+安全限制：
+
+- Gmail app password 只能放 `.env`，不可放 `.env.example` 真值。
+- API keys / SMTP 密碼 / AWS 憑證不可提交到 git。
+- 單元測試不可寄真信，必須使用 fake email client。
 
 ## 後端啟動
 
@@ -600,7 +617,6 @@ Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 8. 手動整合驗收（backend + frontend + worker + Ollama）
 
 frontend 不可直接呼叫 ai_server，只能透過 backend job API。
-
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

@@ -134,9 +134,9 @@ docker-compose 後續規劃：
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
 
-## Email Reminder 與成本注意事項（Phase 10）
+## Email Reminder 與成本注意事項（Phase 10/11）
 
-到期 Email Reminder 會產生寄信成本與寄送限制風險。MVP 可先使用具免費額度的 Email provider 或 fake/log email client；正式環境需選擇 Resend、SendGrid、Amazon SES、Mailgun 等服務之一，並記錄發信量、失敗率、退信與 rate limit。
+到期 Email Reminder 會產生寄信成本與寄送限制風險。MVP 預設使用 `fake`（不寄真信）；開發/測試可用 `gmail_smtp`；正式環境建議 `production provider`（Resend / SendGrid / Amazon SES），並記錄發信量、失敗率、退信與 rate limit。
 
 排程策略：
 
@@ -145,6 +145,20 @@ docker-compose 後續規劃：
 - 同一使用者同一天同一 send window 只能成功寄送一次。
 - 使用 delivery log 避免重複寄送。
 - 單元測試不可寄真信，需使用 fake email client。
+
+Phase 11 子階段：
+
+- `Phase 11-0`：Email Provider 策略與文件調整。
+- `Phase 11-1`：Gmail SMTP 真實寄信（dev/test/少量）。
+- `Phase 11-2`：Production Email Provider（Resend/SendGrid/SES）。
+- `Phase 11-3`：正式 scheduler / cron / docker deployment。
+- `Phase 11-4`：retry / failure handling / monitoring。
+
+Secret 管理：
+
+- Gmail app password、provider API key、AWS 憑證只可放 `.env` 或秘密管理服務。
+- `.env.example` 不可放任何真實 secret。
+- repository 不可提交實際 secret。
 
 手機 App 未來通知策略：
 
