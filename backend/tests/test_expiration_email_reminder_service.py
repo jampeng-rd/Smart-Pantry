@@ -8,6 +8,8 @@ from datetime import date, datetime, timezone
 from backend.app.infra.email_client import FakeEmailClient, GmailSmtpEmailClient
 from backend.app.services.expiration_email_reminder_service import ExpirationEmailReminderService
 
+EXPECTED_FOOTER = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。"
+
 
 @dataclass
 class FakeUser:
@@ -164,7 +166,7 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert "到期日" not in sent.content_text
     assert "牛奶 | 1 | 份 | 未設定" in sent.content_text
     assert "雞蛋" not in sent.content_text
-    assert sent.content_text.endswith("此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。")
+    assert sent.content_text.endswith(EXPECTED_FOOTER)
     assert sent.content_html is not None
     assert "<table" in sent.content_html
     assert "<th" in sent.content_html
@@ -172,6 +174,15 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert "數量" in sent.content_html
     assert "單位" in sent.content_html
     assert "保存位置" in sent.content_html
+    assert EXPECTED_FOOTER in sent.content_html
+    assert "無需回信" not in sent.content_text
+    assert "無需回信" not in sent.content_html
+    assert "無需回覆，謝謝您" not in sent.content_text
+    assert "無需回覆，謝謝您" not in sent.content_html
+    assert "display:none" not in sent.content_html
+    assert "max-height:0" not in sent.content_html
+    assert "opacity:0" not in sent.content_html
+    assert "overflow:hidden" not in sent.content_html
 
 
 def test_reminder_days_3_should_send_correct_items() -> None:
@@ -269,7 +280,7 @@ def test_email_body_should_format_quantity_without_trailing_zeroes() -> None:
     assert "番茄 | 1.5 | 份 | 冰箱" in sent.content_text
     assert "胡蘿蔔 | 1.0" not in sent.content_text
     assert "番茄 | 1.50" not in sent.content_text
-    assert sent.content_text.endswith("此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。")
+    assert sent.content_text.endswith(EXPECTED_FOOTER)
 
 
 def test_morning_duplicate_protection() -> None:

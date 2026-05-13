@@ -28,6 +28,7 @@ class ExpirationReminderRunResult:
 
 class ExpirationEmailReminderService:
     """依使用者偏好寄送到期提醒，並記錄 delivery log。"""
+    FOOTER_TEXT = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。"
 
     def __init__(self, repository: ExpirationEmailReminderRepository, email_client: BaseEmailClient):
         """建立提醒服務實例。"""
@@ -146,12 +147,11 @@ class ExpirationEmailReminderService:
             for item in pantry_items
         ])
         html_content = (
-            "<html><body style=\"margin:0;padding:0;background:#f8fafc;color:#111827;\">"
-            "<div style=\"max-width:680px;margin:0 auto;padding:24px;font-family:Arial,'Noto Sans TC',sans-serif;\">"
-            "<h2 style=\"margin:0 0 16px 0;font-size:20px;\">食材即將到期提醒</h2>"
-            f"<p style=\"margin:0 0 12px 0;line-height:1.6;\">{self._escape_html(display_name)} 您好：</p>"
-            f"<p style=\"margin:0 0 16px 0;line-height:1.6;\">以下是 {target_expiration_date.isoformat()} 即將到期的食材：</p>"
-            "<table style=\"border-collapse:collapse;width:100%;background:#ffffff;\">"
+            "<div style=\"font-family:Arial,'Noto Sans TC',sans-serif;color:#1f2937;line-height:1.6;\">"
+            "<h2 style=\"margin:0 0 12px 0;font-size:22px;\">食材即將到期提醒</h2>"
+            f"<p style=\"margin:0 0 10px 0;\">{self._escape_html(display_name)} 您好：</p>"
+            f"<p style=\"margin:0 0 14px 0;\">以下是 {target_expiration_date.isoformat()} 即將到期的食材：</p>"
+            "<table style=\"border-collapse:collapse;width:100%;\">"
             "<thead><tr>"
             "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">食材名稱</th>"
             "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">數量</th>"
@@ -160,8 +160,8 @@ class ExpirationEmailReminderService:
             "</tr></thead>"
             f"<tbody>{html_table_rows}</tbody>"
             "</table>"
-            f"<p style=\"margin:16px 0 0 0;line-height:1.6;\">{self._escape_html(self.FOOTER_TEXT)}</p>"
-            "</div></body></html>"
+            f"<p style=\"margin:14px 0 0 0;\">{self._escape_html(self.FOOTER_TEXT)}</p>"
+            "</div>"
         )
         return EmailMessage(
             to_email=email_to,
@@ -195,4 +195,3 @@ class ExpirationEmailReminderService:
             .replace('"', "&quot;")
             .replace("'", "&#39;")
         )
-    FOOTER_TEXT = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信 謝謝您。"
