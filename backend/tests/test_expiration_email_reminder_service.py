@@ -160,10 +160,11 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert sent.subject == "【智慧食材保存系統】食材即將到期提醒"
     assert "小明 您好：" in sent.content_text
     assert "以下是 2026-05-14 即將到期的食材：" in sent.content_text
-    assert "食材名稱 | 數量 | 單位 | 保存位置 | 到期日" in sent.content_text
-    assert "牛奶 | 1 | 份 | 未設定 | 2026-05-14" in sent.content_text
+    assert "食材名稱 | 數量 | 單位 | 保存位置" in sent.content_text
+    assert "到期日" not in sent.content_text
+    assert "牛奶 | 1 | 份 | 未設定" in sent.content_text
     assert "雞蛋" not in sent.content_text
-    assert "自動發送，無需回信" in sent.content_text
+    assert "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。" in sent.content_text
 
 
 def test_reminder_days_3_should_send_correct_items() -> None:
@@ -182,7 +183,7 @@ def test_reminder_days_3_should_send_correct_items() -> None:
     assert result.success_count == 1
     assert len(fake_email.sent_messages) == 1
     sent = fake_email.sent_messages[0]
-    assert "豆腐 | 1 | 份 | 未設定 | 2026-05-16" in sent.content_text
+    assert "豆腐 | 1 | 份 | 未設定" in sent.content_text
     assert "優格" not in sent.content_text
 
 
@@ -217,8 +218,47 @@ def test_email_body_should_show_storage_location_when_present_and_fallback_when_
 
     assert result.success_count == 1
     sent = fake_email.sent_messages[0]
-    assert "胡蘿蔔 | 1 | 份 | 冷藏 | 2026-05-14" in sent.content_text
-    assert "番茄 | 2 | 份 | 未設定 | 2026-05-14" in sent.content_text
+    assert "胡蘿蔔 | 1 | 份 | 冷藏" in sent.content_text
+    assert "番茄 | 2 | 份 | 未設定" in sent.content_text
+
+
+def test_email_body_should_format_quantity_without_trailing_zeroes() -> None:
+    """數量顯示應移除整數小數位，非整數保留必要小數。"""
+    repository = FakeExpirationEmailReminderRepository()
+    repository.users = [(FakeUser(id=1, email="u1@example.com", display_name="Jam"), FakePreference(expiration_email_reminder_days="1"))]
+    repository.items = [
+        FakePantryItem(
+            id=1,
+            user_id=1,
+            name="胡蘿蔔",
+            quantity=1.00,
+            unit="份",
+            storage_location="冰箱",
+            expiration_date=date(2026, 5, 14),
+        ),
+        FakePantryItem(
+            id=2,
+            user_id=1,
+            name="番茄",
+            quantity=1.50,
+            unit="份",
+            storage_location="冰箱",
+            expiration_date=date(2026, 5, 14),
+        ),
+    ]
+    fake_email = FakeEmailClient()
+    service = ExpirationEmailReminderService(repository=repository, email_client=fake_email)
+
+    result = service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
+
+    assert result.success_count == 1
+    sent = fake_email.sent_messages[0]
+    assert "以下是 2026-05-14 即將到期的食材：" in sent.content_text
+    assert "胡蘿蔔 | 1 | 份 | 冰箱" in sent.content_text
+    assert "番茄 | 1.5 | 份 | 冰箱" in sent.content_text
+    assert "胡蘿蔔 | 1.0" not in sent.content_text
+    assert "番茄 | 1.50" not in sent.content_text
+    assert "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。" in sent.content_text
 
 
 def test_morning_duplicate_protection() -> None:

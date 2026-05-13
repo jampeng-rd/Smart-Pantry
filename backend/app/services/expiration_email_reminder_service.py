@@ -122,17 +122,18 @@ class ExpirationEmailReminderService:
         """建立純文字提醒信內容。"""
         item_lines = "\n".join([
             (
-                f"{item.name} | {item.quantity} | {item.unit} | "
-                f"{self._format_storage_location(item.storage_location)} | {item.expiration_date.isoformat()}"
+                f"{item.name} | {self._format_quantity(item.quantity)} | {item.unit} | "
+                f"{self._format_storage_location(item.storage_location)}"
             )
             for item in pantry_items
         ])
         content = (
             f"{display_name} 您好：\n\n"
             f"以下是 {target_expiration_date.isoformat()} 即將到期的食材：\n\n"
-            "食材名稱 | 數量 | 單位 | 保存位置 | 到期日\n"
+            "食材名稱 | 數量 | 單位 | 保存位置\n"
             f"{item_lines}\n\n"
-            "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。"
+            "此信件來自【智慧食材保存與膳食管理系統】自動發送\n"
+            "無需回信 謝謝您。\n\n"
         )
         return EmailMessage(
             to_email=email_to,
@@ -148,3 +149,10 @@ class ExpirationEmailReminderService:
         if not cleaned:
             return "未設定"
         return cleaned
+
+    def _format_quantity(self, quantity: int | float) -> str:
+        """格式化數量：整數不顯示小數，非整數保留必要小數。"""
+        value = float(quantity)
+        if value.is_integer():
+            return str(int(value))
+        return f"{value:g}"

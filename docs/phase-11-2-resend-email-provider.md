@@ -39,10 +39,13 @@
   - `production + sendgrid/ses` -> 明確「尚未實作」
 - 更新：`backend/app/services/expiration_email_reminder_service.py`
   - subject：`【智慧食材保存系統】食材即將到期提醒`
-  - body：純文字表格（不引入 HTML email）
-  - 欄位至少包含：`食材名稱 / 數量 / 單位 / 保存位置 / 到期日`
+  - body：純文字表格（目前不引入 HTML email）
+  - 欄位包含：`食材名稱 / 數量 / 單位 / 保存位置`
+  - 前文已顯示「以下是 <target_expiration_date> 即將到期的食材」，表格不重複放到期日欄位
+  - quantity 顯示規則：整數顯示 `1`、`2`；有小數才顯示如 `1.5`
   - `storage_location` 空值時顯示 `未設定`
   - 結尾固定：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
+  - 後續可新增 HTML email template，讓表格視覺更完整
 
 ## 安全注意事項
 
