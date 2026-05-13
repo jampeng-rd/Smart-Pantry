@@ -164,7 +164,14 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert "到期日" not in sent.content_text
     assert "牛奶 | 1 | 份 | 未設定" in sent.content_text
     assert "雞蛋" not in sent.content_text
-    assert "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。" in sent.content_text
+    assert sent.content_text.endswith("此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。")
+    assert sent.content_html is not None
+    assert "<table" in sent.content_html
+    assert "<th" in sent.content_html
+    assert "食材名稱" in sent.content_html
+    assert "數量" in sent.content_html
+    assert "單位" in sent.content_html
+    assert "保存位置" in sent.content_html
 
 
 def test_reminder_days_3_should_send_correct_items() -> None:
@@ -220,6 +227,10 @@ def test_email_body_should_show_storage_location_when_present_and_fallback_when_
     sent = fake_email.sent_messages[0]
     assert "胡蘿蔔 | 1 | 份 | 冷藏" in sent.content_text
     assert "番茄 | 2 | 份 | 未設定" in sent.content_text
+    assert sent.content_html is not None
+    assert "胡蘿蔔" in sent.content_html
+    assert "番茄" in sent.content_html
+    assert "未設定" in sent.content_html
 
 
 def test_email_body_should_format_quantity_without_trailing_zeroes() -> None:
@@ -258,7 +269,7 @@ def test_email_body_should_format_quantity_without_trailing_zeroes() -> None:
     assert "番茄 | 1.5 | 份 | 冰箱" in sent.content_text
     assert "胡蘿蔔 | 1.0" not in sent.content_text
     assert "番茄 | 1.50" not in sent.content_text
-    assert "此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。" in sent.content_text
+    assert sent.content_text.endswith("此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。")
 
 
 def test_morning_duplicate_protection() -> None:

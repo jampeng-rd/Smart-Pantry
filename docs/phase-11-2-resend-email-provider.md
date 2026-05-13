@@ -39,13 +39,19 @@
   - `production + sendgrid/ses` -> 明確「尚未實作」
 - 更新：`backend/app/services/expiration_email_reminder_service.py`
   - subject：`【智慧食材保存系統】食材即將到期提醒`
-  - body：純文字表格（目前不引入 HTML email）
+  - body：同時產生純文字 fallback 與 HTML table
   - 欄位包含：`食材名稱 / 數量 / 單位 / 保存位置`
   - 前文已顯示「以下是 <target_expiration_date> 即將到期的食材」，表格不重複放到期日欄位
   - quantity 顯示規則：整數顯示 `1`、`2`；有小數才顯示如 `1.5`
   - `storage_location` 空值時顯示 `未設定`
-  - 結尾固定：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
-  - 後續可新增 HTML email template，讓表格視覺更完整
+  - 結尾固定：`此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。`
+  - HTML 使用 inline style、不依賴外部 CSS/圖片，確保 Gmail 可讀性
+- 更新：`backend/app/infra/email_client.py`
+  - `EmailMessage` 新增 `content_html`（可為 `null`）
+  - Gmail SMTP 若有 `content_html` 會寄 `multipart/alternative`（`text/plain + text/html`）
+- 更新：`backend/app/infra/resend_email_client.py`
+  - Resend payload 固定帶 `text`
+  - `content_html` 有值時加上 `html`
 
 ## 安全注意事項
 

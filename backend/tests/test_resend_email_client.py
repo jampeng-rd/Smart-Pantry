@@ -64,6 +64,35 @@ def test_resend_client_should_send_expected_payload(monkeypatch) -> None:
     assert '"text": "\\u725b\\u5976\\u5c07\\u65bc\\u660e\\u5929\\u5230\\u671f"' in captured["body"]
 
 
+def test_resend_client_should_include_html_and_text_payload(monkeypatch) -> None:
+    """有 content_html 時 payload 應同時包含 text 與 html。"""
+    captured = {}
+
+    def fake_urlopen(request_obj, timeout: int):
+        captured["body"] = request_obj.data.decode("utf-8")
+        return FakeHttpResponse(status=200)
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+
+    client = ResendEmailClient(
+        api_key="re_test_secret_key",
+        from_name="Smart Pantry",
+        from_address="no-reply@example.com",
+    )
+    result = client.send_email(
+        EmailMessage(
+            to_email="user@example.com",
+            subject="到期提醒",
+            content_text="純文字內容",
+            content_html="<html><body><p>HTML 內容</p></body></html>",
+        )
+    )
+
+    assert result.success is True
+    assert '"text": "\\u7d14\\u6587\\u5b57\\u5167\\u5bb9"' in captured["body"]
+    assert '"html": "<html><body><p>HTML \\u5167\\u5bb9</p></body></html>"' in captured["body"]
+
+
 def test_resend_client_should_fail_without_leaking_api_key(monkeypatch, caplog) -> None:
     """失敗時應回 failed 且錯誤訊息不得含 API key。"""
 

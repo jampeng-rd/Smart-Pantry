@@ -87,6 +87,41 @@ def test_gmail_smtp_client_should_send_email_successfully(monkeypatch) -> None:
     assert "這是一封測試信" in sent.sent_message.get_content()
 
 
+def test_gmail_smtp_client_should_send_multipart_when_html_exists(monkeypatch) -> None:
+    """有 content_html 時應寄 multipart/alternative，含 text/plain 與 text/html。"""
+    monkeypatch.setattr("backend.app.infra.email_client.smtplib.SMTP", FakeSmtpServer)
+
+    client = GmailSmtpEmailClient(
+        host="smtp.gmail.com",
+        port=587,
+        username="dev@gmail.com",
+        app_password="app-password",
+        from_name="Smart Pantry",
+        from_address="no-reply@example.com",
+    )
+
+    result = client.send_email(
+        EmailMessage(
+            to_email="user@example.com",
+            subject="提醒測試",
+            content_text="純文字內容",
+            content_html="<html><body><p>HTML 內容</p></body></html>",
+        )
+    )
+
+    assert result.success is True
+    sent = FakeSmtpServer.last_instance
+    assert sent is not None
+    message = sent.sent_message
+    assert message.is_multipart() is True
+    plain_part = message.get_body(preferencelist=("plain",))
+    html_part = message.get_body(preferencelist=("html",))
+    assert plain_part is not None
+    assert html_part is not None
+    assert "純文字內容" in plain_part.get_content()
+    assert "HTML 內容" in html_part.get_content()
+
+
 def test_gmail_smtp_client_should_fail_without_leaking_password(monkeypatch) -> None:
     """SMTP 失敗時不應洩漏密碼，且回友善錯誤。"""
     monkeypatch.setattr("backend.app.infra.email_client.smtplib.SMTP", FakeFailingSmtpServer)

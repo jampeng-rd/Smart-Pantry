@@ -760,7 +760,7 @@ Help 頁面建議包含：
 已完成：
 
 - backend settings 新增 Email provider 相關 env 欄位，`.env` 加入 EMAIL_PROVIDER/GMAIL_SMTP_* 不再觸發 extra forbidden。
-- 新增 `GmailSmtpEmailClient`（STARTTLS:587，純文字 subject/body/to）。
+- 新增 `GmailSmtpEmailClient`（STARTTLS:587，支援 text/plain 與 text/html）。
 - 新增 Email client factory：
   - `fake` -> `FakeEmailClient`
   - `gmail_smtp` -> `GmailSmtpEmailClient`
@@ -792,13 +792,13 @@ Help 頁面建議包含：
   - `production + resend` 時 `RESEND_API_KEY` 必填
 - 新增 Resend client 單元測試（HTTP 全 mock/stub，不會呼叫真實 Resend API）。
 - 既有 fake / gmail_smtp 測試與 reminder service 抽象依賴皆維持通過。
-- 到期提醒信內容調整為純文字表格：
+- 到期提醒信內容調整為純文字 fallback + HTML table：
   - subject：`【智慧食材保存系統】食材即將到期提醒`
   - 內容包含：使用者名稱、設定的到期日、`食材名稱/數量/單位/保存位置`
   - 表格不重複顯示到期日欄位（前文已顯示 target_expiration_date）
   - `quantity` 顯示規則：整數顯示 `1`、`2`；有小數才顯示 `1.5`
   - `保存位置` 空值顯示 `未設定`
-  - 結尾固定：`此提醒來自【智慧食材保存與膳食管理系統】自動發送，無需回信。`
+  - 結尾固定：`此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信，謝謝您。`
 
 Resend 使用注意：
 

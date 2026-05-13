@@ -15,6 +15,7 @@ class EmailMessage:
     to_email: str
     subject: str
     content_text: str
+    content_html: str | None = None
 
 
 @dataclass
@@ -51,7 +52,7 @@ class FakeEmailClient(BaseEmailClient):
 
 
 class GmailSmtpEmailClient(BaseEmailClient):
-    """使用 Gmail SMTP（STARTTLS）寄送純文字信件。"""
+    """使用 Gmail SMTP（STARTTLS）寄送信件，支援 text/html。"""
 
     def __init__(
         self,
@@ -77,6 +78,8 @@ class GmailSmtpEmailClient(BaseEmailClient):
         smtp_message["To"] = message.to_email
         smtp_message["From"] = f"{self.from_name} <{self.from_address}>"
         smtp_message.set_content(message.content_text)
+        if message.content_html:
+            smtp_message.add_alternative(message.content_html, subtype="html")
 
         try:
             with smtplib.SMTP(self.host, self.port, timeout=30) as smtp:

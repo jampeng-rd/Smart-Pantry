@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ResendEmailClient(BaseEmailClient):
-    """使用 Resend HTTP API 寄送純文字信件。"""
+    """使用 Resend HTTP API 寄送信件，支援 text/html。"""
 
     def __init__(
         self,
@@ -36,6 +36,8 @@ class ResendEmailClient(BaseEmailClient):
             "subject": message.subject,
             "text": message.content_text,
         }
+        if message.content_html:
+            payload["html"] = message.content_html
         body = json.dumps(payload).encode("utf-8")
         request_obj = request.Request(
             url=url,

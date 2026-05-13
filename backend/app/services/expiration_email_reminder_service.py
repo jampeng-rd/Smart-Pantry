@@ -119,26 +119,55 @@ class ExpirationEmailReminderService:
         target_expiration_date: date,
         pantry_items: list,
     ) -> EmailMessage:
-        """建立純文字提醒信內容。"""
-        item_lines = "\n".join([
+        """建立提醒信內容（純文字 + HTML）。"""
+        text_item_lines = "\n".join([
             (
                 f"{item.name} | {self._format_quantity(item.quantity)} | {item.unit} | "
                 f"{self._format_storage_location(item.storage_location)}"
             )
             for item in pantry_items
         ])
-        content = (
+        text_content = (
             f"{display_name} 您好：\n\n"
             f"以下是 {target_expiration_date.isoformat()} 即將到期的食材：\n\n"
             "食材名稱 | 數量 | 單位 | 保存位置\n"
-            f"{item_lines}\n\n"
-            "此信件來自【智慧食材保存與膳食管理系統】自動發送\n"
-            "無需回信 謝謝您。\n\n"
+            f"{text_item_lines}\n\n"
+            f"{self.FOOTER_TEXT}"
+        )
+        html_table_rows = "".join([
+            (
+                "<tr>"
+                f"<td style=\"padding:8px;border:1px solid #d1d5db;\">{self._escape_html(item.name)}</td>"
+                f"<td style=\"padding:8px;border:1px solid #d1d5db;\">{self._escape_html(self._format_quantity(item.quantity))}</td>"
+                f"<td style=\"padding:8px;border:1px solid #d1d5db;\">{self._escape_html(item.unit)}</td>"
+                f"<td style=\"padding:8px;border:1px solid #d1d5db;\">{self._escape_html(self._format_storage_location(item.storage_location))}</td>"
+                "</tr>"
+            )
+            for item in pantry_items
+        ])
+        html_content = (
+            "<html><body style=\"margin:0;padding:0;background:#f8fafc;color:#111827;\">"
+            "<div style=\"max-width:680px;margin:0 auto;padding:24px;font-family:Arial,'Noto Sans TC',sans-serif;\">"
+            "<h2 style=\"margin:0 0 16px 0;font-size:20px;\">食材即將到期提醒</h2>"
+            f"<p style=\"margin:0 0 12px 0;line-height:1.6;\">{self._escape_html(display_name)} 您好：</p>"
+            f"<p style=\"margin:0 0 16px 0;line-height:1.6;\">以下是 {target_expiration_date.isoformat()} 即將到期的食材：</p>"
+            "<table style=\"border-collapse:collapse;width:100%;background:#ffffff;\">"
+            "<thead><tr>"
+            "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">食材名稱</th>"
+            "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">數量</th>"
+            "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">單位</th>"
+            "<th style=\"text-align:left;padding:8px;border:1px solid #d1d5db;background:#f3f4f6;\">保存位置</th>"
+            "</tr></thead>"
+            f"<tbody>{html_table_rows}</tbody>"
+            "</table>"
+            f"<p style=\"margin:16px 0 0 0;line-height:1.6;\">{self._escape_html(self.FOOTER_TEXT)}</p>"
+            "</div></body></html>"
         )
         return EmailMessage(
             to_email=email_to,
             subject="【智慧食材保存系統】食材即將到期提醒",
-            content_text=content,
+            content_text=text_content,
+            content_html=html_content,
         )
 
     def _format_storage_location(self, storage_location: str | None) -> str:
@@ -156,3 +185,14 @@ class ExpirationEmailReminderService:
         if value.is_integer():
             return str(int(value))
         return f"{value:g}"
+
+    def _escape_html(self, text: str) -> str:
+        """簡易 HTML escaping，避免內容破壞版型。"""
+        return (
+            text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#39;")
+        )
+    FOOTER_TEXT = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回信 謝謝您。"
