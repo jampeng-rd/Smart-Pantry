@@ -710,8 +710,8 @@ Help 頁面建議包含：
 - 回傳資料包含 `item_count`（由 `item_ids` 長度計算）、`failed` 錯誤訊息、timezone-aware datetime。
 - Settings 在「到期 Email 提醒」下方新增「最近寄送紀錄」：
   - loading、error + 重試、empty state。
-  - 每頁 10 筆，使用共用 `Pagination` 元件。
-  - 桌機使用 table，手機使用 card-like 顯示，避免嚴重橫向捲動。
+  - 每頁 10 筆，使用與 Pantry 相同的共用 `Pagination` 版型與 RWD。
+  - 桌機使用 table；手機使用 accordion/disclosure 摘要列（發送時間、狀態）點擊展開詳細欄位。
 - delivery log 保留規則：
   - 只保留最近 7 天。
   - 清除條件：`scheduled_date < (today - 7 days)`。

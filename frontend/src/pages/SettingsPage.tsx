@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { FiAlertCircle, FiGlobe, FiMoon, FiRefreshCw, FiSave, FiSun } from "react-icons/fi";
+import { FiAlertCircle, FiChevronDown, FiChevronUp, FiGlobe, FiMoon, FiRefreshCw, FiSave, FiSun } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { Pagination } from "../components/common/Pagination";
@@ -63,6 +63,7 @@ export function SettingsPage() {
   const [deliveries, setDeliveries] = useState<ExpirationReminderDelivery[]>([]);
   const [deliveryPage, setDeliveryPage] = useState(1);
   const [deliveryTotal, setDeliveryTotal] = useState(0);
+  const [expandedDeliveryIds, setExpandedDeliveryIds] = useState<number[]>([]);
 
   /** 載入寄送紀錄分頁資料。 */
   const loadDeliveries = async (page: number) => {
@@ -73,6 +74,7 @@ export function SettingsPage() {
       setDeliveries(response.items);
       setDeliveryPage(response.page);
       setDeliveryTotal(response.total);
+      setExpandedDeliveryIds([]);
     } catch (apiError) {
       setDeliveryError(apiError instanceof Error ? apiError.message : "載入寄送紀錄失敗");
     } finally {
@@ -134,6 +136,10 @@ export function SettingsPage() {
     return <section className="card workspace-card">載入設定中...</section>;
   }
 
+  const toggleDeliveryExpanded = (deliveryId: number) => {
+    setExpandedDeliveryIds((prev) => (prev.includes(deliveryId) ? prev.filter((id) => id !== deliveryId) : [...prev, deliveryId]));
+  };
+
   return (
     <section className="card workspace-card settings-page">
       {/* <h2 className="workspace-title">
@@ -167,7 +173,7 @@ export function SettingsPage() {
           </button>
         </div>
 
-        <h3 className="workspace-subtitle">2. 到期 Email 提醒</h3>
+        <h3 className="workspace-subtitle">2. 即將到期 Email 提醒</h3>
         <label htmlFor="settings-reminder">提醒時間</label>
         <select
           id="settings-reminder"
@@ -225,7 +231,7 @@ export function SettingsPage() {
                     <tr>
                       <th>排程日期</th>
                       <th>寄送時段</th>
-                      <th>提醒天數</th>
+                      <th>提醒時間</th>
                       <th>食材數量</th>
                       <th>收件 Email</th>
                       <th>狀態</th>
@@ -253,56 +259,73 @@ export function SettingsPage() {
               <div className="settings-delivery-cards">
                 {deliveries.map((item) => (
                   <article key={item.id} className="settings-delivery-card">
-                    <p>
-                      <span>排程日期</span>
-                      <strong>{item.scheduled_date}</strong>
-                    </p>
-                    <p>
-                      <span>寄送時段</span>
-                      <strong>{mapSendWindowLabel(item.send_window)}</strong>
-                    </p>
-                    <p>
-                      <span>提醒天數</span>
-                      <strong>{mapReminderDaysLabel(item.reminder_days)}</strong>
-                    </p>
-                    <p>
-                      <span>食材數量</span>
-                      <strong>{item.item_count}</strong>
-                    </p>
-                    <p>
-                      <span>收件 Email</span>
-                      <strong>{item.email_to}</strong>
-                    </p>
-                    <p>
-                      <span>狀態</span>
-                      <strong>{mapDeliveryStatusLabel(item.status)}</strong>
-                    </p>
-                    <p>
-                      <span>寄送時間</span>
-                      <strong>{formatLocalDateTime(item.sent_at)}</strong>
-                    </p>
-                    {item.status === "failed" ? (
-                      <p>
-                        <span>錯誤訊息</span>
-                        <strong>{item.error_message ?? "-"}</strong>
-                      </p>
+                    <button
+                      type="button"
+                      className="settings-delivery-accordion-trigger"
+                      aria-expanded={expandedDeliveryIds.includes(item.id)}
+                      aria-controls={`delivery-detail-${item.id}`}
+                      aria-label={`切換寄送紀錄詳情：${formatLocalDateTime(item.sent_at)} ${mapDeliveryStatusLabel(item.status)}`}
+                      onClick={() => toggleDeliveryExpanded(item.id)}
+                    >
+                      <span className="settings-delivery-accordion-summary">
+                        <strong>{formatLocalDateTime(item.sent_at)}</strong>
+                        <em>{mapDeliveryStatusLabel(item.status)}</em>
+                      </span>
+                      {expandedDeliveryIds.includes(item.id) ? <FiChevronUp aria-hidden="true" /> : <FiChevronDown aria-hidden="true" />}
+                    </button>
+
+                    {expandedDeliveryIds.includes(item.id) ? (
+                      <div id={`delivery-detail-${item.id}`} className="settings-delivery-accordion-content">
+                        <p>
+                          <span>排程日期</span>
+                          <strong>{item.scheduled_date}</strong>
+                        </p>
+                        <p>
+                          <span>寄送時段</span>
+                          <strong>{mapSendWindowLabel(item.send_window)}</strong>
+                        </p>
+                        <p>
+                          <span>提醒時間</span>
+                          <strong>{mapReminderDaysLabel(item.reminder_days)}</strong>
+                        </p>
+                        <p>
+                          <span>食材數量</span>
+                          <strong>{item.item_count}</strong>
+                        </p>
+                        <p>
+                          <span>收件 Email</span>
+                          <strong>{item.email_to}</strong>
+                        </p>
+                        <p>
+                          <span>狀態</span>
+                          <strong>{mapDeliveryStatusLabel(item.status)}</strong>
+                        </p>
+                        <p>
+                          <span>寄送時間</span>
+                          <strong>{formatLocalDateTime(item.sent_at)}</strong>
+                        </p>
+                        {item.status === "failed" ? (
+                          <p>
+                            <span>錯誤訊息</span>
+                            <strong>{item.error_message ?? "-"}</strong>
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                   </article>
                 ))}
               </div>
 
-              <div className="settings-delivery-pagination">
-                <Pagination
-                  page={deliveryPage}
-                  pageSize={DELIVERY_PAGE_SIZE}
-                  total={deliveryTotal}
-                  onPageChange={(page) => setDeliveryPage(page)}
-                  onPageSizeChange={() => {
-                    // Phase 10-3 固定每頁 10 筆，保留共用元件介面。
-                  }}
-                  pageSizeOptions={[10]}
-                />
-              </div>
+              <Pagination
+                page={deliveryPage}
+                pageSize={DELIVERY_PAGE_SIZE}
+                total={deliveryTotal}
+                onPageChange={(page) => setDeliveryPage(page)}
+                onPageSizeChange={() => {
+                  // Phase 10-3 固定每頁 10 筆，保留共用元件介面。
+                }}
+                pageSizeOptions={[10]}
+              />
             </>
           ) : null}
         </div>

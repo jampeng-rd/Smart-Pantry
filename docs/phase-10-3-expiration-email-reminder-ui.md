@@ -51,11 +51,15 @@
 - error + 重試
 - empty state（尚無寄送紀錄）
 - pagination（每頁 10 筆，使用共用 `Pagination` 元件）
+- 分頁排版與 Pantry 分頁保持一致（位置、間距、文字樣式、每頁選單、上一頁/下一頁排列與手機 RWD 行為一致）。
 
 ### RWD
 
 - 桌機：table 顯示。
-- 手機：card-like 顯示，避免嚴重橫向捲動。
+- 手機：accordion/disclosure list。
+  - 摘要列預設只顯示「發送時間、狀態」。
+  - 點選摘要列後才展開詳細內容（排程日期、寄送時段、提醒天數、食材數量、收件 Email、狀態、寄送時間、錯誤訊息）。
+  - 摘要列使用 `button` 搭配 `aria-expanded`、`aria-controls`。
 
 ## Help FAQ 更新
 

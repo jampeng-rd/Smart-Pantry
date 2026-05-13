@@ -1739,11 +1739,6 @@ body {
     gap: 0.55rem;
   }
 
-  .settings-delivery-pagination {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .pantry-table {
     min-width: 0;
   }
@@ -2074,11 +2069,16 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .settings-delivery-head h4 {
   margin: 0;
   font-size: 0.95rem;
+}
+
+.settings-delivery-head .btn {
+  margin-top: 0;
 }
 
 .settings-delivery-error p {
@@ -2116,38 +2116,62 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  overflow: hidden;
+}
+
+.settings-delivery-accordion-trigger {
+  margin: 0;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  padding: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-delivery-accordion-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.settings-delivery-accordion-summary strong {
+  font-size: 0.9rem;
+}
+
+.settings-delivery-accordion-summary em {
+  font-style: normal;
+  color: var(--color-muted);
+  font-size: 0.84rem;
+}
+
+.settings-delivery-accordion-content {
   padding: 0.65rem;
   display: grid;
   gap: 0.35rem;
 }
 
-.settings-delivery-card p {
+.settings-delivery-accordion-content p {
   margin: 0;
   display: grid;
   gap: 0.15rem;
 }
 
-.settings-delivery-card span {
+.settings-delivery-accordion-content span {
   font-size: 0.8rem;
   color: var(--color-muted);
 }
 
-.settings-delivery-card strong {
+.settings-delivery-accordion-content strong {
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-.settings-delivery-pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.settings-delivery-pagination-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 @media (max-width: 700px) {
@@ -2158,11 +2182,6 @@ body {
   .settings-delivery-cards {
     display: grid;
     gap: 0.55rem;
-  }
-
-  .settings-delivery-pagination {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 
