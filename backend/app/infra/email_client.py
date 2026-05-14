@@ -6,6 +6,16 @@ import smtplib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from email.message import EmailMessage as SmtpEmailMessage
+from typing import Literal
+
+EmailErrorCategory = Literal[
+    "timeout",
+    "network_error",
+    "provider_4xx",
+    "provider_5xx",
+    "invalid_configuration",
+    "unknown_error",
+]
 
 
 @dataclass
@@ -23,6 +33,8 @@ class EmailSendResult:
     """Email 寄送結果。"""
 
     success: bool
+    should_retry: bool = False
+    error_category: EmailErrorCategory | None = None
     error_message: str | None = None
 
 
@@ -47,7 +59,12 @@ class FakeEmailClient(BaseEmailClient):
         """記錄內容並回傳假成功/失敗結果。"""
         self.sent_messages.append(message)
         if self.force_fail or message.to_email in self.fail_targets:
-            return EmailSendResult(success=False, error_message="FakeEmailClient 模擬寄送失敗")
+            return EmailSendResult(
+                success=False,
+                should_retry=True,
+                error_category="network_error",
+                error_message="FakeEmailClient 模擬寄送失敗",
+            )
         return EmailSendResult(success=True, error_message=None)
 
 
@@ -89,6 +106,11 @@ class GmailSmtpEmailClient(BaseEmailClient):
                 smtp.login(self.username, self.app_password)
                 smtp.send_message(smtp_message)
         except Exception:
-            return EmailSendResult(success=False, error_message="Gmail SMTP 寄送失敗，請檢查帳號、App Password 或網路連線")
+            return EmailSendResult(
+                success=False,
+                should_retry=True,
+                error_category="network_error",
+                error_message="Gmail SMTP 寄送失敗，請檢查帳號、App Password 或網路連線",
+            )
 
         return EmailSendResult(success=True, error_message=None)

@@ -178,3 +178,18 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - `SCHEDULER_TIMEZONE`（MVP 預設 `Asia/Taipei`）決定排程判斷時區
 - DB datetime 仍為 UTC timezone-aware
 - `scheduled_date` 為業務日期（配合 send_window 去重）
+
+## Phase 11-4：Retry / Failure Handling / Monitoring
+
+到期提醒服務新增 reliability 規範：
+
+- `EMAIL_RETRY_MAX_ATTEMPTS`：預設 1，允許 0~3
+- retry 僅限：timeout / network_error / provider_5xx
+- 不可 retry：provider_4xx / invalid_configuration
+- 固定 backoff：5s / 15s / 30s
+- delivery log 需記錄：`attempt_count`、`last_error_message`、`last_attempt_at`、`final_status`
+- `final_status`：`success` / `failed` / `permanent_failed`
+
+安全要求：
+
+- structured log 不可輸出 API key、Authorization header、SMTP password、secret

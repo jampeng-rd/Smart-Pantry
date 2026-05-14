@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import socket
 from urllib import error, request
 
 from backend.app.infra.email_client import BaseEmailClient, EmailMessage, EmailSendResult
@@ -69,7 +70,7 @@ class ResendEmailClient(BaseEmailClient):
                         message.subject,
                         status_code,
                     )
-                    return EmailSendResult(success=True, error_message=None)
+                    return EmailSendResult(success=True, should_retry=False, error_category=None, error_message=None)
                 LOGGER.error(
                     "resend send unexpected status api_base_url=%s from_address=%s to_email=%s subject=%s status_code=%s",
                     self.api_base_url,
@@ -78,7 +79,12 @@ class ResendEmailClient(BaseEmailClient):
                     message.subject,
                     status_code,
                 )
-                return EmailSendResult(success=False, error_message="Resend 寄送失敗，請稍後再試")
+                return EmailSendResult(
+                    success=False,
+                    should_retry=False,
+                    error_category="unknown_error",
+                    error_message="Resend 寄送失敗，請稍後再試",
+                )
         except error.HTTPError as exc:
             response_body = ""
             if exc.fp is not None:
@@ -93,9 +99,38 @@ class ResendEmailClient(BaseEmailClient):
                 exc.code,
                 response_summary,
             )
+            error_category = "provider_5xx" if 500 <= exc.code < 600 else "provider_4xx"
+            if exc.code < 500 and self._is_invalid_configuration_error(response_summary):
+                error_category = "invalid_configuration"
             return EmailSendResult(
                 success=False,
+                should_retry=500 <= exc.code < 600,
+                error_category=error_category,
                 error_message=f"Resend 寄送失敗（HTTP {exc.code}）：{response_summary}",
+            )
+        except TimeoutError as exc:
+            safe_summary = self._sanitize_error_text(str(exc)) or "請求逾時"
+            return EmailSendResult(
+                success=False,
+                should_retry=True,
+                error_category="timeout",
+                error_message=f"Resend 寄送失敗（TimeoutError）：{safe_summary}",
+            )
+        except socket.timeout as exc:
+            safe_summary = self._sanitize_error_text(str(exc)) or "請求逾時"
+            return EmailSendResult(
+                success=False,
+                should_retry=True,
+                error_category="timeout",
+                error_message=f"Resend 寄送失敗（timeout）：{safe_summary}",
+            )
+        except error.URLError as exc:
+            safe_summary = self._sanitize_error_text(str(exc.reason)) or "網路錯誤"
+            return EmailSendResult(
+                success=False,
+                should_retry=True,
+                error_category="network_error",
+                error_message=f"Resend 寄送失敗（URLError）：{safe_summary}",
             )
         except Exception as exc:
             safe_summary = self._sanitize_error_text(str(exc)) or "未知錯誤"
@@ -111,6 +146,8 @@ class ResendEmailClient(BaseEmailClient):
             )
             return EmailSendResult(
                 success=False,
+                should_retry=False,
+                error_category="unknown_error",
                 error_message=f"Resend 寄送失敗（{exception_type}）：{safe_summary}",
             )
 
@@ -138,3 +175,16 @@ class ResendEmailClient(BaseEmailClient):
         """移除可能包含 secret 的片段，保留可除錯摘要。"""
         safe_text = text.replace(self.api_key, "[REDACTED]")
         return safe_text
+
+    def _is_invalid_configuration_error(self, summary: str) -> bool:
+        """判斷是否屬於不可重試的設定類錯誤。"""
+        lowered = summary.lower()
+        keywords = [
+            "verified domain",
+            "from address",
+            "invalid recipient",
+            "invalid sender",
+            "domain",
+            "configuration",
+        ]
+        return any(keyword in lowered for keyword in keywords)

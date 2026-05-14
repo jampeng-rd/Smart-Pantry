@@ -60,6 +60,10 @@ class ExpirationReminderDeliveryItem(BaseModel):
     item_count: int
     email_to: str
     status: str
+    final_status: str
+    attempt_count: int
+    last_error_message: str | None
+    last_attempt_at: datetime | None
     sent_at: datetime | None
     error_message: str | None
     created_at: datetime

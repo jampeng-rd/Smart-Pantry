@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     aws_ses_region: str = ""
     aws_ses_access_key_id: str = ""
     aws_ses_secret_access_key: str = ""
+    email_retry_max_attempts: int = 1
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
@@ -89,6 +90,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_email_provider_requirements(self):
         """驗證不同 Email provider 模式的必要欄位。"""
+        if self.email_retry_max_attempts < 0 or self.email_retry_max_attempts > 3:
+            raise ValueError("EMAIL_RETRY_MAX_ATTEMPTS 僅允許 0 到 3")
         if self.email_provider == "production":
             if not self.email_from_address.strip():
                 raise ValueError("EMAIL_PROVIDER=production 時，EMAIL_FROM_ADDRESS 不可為空")

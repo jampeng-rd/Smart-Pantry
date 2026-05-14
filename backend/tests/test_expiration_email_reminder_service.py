@@ -52,6 +52,10 @@ class FakeDelivery:
     item_ids: list[int]
     email_to: str
     status: str
+    final_status: str = "failed"
+    attempt_count: int = 0
+    last_error_message: str | None = None
+    last_attempt_at: datetime | None = None
     sent_at: datetime | None = None
     error_message: str | None = None
 
@@ -109,16 +113,31 @@ class FakeExpirationEmailReminderRepository:
         self._delivery_seq += 1
         return row
 
-    def mark_delivery_success(self, row: FakeDelivery, sent_at: datetime) -> FakeDelivery:
+    def mark_delivery_success(self, row: FakeDelivery, sent_at: datetime, attempt_count: int) -> FakeDelivery:
         """標記成功。"""
         row.status = "success"
+        row.final_status = "success"
+        row.attempt_count = attempt_count
+        row.last_attempt_at = sent_at
+        row.last_error_message = None
         row.sent_at = sent_at
         row.error_message = None
         return row
 
-    def mark_delivery_failed(self, row: FakeDelivery, error_message: str) -> FakeDelivery:
+    def mark_delivery_failed(
+        self,
+        row: FakeDelivery,
+        error_message: str,
+        attempt_count: int,
+        attempted_at: datetime,
+        permanent: bool,
+    ) -> FakeDelivery:
         """標記失敗。"""
         row.status = "failed"
+        row.final_status = "permanent_failed" if permanent else "failed"
+        row.attempt_count = attempt_count
+        row.last_attempt_at = attempted_at
+        row.last_error_message = error_message
         row.error_message = error_message
         return row
 
@@ -361,8 +380,11 @@ def test_fake_email_failed_should_write_error() -> None:
 
     result = service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
 
-    assert result.failed_count == 1
+    assert result.failed_count == 2
+    assert result.retry_count == 1
+    assert result.permanent_failed_count == 1
     assert repository.deliveries[0].status == "failed"
+    assert repository.deliveries[0].final_status == "permanent_failed"
     assert repository.deliveries[0].error_message is not None
 
 
@@ -562,6 +584,9 @@ def test_gmail_smtp_failed_result_should_be_recorded_to_delivery_log(monkeypatch
 
     result = service.run_for_window(scheduled_date=date(2026, 5, 13), send_window="morning_08")
 
-    assert result.failed_count == 1
+    assert result.failed_count == 2
+    assert result.retry_count == 1
+    assert result.permanent_failed_count == 1
     assert repository.deliveries[0].status == "failed"
+    assert repository.deliveries[0].final_status == "permanent_failed"
     assert repository.deliveries[0].error_message is not None

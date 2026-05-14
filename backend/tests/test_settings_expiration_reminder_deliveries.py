@@ -31,6 +31,10 @@ class FakeDelivery:
     item_ids: list[int]
     email_to: str
     status: str
+    final_status: str
+    attempt_count: int
+    last_error_message: str | None
+    last_attempt_at: datetime | None
     sent_at: datetime | None
     error_message: str | None
     created_at: datetime
@@ -52,6 +56,10 @@ class FakeProfileSettingsRepository:
                 item_ids=[1, 4, 26],
                 email_to="user1@example.com",
                 status="success",
+                final_status="success",
+                attempt_count=1,
+                last_error_message=None,
+                last_attempt_at=datetime(2026, 5, 12, 17, 33, 26, 479836, tzinfo=timezone.utc),
                 sent_at=datetime(2026, 5, 12, 17, 33, 26, 479836, tzinfo=timezone.utc),
                 error_message=None,
                 created_at=datetime(2026, 5, 12, 17, 33, 26, tzinfo=timezone.utc),
@@ -65,6 +73,10 @@ class FakeProfileSettingsRepository:
                 item_ids=[9],
                 email_to="user1@example.com",
                 status="failed",
+                final_status="permanent_failed",
+                attempt_count=2,
+                last_error_message="fake email provider timeout",
+                last_attempt_at=datetime(2026, 5, 12, 8, 5, tzinfo=timezone.utc),
                 sent_at=None,
                 error_message="fake email provider timeout",
                 created_at=datetime(2026, 5, 12, 8, 0, tzinfo=timezone.utc),
@@ -78,6 +90,10 @@ class FakeProfileSettingsRepository:
                 item_ids=[],
                 email_to="user1@example.com",
                 status="pending",
+                final_status="failed",
+                attempt_count=0,
+                last_error_message=None,
+                last_attempt_at=None,
                 sent_at=None,
                 error_message=None,
                 created_at=datetime(2026, 5, 11, 8, 0, tzinfo=timezone.utc),
@@ -91,6 +107,10 @@ class FakeProfileSettingsRepository:
                 item_ids=[100],
                 email_to="user2@example.com",
                 status="success",
+                final_status="success",
+                attempt_count=1,
+                last_error_message=None,
+                last_attempt_at=datetime(2026, 5, 12, 1, 0, tzinfo=timezone.utc),
                 sent_at=datetime(2026, 5, 12, 1, 0, tzinfo=timezone.utc),
                 error_message=None,
                 created_at=datetime(2026, 5, 12, 1, 0, tzinfo=timezone.utc),

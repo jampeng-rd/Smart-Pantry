@@ -59,6 +59,8 @@ def run_once(
             "total_users": 0,
             "success_count": 0,
             "failed_count": 0,
+            "retry_count": 0,
+            "permanent_failed_count": 0,
             "skipped_none": 0,
             "skipped_duplicate": 0,
             "skipped_no_items": 0,
@@ -79,6 +81,8 @@ def run_once(
         "total_users": result.total_users,
         "success_count": result.success_count,
         "failed_count": result.failed_count,
+        "retry_count": result.retry_count,
+        "permanent_failed_count": result.permanent_failed_count,
         "skipped_none": result.skipped_none,
         "skipped_duplicate": result.skipped_duplicate,
         "skipped_no_items": result.skipped_no_items,
@@ -90,8 +94,13 @@ def run_once(
 def _run_once_with_session(db: Session, scheduled_date: date, send_window: str):
     """以指定 DB session 執行一次提醒流程。"""
     repository = ExpirationEmailReminderRepository(db=db)
-    email_client = build_email_client(get_settings())
-    service = ExpirationEmailReminderService(repository=repository, email_client=email_client)
+    settings = get_settings()
+    email_client = build_email_client(settings)
+    service = ExpirationEmailReminderService(
+        repository=repository,
+        email_client=email_client,
+        retry_max_attempts=settings.email_retry_max_attempts,
+    )
     return service.run_for_window(scheduled_date=scheduled_date, send_window=send_window)
 
 

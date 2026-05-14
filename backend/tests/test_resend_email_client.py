@@ -189,3 +189,86 @@ def test_resend_client_should_return_http_status_and_non_json_summary(monkeypatc
     assert "HTTP 422" in result.error_message
     assert "非 JSON 回應" in result.error_message
     assert "re_test_secret_key" not in result.error_message
+
+
+def test_resend_http_500_should_retry(monkeypatch) -> None:
+    """HTTP 500 應標記可重試。"""
+    def fake_urlopen(_request_obj, timeout: int):
+        raise error.HTTPError(
+            url="https://api.resend.com/emails",
+            code=500,
+            msg="server error",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"temporary provider outage"}'),
+        )
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+    client = ResendEmailClient(api_key="re_test_secret_key", from_name="Smart Pantry", from_address="no-reply@example.com")
+    result = client.send_email(EmailMessage(to_email="user@example.com", subject="test", content_text="x"))
+    assert result.success is False
+    assert result.should_retry is True
+    assert result.error_category == "provider_5xx"
+
+
+def test_resend_http_400_should_not_retry(monkeypatch) -> None:
+    """HTTP 400 應標記不可重試。"""
+    def fake_urlopen(_request_obj, timeout: int):
+        raise error.HTTPError(
+            url="https://api.resend.com/emails",
+            code=400,
+            msg="bad request",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"bad request payload"}'),
+        )
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+    client = ResendEmailClient(api_key="re_test_secret_key", from_name="Smart Pantry", from_address="no-reply@example.com")
+    result = client.send_email(EmailMessage(to_email="user@example.com", subject="test", content_text="x"))
+    assert result.success is False
+    assert result.should_retry is False
+    assert result.error_category == "provider_4xx"
+
+
+def test_resend_invalid_configuration_should_not_retry(monkeypatch) -> None:
+    """domain/from address 錯誤應分類為 invalid_configuration 且不可重試。"""
+    def fake_urlopen(_request_obj, timeout: int):
+        raise error.HTTPError(
+            url="https://api.resend.com/emails",
+            code=403,
+            msg="forbidden",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"The from address does not match your verified domain."}'),
+        )
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+    client = ResendEmailClient(api_key="re_test_secret_key", from_name="Smart Pantry", from_address="no-reply@example.com")
+    result = client.send_email(EmailMessage(to_email="user@example.com", subject="test", content_text="x"))
+    assert result.success is False
+    assert result.should_retry is False
+    assert result.error_category == "invalid_configuration"
+
+
+def test_resend_timeout_should_retry(monkeypatch) -> None:
+    """TimeoutError 應可重試。"""
+    def fake_urlopen(_request_obj, timeout: int):
+        raise TimeoutError("request timeout")
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+    client = ResendEmailClient(api_key="re_test_secret_key", from_name="Smart Pantry", from_address="no-reply@example.com")
+    result = client.send_email(EmailMessage(to_email="user@example.com", subject="test", content_text="x"))
+    assert result.success is False
+    assert result.should_retry is True
+    assert result.error_category == "timeout"
+
+
+def test_resend_network_error_should_retry(monkeypatch) -> None:
+    """URLError 應可重試。"""
+    def fake_urlopen(_request_obj, timeout: int):
+        raise error.URLError("temporary dns failure")
+
+    monkeypatch.setattr("backend.app.infra.resend_email_client.request.urlopen", fake_urlopen)
+    client = ResendEmailClient(api_key="re_test_secret_key", from_name="Smart Pantry", from_address="no-reply@example.com")
+    result = client.send_email(EmailMessage(to_email="user@example.com", subject="test", content_text="x"))
+    assert result.success is False
+    assert result.should_retry is True
+    assert result.error_category == "network_error"

@@ -15,6 +15,8 @@ class FakeResult:
     total_users = 3
     success_count = 2
     failed_count = 1
+    retry_count = 1
+    permanent_failed_count = 1
     skipped_none = 0
     skipped_duplicate = 0
     skipped_no_items = 0

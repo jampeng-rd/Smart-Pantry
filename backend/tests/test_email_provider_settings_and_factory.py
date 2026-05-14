@@ -17,6 +17,21 @@ def test_settings_should_read_email_provider_fake() -> None:
     """Settings 應可讀取 EMAIL_PROVIDER=fake。"""
     settings = Settings(email_provider="fake")
     assert settings.email_provider == "fake"
+    assert settings.email_retry_max_attempts == 1
+
+
+def test_settings_should_accept_retry_max_attempts_from_env(monkeypatch) -> None:
+    """EMAIL_RETRY_MAX_ATTEMPTS 應可由 env 覆寫。"""
+    monkeypatch.setenv("EMAIL_RETRY_MAX_ATTEMPTS", "3")
+    settings = Settings()
+    assert settings.email_retry_max_attempts == 3
+
+
+def test_settings_should_reject_retry_max_attempts_greater_than_3() -> None:
+    """EMAIL_RETRY_MAX_ATTEMPTS 不可超過 3。"""
+    with pytest.raises(ValueError) as exc:
+        Settings(email_retry_max_attempts=4)
+    assert "EMAIL_RETRY_MAX_ATTEMPTS" in str(exc.value)
 
 
 def test_settings_should_read_email_provider_gmail_smtp() -> None:

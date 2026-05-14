@@ -66,15 +66,26 @@ class ExpirationEmailReminderRepository:
             item_ids=item_ids,
             email_to=email_to,
             status="pending",
+            final_status="failed",
+            attempt_count=0,
         )
         self.db.add(row)
         self.db.commit()
         self.db.refresh(row)
         return row
 
-    def mark_delivery_success(self, row: ExpirationReminderDelivery, sent_at: datetime) -> ExpirationReminderDelivery:
+    def mark_delivery_success(
+        self,
+        row: ExpirationReminderDelivery,
+        sent_at: datetime,
+        attempt_count: int,
+    ) -> ExpirationReminderDelivery:
         """將寄送紀錄更新為成功。"""
         row.status = "success"
+        row.final_status = "success"
+        row.attempt_count = attempt_count
+        row.last_attempt_at = sent_at
+        row.last_error_message = None
         row.sent_at = sent_at
         row.error_message = None
         self.db.add(row)
@@ -82,9 +93,20 @@ class ExpirationEmailReminderRepository:
         self.db.refresh(row)
         return row
 
-    def mark_delivery_failed(self, row: ExpirationReminderDelivery, error_message: str) -> ExpirationReminderDelivery:
-        """將寄送紀錄更新為失敗。"""
+    def mark_delivery_failed(
+        self,
+        row: ExpirationReminderDelivery,
+        error_message: str,
+        attempt_count: int,
+        attempted_at: datetime,
+        permanent: bool,
+    ) -> ExpirationReminderDelivery:
+        """將寄送紀錄更新為失敗或永久失敗。"""
         row.status = "failed"
+        row.final_status = "permanent_failed" if permanent else "failed"
+        row.attempt_count = attempt_count
+        row.last_attempt_at = attempted_at
+        row.last_error_message = error_message
         row.error_message = error_message
         self.db.add(row)
         self.db.commit()

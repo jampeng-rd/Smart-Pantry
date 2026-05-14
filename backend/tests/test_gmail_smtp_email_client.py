@@ -78,6 +78,7 @@ def test_gmail_smtp_client_should_send_email_successfully(monkeypatch) -> None:
     assert sent is not None
     assert sent.host == "smtp.gmail.com"
     assert sent.port == 587
+    assert sent.timeout == 30
     assert sent.started_tls is True
     assert sent.login_username == "dev@gmail.com"
     assert sent.login_password == "app-password"

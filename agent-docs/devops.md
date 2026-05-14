@@ -194,3 +194,11 @@ Gmail SMTP 額外限制：
 - 重複寄送主要由 delivery log success 去重保護
 - retry/monitoring 在 Phase 11-4 才實作
 - production secrets（SMTP password/API key）不可提交 git
+
+## Phase 11-4 部署注意事項
+
+- `.env` 新增 `EMAIL_RETRY_MAX_ATTEMPTS=1`
+- 允許 `0~3`，超過範圍設定應失敗
+- 預設補發 1 次，避免對錯誤收件地址重複轟炸
+- 監控以 structured logs 為主（本階段不導入 metrics/alert service）
+- 不可在 log 中輸出 secret（API key / SMTP password / Authorization）

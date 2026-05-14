@@ -33,7 +33,7 @@ Phase 11-0：Email Provider 策略與文件調整 ✅
 Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider（Resend）✅
 Phase 11-3：正式 scheduler / cron / docker deployment ✅
-Phase 11-4：retry / failure handling / monitoring ⏳
+Phase 11-4：retry / failure handling / monitoring ✅
 Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
 
@@ -861,3 +861,53 @@ python -m backend.app.jobs.expiration_email_runner --send-window evening_17 --sc
 - 排程時間依部署時區設定。
 - 主要防重為 delivery log `user_id + scheduled_date + send_window` success 去重。
 - retry / monitoring 於 Phase 11-4 實作。
+
+## Phase 11-4：Email Retry / Failure Handling / Monitoring
+
+新增 `.env`：
+
+- `EMAIL_RETRY_MAX_ATTEMPTS=1`（預設）
+- 允許範圍 `0~3`，超過 3 會設定驗證失敗
+
+Retry 規則：
+
+- `0`：不重試
+- `1`：最多補發 1 次
+- `2`：最多補發 2 次
+- `3`：最多補發 3 次
+- backoff 固定 `5s / 15s / 30s`
+
+只重試暫時性錯誤：
+
+- timeout
+- network error
+- provider 5xx
+
+不重試錯誤：
+
+- provider 4xx
+- invalid recipient/sender
+- domain verification error
+- invalid configuration
+
+設計目的：避免使用者 email 設定錯誤時反覆寄送，降低成本與封鎖風險。
+
+Delivery log 擴充：
+
+- `attempt_count`
+- `last_error_message`
+- `last_attempt_at`
+- `final_status`（`success` / `failed` / `permanent_failed`）
+
+Runner summary 擴充：
+
+- `retry_count`
+- `permanent_failed_count`
+
+Monitoring log：
+
+- `email send retry`
+- `email temporary failure`
+- `email permanent failure`
+
+安全：log 不可包含 API key / Authorization / SMTP password / secret。

@@ -165,3 +165,19 @@ Frontend：
 7. 既有 fake / gmail_smtp / resend 測試持續通過
 
 本階段不做 retry/monitoring 測試（留到 Phase 11-4）。
+
+## Phase 11-4 測試補充
+
+至少覆蓋：
+
+1. `EMAIL_RETRY_MAX_ATTEMPTS` 預設值為 1
+2. `EMAIL_RETRY_MAX_ATTEMPTS` 可由 env 覆寫
+3. `EMAIL_RETRY_MAX_ATTEMPTS` 超過 3 應失敗
+4. `EMAIL_RETRY_MAX_ATTEMPTS=0` 不 retry
+5. `provider_5xx` / `timeout` / `network_error` 會 retry
+6. `provider_4xx` / `invalid_configuration` 不 retry
+7. retry backoff：5s / 15s / 30s
+8. 超過最大次數進入 `permanent_failed`
+9. runner summary 應有 `retry_count`、`permanent_failed_count`
+10. log 不可包含 secret
+11. resend/smtp timeout 設定存在（30s）
