@@ -99,7 +99,8 @@ frontend/src/styles/{theme.css,globals.css}
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～12 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 13 評估 queue。
+- Phase 08～12 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 在 Phase 08～12 一律使用 DB polling / scheduler worker 實作，
+Phase 13 再評估 queue。
 - 若任務量成長，再於 Phase 13 升級正式 queue（首選 RQ + Redis）。
 
 ### 6.1 Worker isolation 與 Ollama runtime 隔離差異
@@ -230,9 +231,9 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 08～12 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
 
-## 12.1 AI 功能階段完成門檻（Phase 08～11）
+## 12.1 AI 功能階段完成門檻（Phase 08～12）
 
-Phase 08～10 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。Phase 10 已改為 Profile / Settings / Help / Email Reminder，不再視為 AI Nutrition 階段。
+Phase 08～12 每一個 AI 功能都必須以前後端完整可操作為完成標準，不可只完成 backend API、ai_worker 或文件後就進下一階段。Phase 10 已改為 Profile / Settings / Help / Email Reminder，不再視為 AI Nutrition 階段。
 
 每個 AI 功能階段至少需包含：
 

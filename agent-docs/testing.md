@@ -30,7 +30,7 @@
 - Resend client 單元測試必須 mock/stub HTTP client，不可真的呼叫 Resend API。
 - production provider 測試至少覆蓋 `resend` 成功路徑、缺少必要設定、`sendgrid/ses` 尚未實作錯誤與不支援 provider 錯誤。
 
-AI job 測試原則（Phase 08～11）：
+AI job 測試原則（Phase 08～12）：
 
 - 不可在單元測試中呼叫真實 Ollama。
 - 使用 fake AI client / fake worker。
@@ -76,7 +76,7 @@ npm run build
 
 - 圖片上傳需測試超過 5MB 時拒絕。
 - 測試 DB 僅保存 image_path / image_url，不保存圖片 blob/base64。
-- Phase 08～11 以 job-based 為主：需測 job 建立、狀態查詢、成功與失敗案例。
+- Phase 08～12 以 job-based 為主：需測 job 建立、狀態查詢、成功與失敗案例。
 - Phase 13 若導入 RQ + Redis，需補測 enqueue、worker process、retry、失敗重試策略。
 
 ## Shopping 與 Pantry 關係測試補充
@@ -85,7 +85,7 @@ npm run build
 - 測試標記 `is_purchased=true` 只更新 shopping item 狀態與 `purchased_at`。
 - 若未來新增 convert-to-pantry API，需測必填欄位確認流程（`name`、`category`、`quantity`、`unit`、`expiration_date`、`storage_location`、`note`）。
 
-## Phase 08～11 全端驗收要求
+## Phase 08～12 全端驗收要求
 
 Backend / Worker：
 

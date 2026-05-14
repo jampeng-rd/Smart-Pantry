@@ -77,9 +77,9 @@ backend/app/infra/{database,repository,settings,security,llm_client,ingredient_c
 - Dashboard summary 避免 N+1 query。
 - AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend request 不可同步等待 AI 任務完成。
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker（非 Redis queue）。
-- Phase 09～12：若延遲可接受，持續沿用 DB polling worker。
-- Phase 13：任務量明顯增加時，評估升級為 RQ + Redis。
-- RabbitMQ 非 MVP 與 Phase 08～11 預設方案，僅在複雜 routing/事件流需求時評估。
+- Phase 09～12：一律沿用 PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 13 統一評估並導入 RQ + Redis（視任務量需求）
+- RabbitMQ 非 MVP 與 Phase 08～12 預設方案，僅在複雜 routing/事件流需求時評估。
 - DB engine / session factory 集中管理，不可每次 request 重新建立 engine。
 
 ## Phase 12：Database Migration / Account Recovery 後端規範
