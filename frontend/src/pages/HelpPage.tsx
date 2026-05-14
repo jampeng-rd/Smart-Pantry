@@ -50,7 +50,7 @@ export function HelpPage() {
       </div>
 
       <p className="muted-text">
-        <FiMail aria-hidden="true" /> 若有問題需回報，請提供「重現步驟」與「畫面錯誤資訊」等問題，來信詢問:  pantry_support@gmail.com 等候專員的處理，謝謝您。
+        <FiMail aria-hidden="true" /> 若有問題需詢問，請提供「重現步驟」與「錯誤畫面」等資訊方便快速查詢，來信:  pantry_support@gmail.com 等候專員的處理與回覆，謝謝您。
       </p>
     </section>
   );

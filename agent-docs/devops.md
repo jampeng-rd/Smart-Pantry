@@ -25,7 +25,8 @@ feature/phase-08-1-ai-recipes-mock
 feature/phase-08-2-ai-recipes-ollama
 feature/phase-09-ingredient-photo
 feature/phase-10-nutrition-estimate
-feature/phase-11-ai-queue-worker-scaling
+feature/phase-12-db-migration-account-recovery
+feature/phase-13-ai-queue-worker-scaling
 ```
 
 ## 最小 CI
@@ -87,8 +88,8 @@ POST 建立任務 → 回傳 job_id → worker 執行 → GET 查詢狀態 → �
 階段策略：
 
 - Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker，不新增 Redis/Celery/RQ/Dramatiq/RabbitMQ。
-- Phase 09～11：Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
-- Phase 12：再升級 queue（首選 RQ + Redis，備選 Dramatiq + Redis）。
+- Phase 09～12：Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
+- Phase 13：再升級 queue（評估 RQ + Redis）。
 - RabbitMQ 暫不採用，僅在未來需要複雜 message routing/事件流時評估。
 
 ## AI 服務與環境變數規劃（本次僅文件）
@@ -118,13 +119,22 @@ LLM_VISION_MODEL=qwen3-vl:8b
 - 完整隔離：text/vision Ollama 分別部署到不同機器或不同 GPU，例如：
   - `OLLAMA_TEXT_BASE_URL=http://ollama-text.internal:11434`
   - `OLLAMA_VISION_BASE_URL=http://ollama-vision.internal:11434`
-- 高負載階段再於 Phase 11 評估 RQ + Redis、worker replicas、不同 job queue、GPU worker pool。
+- 高負載階段再於 Phase 13 評估 RQ + Redis、worker replicas、不同 job queue、GPU worker pool。
 
 docker-compose 後續規劃：
 
 - 新增 `ai-server` 或 `ai-worker` service（共用同一個 PostgreSQL）。
 - Phase 08～11 不新增 `redis` service。
-- Phase 12 若採 RQ + Redis，再新增 `redis` service。
+- Phase 13 若採 RQ + Redis，再新增 `redis` service。
+
+## Migration 與部署規範（Phase 12-3）
+
+- deployment 前必須執行：`alembic upgrade head`
+- production 不可使用 drop/recreate DB 作為升級方式。
+- migration 失敗必須中止 deployment，不可忽略錯誤繼續上線。
+- 需區分 development / staging / production migration 流程與驗收步驟。
+- 需有 migration rollback 策略與 failure handling 文件。
+- MVP 與目前 production deployment 的 AI 任務仍使用 PostgreSQL `ai_jobs` + DB polling worker。
 
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 

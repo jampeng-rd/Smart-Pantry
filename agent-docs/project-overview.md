@@ -47,7 +47,9 @@ MVP 可先使用單一 API server + PostgreSQL，但設計時需保留 paginatio
 - 後端與 DB 的 datetime 一律使用 UTC timezone-aware；API datetime 一律回傳含時區（`Z` 或 `+00:00`）。
 - 前端顯示時間時再依瀏覽器 timezone 或 `user_preferences.timezone` 轉換本地時間；Phase 06 MVP 先用瀏覽器 `Intl API`。
 - 圖片不可用 blob/base64 存入 PostgreSQL；開發階段可存本機 uploads/，正式環境使用 S3 / R2 / MinIO，DB 只存 image_path / image_url。
-- AI / Vision MVP 可同步呼叫，任務變慢後改成 Celery / RQ / Dramatiq background job。
+- Phase 08～12 維持 PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 13 再評估升級 RQ + Redis queue/worker scaling。
+- Phase 12 先補 Alembic migration 與 Account Recovery；AI Queue / Worker Scaling 順延到 Phase 13，且目前僅文件規劃。
 - AI 階段使用 LangChain 1.x 系列，LLM client 仍封裝在 infra 層。
 
 ## Shopping 與 Pantry 關係
@@ -97,3 +99,12 @@ Phase 10 改做：
 - Settings：主題切換、到期 Email 提醒、時區、語言保留、登出所有裝置（未來）、最近登入時間（未來）。
 - Help：操作教學、AI 使用限制、食材辨識拍攝建議、Email 提醒 FAQ。
 - Expiration Email Reminder：每天 8:00 與 17:00 依使用者設定寄送提醒。
+
+## Phase 12 / 13 路線調整
+
+- Phase 12：Database Migration / Account Recovery
+  - 先導入 Alembic migration system，禁止手動 ALTER TABLE 作為正式流程。
+  - 再做 Forgot Password / Reset Password，並沿用既有 email provider abstraction。
+- Phase 13：AI Queue / Worker Scaling
+  - 先規劃 Redis / RQ、queue migration、worker scaling、monitoring。
+  - 當前仍沿用 PostgreSQL `ai_jobs` + DB polling worker，不立即實作 queue migration。

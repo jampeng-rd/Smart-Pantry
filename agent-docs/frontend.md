@@ -72,6 +72,15 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 - 若 API 回傳 401，最多 refresh 一次並重送原 request。
 - Refresh 失敗才清除登入狀態並導回登入頁。
 
+## Forgot Password / Reset Password UI 規範（Phase 12-2）
+
+- Login 頁需提供「忘記密碼」入口。
+- 新增 Forgot Password view 與 Reset Password view。
+- 視覺與互動需整合既有 Login/Register Auth Card 風格。
+- UI 與錯誤訊息必須使用繁體中文。
+- 不可顯示技術錯誤（例如 raw exception、HTTP stack、provider 錯誤細節）。
+- Forgot Password 提交後，無論 email 是否存在都顯示相同成功提示。
+
 ## 時間顯示規範
 
 - 後端與 API 以 UTC 為標準時間，前端不可假設回傳時間是本地時間。
@@ -149,7 +158,7 @@ Sidebar 功能導覽至少包含：
 - Shopping
 - Recipes
 - 食材辨識
-- Nutrition
+- Nutrition route 可保留，但 MVP Sidebar 先隱藏（Nutrition 暫緩，避免未完成 placeholder）
 - Dashboard route（`/dashboard`）目前保留為未來總覽頁，MVP 側欄可先隱藏該導航項目。
 - Settings 由使用者選單進入。
 
@@ -233,7 +242,7 @@ Phase 06 必須拆分：
 
 ## AI 功能前端完成標準（Phase 08～11）
 
-Recipes、食材辨識、Nutrition 頁不可只保留 placeholder。進行對應 AI 階段時，必須完成實際 UI 與 backend job API 串接。
+Recipes、食材辨識頁不可只保留 placeholder。Nutrition 暫緩，未進入對應階段前不可新增未完成 placeholder。
 
 AI job frontend 共通流程：
 
@@ -258,7 +267,7 @@ Recipes UI：
 - 食材辨識 candidate items
 - 使用者確認後寫入 pantry
 
-Nutrition UI：
+Nutrition UI（未來恢復後）：
 
 - nutrition estimate result
 - AI 生活參考聲明

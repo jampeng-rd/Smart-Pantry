@@ -25,15 +25,24 @@ Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
 Phase 08-3：Recipes 前端 UI 串接 ✅
-Phase 09-0：AI Worker 架構調整 / job_type 隔離 ⏳
-Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ⏳
-Phase 09-2：Vision Model 食材候選辨識 ⏳
-Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ⏳
+Phase 09-0：AI Worker 架構調整 / job_type 隔離 ✅
+Phase 09-1：食材照片辨識 Job API + Storage + Mock Worker ✅
+Phase 09-2：Vision Model 食材候選辨識 ✅
+Phase 09-3：食材辨識前端 UI + 使用者確認寫入 Pantry ✅
 Phase 10-0：Phase 10 方向調整（跳過 Nutrition，改做 Profile / Settings / Help / Email Reminder）✅
-Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ⏳
-Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ⏳
-Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ⏳
-Phase 11：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
+Phase 10-1：Profile / Settings / Help 前端與偏好資料模型 ✅
+Phase 10-2：到期 Email Reminder 後端排程與寄信服務 ✅
+Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
+Phase 11-0：Email Provider 策略與文件調整 ✅
+Phase 11-1：Gmail SMTP 真實寄信 ✅
+Phase 11-2：Production Email Provider（Resend）✅
+Phase 11-3：正式 scheduler / cron / docker deployment ✅
+Phase 11-4：retry / failure handling / monitoring ✅
+Phase 12-0：文件與階段方向調整（Migration / Account Recovery）⏳
+Phase 12-1：Alembic Migration System ⏳
+Phase 12-2：Forgot Password / Reset Password ⏳
+Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
+Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 ```
 
 ## 環境需求
@@ -71,6 +80,6 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認；Nutri
 
 ## 效能與擴充性
 
-開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index，AI / 圖片處理 MVP 可同步呼叫，後續可改 Celery / RQ / Dramatiq background job。圖片不存 DB blob/base64；DB 只存 image_path / image_url，圖片正式環境使用 S3 / R2 / MinIO。
+開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI 任務在 Phase 08～12 採 PostgreSQL `ai_jobs` + DB polling worker；Phase 13 再評估 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url，圖片正式環境使用 S3 / R2 / MinIO。
 
 收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。

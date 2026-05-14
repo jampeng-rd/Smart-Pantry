@@ -68,6 +68,19 @@ frontend/src/styles/{theme.css,globals.css}
 - 前端顯示時再依瀏覽器 timezone 或未來 `user_preferences.timezone` 轉換成本地時間。
 - Phase 06 MVP 先使用瀏覽器 `Intl API` 顯示本地時間。
 
+## 4.2 Forgot Password / Reset Password 安全規範
+
+- 後端需提供 `POST /auth/forgot-password` 與 `POST /auth/reset-password`。
+- forgot password API 不可暴露 email 是否存在；email 存在與不存在都回相同成功訊息。
+- reset token 只存 hash，不存明文 token。
+- reset token 過期、已使用、錯誤時，回傳繁體中文友善錯誤訊息。
+- reset password 成功後必須：
+  - 更新 `password_hash`
+  - 標記 reset token `used_at`
+  - revoke 該使用者既有 refresh tokens
+- Forgot Password 寄信必須使用既有 email provider abstraction，不可建立獨立 forgot password SMTP implementation。
+- 必須共用既有 `EMAIL_PROVIDER`、Gmail SMTP provider、Resend provider、`FakeEmailClient`、`email_client_factory`。
+
 ## 5. 圖片與檔案儲存規範
 
 - 不可把圖片 blob 或 base64 直接存入 PostgreSQL。
@@ -86,8 +99,8 @@ frontend/src/styles/{theme.css,globals.css}
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～10 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 12 評估 queue。
-- 若任務量成長，再於 Phase 12 升級正式 queue（首選 RQ + Redis）。
+- Phase 08～12 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 可先用 DB polling / scheduler worker 實作，若量大再於 Phase 13 評估 queue。
+- 若任務量成長，再於 Phase 13 升級正式 queue（首選 RQ + Redis）。
 
 ### 6.1 Worker isolation 與 Ollama runtime 隔離差異
 
@@ -147,7 +160,7 @@ Sidebar 需包含：
 
 - 最上方 Logo。
 - Logo 右側需有 Sidebar 收合按鈕（icon button）。
-- 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、食材辨識、Nutrition。
+- 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、食材辨識。Nutrition route 可保留但 Sidebar 先隱藏。
 - Dashboard route 保留但導航先隱藏；Settings 由使用者選單進入。
 - 底部固定顯示目前登入使用者。
 
@@ -187,18 +200,34 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - 更新 README
 - 維持 frontend build 可通過
 
-## 12. AI 階段拆分與 Queue 策略
+## 12. Phase 12：Database Migration / Account Recovery
+
+- Phase 12-0：文件與階段方向調整
+- Phase 12-1：Alembic Migration System
+- Phase 12-2：Forgot Password / Reset Password
+- Phase 12-3：Deployment Migration / DB Upgrade 驗收
+
+策略：
+
+- 原本 Phase 12 AI Queue / Worker Scaling 順延到 Phase 13。
+- 因現有資料表與 schema 持續增加，需先導入 Alembic 作為正式 schema 變更流程。
+- 引入 migration 後，不可再以手動 `ALTER TABLE` 作為正式流程。
+- Forgot Password 需要新增 `password_reset_tokens`，必須建立 migration 基礎後再實作。
+- MVP / production deployment 未來需執行：`alembic upgrade head`。
+
+## 13. AI 階段拆分與 Queue 策略（先規劃）
 
 - Phase 08-0：AI Server / AI Job 架構初始化
 - Phase 08-1：AI 食譜推薦 Mock（`ai_jobs` + fake worker，不呼叫真實 Ollama）
 - Phase 08-2：AI 食譜推薦 LangChain + Ollama
 - Phase 09：食材照片辨識（沿用 `ai_jobs`）
-- Phase 10：餐點營養粗估（沿用 `ai_jobs`）
-- Phase 12：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
+- Phase 13：AI Queue / Worker Scaling（視需求導入，首選 RQ + Redis）
 
 策略：
 
-- Phase 08～10 不將 RabbitMQ 作為預設方案。
+- MVP 與目前 production deployment 持續使用 PostgreSQL `ai_jobs` + DB polling worker。
+- Phase 13 目前只做文件規劃，不立即實作 queue migration。
+- Phase 08～12 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
 
 ## 12.1 AI 功能階段完成門檻（Phase 08～11）
@@ -253,7 +282,7 @@ Nutrition 暫緩，不在下一階段實作。Phase 10 改為補齊使用者設�
 - Phase 11-3：正式 scheduler / cron / docker deployment
 - Phase 11-4：retry / failure handling / monitoring
 
-## 13. Phase 10：Profile / Settings / Help / Expiration Email Reminder 規範
+## 14. Phase 10：Profile / Settings / Help / Expiration Email Reminder 規範
 
 Phase 10 不做 Nutrition。理由是單張餐點照片難以準確推估份量、油量、醬料與食材比例，若直接宣稱熱量或營養估算容易造成誤導。後續若恢復 Nutrition，必須加入使用者確認份量與明確生活參考聲明。
 
