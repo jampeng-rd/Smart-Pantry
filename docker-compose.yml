@@ -50,5 +50,28 @@ services:
     depends_on:
       - smartpantry-db
 
+  expiration-email-scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartpantry-expiration-email-scheduler
+    environment:
+      DATABASE_URL: postgresql+psycopg://smartpantry_user:smartpantry_password@smartpantry-db:5432/smartpantry_db
+      APP_ENV: dev
+      EMAIL_PROVIDER: fake
+      SCHEDULER_TIMEZONE: Asia/Taipei
+    command: >
+      sh -c "while true; do
+        CURRENT_HOUR=$$(TZ=$${SCHEDULER_TIMEZONE:-Asia/Taipei} date +%H);
+        if [ \"$$CURRENT_HOUR\" = \"08\" ]; then
+          python -m backend.app.jobs.expiration_email_runner --send-window morning_08;
+        elif [ \"$$CURRENT_HOUR\" = \"17\" ]; then
+          python -m backend.app.jobs.expiration_email_runner --send-window evening_17;
+        fi;
+        sleep 3600;
+      done"
+    depends_on:
+      - smartpantry-db
+
 volumes:
   smartpantry_postgres_data:

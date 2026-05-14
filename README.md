@@ -32,7 +32,7 @@ Phase 10-3：到期 Email Reminder 前端設定與寄送紀錄 ✅
 Phase 11-0：Email Provider 策略與文件調整 ✅
 Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider（Resend）✅
-Phase 11-3：正式 scheduler / cron / docker deployment ⏳
+Phase 11-3：正式 scheduler / cron / docker deployment ✅
 Phase 11-4：retry / failure handling / monitoring ⏳
 Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
 ```
@@ -828,3 +828,36 @@ Resend 使用注意：
 - 本階段只實作 Resend，不實作 SendGrid/Amazon SES。
 - 不導入正式 scheduler/cron（留到 Phase 11-3）。
 - 不做 retry/monitoring（留到 Phase 11-4）。
+
+## Phase 11-3：到期 Email 正式排程部署
+
+Runner：`backend/app/jobs/expiration_email_runner.py`
+
+- 不帶 `--send-window` 時，依 `SCHEDULER_TIMEZONE`（MVP 預設 `Asia/Taipei`）判斷：
+  - 08 點 -> `morning_08`
+  - 17 點 -> `evening_17`
+  - 其他時段 -> 略過不執行
+- 可用 `--send-window` 覆蓋自動判斷
+- 可用 `--scheduled-date YYYY-MM-DD` 指定業務日期
+- 例外會回傳非 0 exit code
+
+手動執行：
+
+```bash
+python -m backend.app.jobs.expiration_email_runner --send-window morning_08 --scheduled-date 2026-05-14
+python -m backend.app.jobs.expiration_email_runner --send-window evening_17 --scheduled-date 2026-05-14
+```
+
+部署方式：
+
+- Linux cron（建議 `CRON_TZ=Asia/Taipei`）
+- Docker Compose 獨立 scheduler container（`expiration-email-scheduler`）
+
+詳細請見：`docs/phase-11-3-expiration-email-scheduler-deployment.md`
+
+時區與重複寄送策略：
+
+- DB datetime 維持 UTC；`scheduled_date` 為業務日期。
+- 排程時間依部署時區設定。
+- 主要防重為 delivery log `user_id + scheduled_date + send_window` success 去重。
+- retry / monitoring 於 Phase 11-4 實作。

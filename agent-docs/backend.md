@@ -162,3 +162,19 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 
 - 補齊失敗重試、退避策略、可觀測性（log/metrics/告警）與寄送失敗追蹤。
 - 需可區分 provider error、網路錯誤與無效收件地址類型。
+
+## Phase 11-3 Runner 規範
+
+`backend/app/jobs/expiration_email_runner.py` 必須支援：
+
+- 不帶 `--send-window` 自動判斷：08 => `morning_08`，17 => `evening_17`
+- 非排程時段可明確略過，不執行寄送流程
+- `--send-window` 可覆蓋自動判斷
+- `--scheduled-date YYYY-MM-DD` 指定業務日期
+- 錯誤時回傳非 0 exit code
+
+時區策略：
+
+- `SCHEDULER_TIMEZONE`（MVP 預設 `Asia/Taipei`）決定排程判斷時區
+- DB datetime 仍為 UTC timezone-aware
+- `scheduled_date` 為業務日期（配合 send_window 去重）

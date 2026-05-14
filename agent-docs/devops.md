@@ -171,3 +171,26 @@ Gmail SMTP 額外限制：
 
 - 提醒規則應保留在 server，讓 Web / iOS / Android 共用。
 - 手機 App 未來可新增 push token，由 server 決定何時提醒，mobile 只負責顯示 push notification。
+
+## Phase 11-3：Scheduler / Cron / Docker Deployment
+
+到期提醒排程在 Phase 11-3 以簡單穩定方案部署，不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+
+### Linux cron（建議）
+
+- 設定 `CRON_TZ=Asia/Taipei`
+- 每日 08:00 執行 morning_08
+- 每日 17:00 執行 evening_17
+
+### Docker Compose scheduler service
+
+- backend API 與 scheduler 拆成不同 container
+- scheduler 只執行 `python -m backend.app.jobs.expiration_email_runner`
+- 可使用 `docker-compose.scheduler.prod.yml` 作為 production override
+
+### 注意事項
+
+- DB datetime 一律 UTC，排程觸發時區由部署環境（`SCHEDULER_TIMEZONE`）控制
+- 重複寄送主要由 delivery log success 去重保護
+- retry/monitoring 在 Phase 11-4 才實作
+- production secrets（SMTP password/API key）不可提交 git

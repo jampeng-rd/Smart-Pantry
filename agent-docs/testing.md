@@ -151,3 +151,17 @@ Frontend：
 - Settings「最近寄送紀錄」有 loading / error+重試 / empty / pagination（使用共用 Pagination）。
 - 手機版寄送紀錄為 card-like 顯示，避免表格過度橫向捲動。
 - Help 頁顯示食材辨識、食譜建議與 Email 提醒說明。
+
+## Phase 11-3 Scheduler 測試補充
+
+至少覆蓋 runner 測試：
+
+1. 不帶 send-window 可判斷 `morning_08`
+2. 不帶 send-window 可判斷 `evening_17`
+3. 非排程時段可明確略過
+4. CLI 指定 send-window 可覆蓋自動判斷
+5. 可指定 scheduled-date
+6. service 例外時 exit code 非 0
+7. 既有 fake / gmail_smtp / resend 測試持續通過
+
+本階段不做 retry/monitoring 測試（留到 Phase 11-4）。

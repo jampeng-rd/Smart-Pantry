@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     app_host: str = "0.0.0.0"
     app_port: int = 8000
+    scheduler_timezone: str = "Asia/Taipei"
 
     database_url: str = "postgresql+psycopg://smartpantry_user:smartpantry_password@localhost:5432/smartpantry_db"
 

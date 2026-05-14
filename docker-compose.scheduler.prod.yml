@@ -1,0 +1,23 @@
+services:
+  expiration-email-scheduler:
+    image: smartpantry-backend:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      APP_ENV: ${APP_ENV:-prod}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-production}
+      PRODUCTION_EMAIL_PROVIDER: ${PRODUCTION_EMAIL_PROVIDER:-resend}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      SCHEDULER_TIMEZONE: ${SCHEDULER_TIMEZONE:-Asia/Taipei}
+    command: >
+      sh -c "while true; do
+        CURRENT_HOUR=$$(TZ=$${SCHEDULER_TIMEZONE:-Asia/Taipei} date +%H);
+        if [ \"$$CURRENT_HOUR\" = \"08\" ]; then
+          python -m backend.app.jobs.expiration_email_runner --send-window morning_08;
+        elif [ \"$$CURRENT_HOUR\" = \"17\" ]; then
+          python -m backend.app.jobs.expiration_email_runner --send-window evening_17;
+        fi;
+        sleep 3600;
+      done"
