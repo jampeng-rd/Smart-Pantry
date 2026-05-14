@@ -1,0 +1,3 @@
+此目錄為 Alembic migration script 位置。
+
+Phase 12-1 起，資料庫 schema 變更需透過 Alembic revision 管理。

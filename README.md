@@ -34,8 +34,8 @@ Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider（Resend）✅
 Phase 11-3：正式 scheduler / cron / docker deployment ✅
 Phase 11-4：retry / failure handling / monitoring ✅
-Phase 12-0：文件與階段方向調整（Migration / Account Recovery）⏳
-Phase 12-1：Alembic Migration System ⏳
+Phase 12-0：文件與階段方向調整（Migration / Account Recovery）✅
+Phase 12-1：Alembic Migration System ✅
 Phase 12-2：Forgot Password / Reset Password ⏳
 Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
@@ -76,6 +76,7 @@ Gmail SMTP 使用注意：
 python -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
+alembic upgrade head
 python -m uvicorn backend.app.main:app --reload
 ```
 
@@ -644,6 +645,35 @@ frontend 不可直接呼叫 ai_server，只能透過 backend job API。
 - migration 導入後，正式流程不可再使用手動 `ALTER TABLE`。
 - Forgot Password 必須共用既有 `email_client_factory` 與 provider abstraction，不可新增獨立 SMTP 實作。
 - deployment 前需執行 `alembic upgrade head`。
+
+## Phase 12-1：Alembic Migration System（進行中）
+
+本階段已導入 Alembic 基礎結構：
+
+- `alembic.ini`
+- `migrations/env.py`
+- `migrations/versions/20260514_1201_baseline_schema.py`
+
+規範：
+
+- 後續 schema 變更必須新增 migration 檔案。
+- 不可再以手動 `ALTER TABLE` 作為正式流程。
+
+本地驗證流程（開發環境）：
+
+1. 啟動 PostgreSQL（本機或 Docker Compose）。
+2. 設定 `.env` 的 `DATABASE_URL` 指向目標 DB。
+3. 執行 `alembic upgrade head`。
+4. 執行 `alembic current`，確認 revision 為 `20260514_1201`。
+5. 啟動後端 `python -m uvicorn backend.app.main:app --reload`。
+
+若是「已存在舊資料表」的開發資料庫，第一次導入 Alembic 請先執行：
+
+```bash
+alembic stamp 20260514_1201
+```
+
+之後再以 migration revision 管理後續 schema 變更。
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

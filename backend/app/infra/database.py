@@ -24,5 +24,6 @@ def get_db_session() -> Generator[Session, None, None]:
 
 
 def init_database() -> None:
-    """初始化資料表（MVP 先以 metadata 建表）。"""
-    Base.metadata.create_all(bind=engine)
+    """初始化資料庫連線（Phase 12-1 起由 Alembic 管理 schema）。"""
+    # Phase 12-1 起不再於啟動時自動 create_all，避免繞過 migration 流程。
+    return None
