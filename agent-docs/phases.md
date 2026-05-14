@@ -146,7 +146,7 @@ Nutrition 暫緩，不在下一階段實作。原因是單張餐點照片難以�
 ## AI Queue 策略補充（Phase 13 起，先規劃）
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker，不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
-- Phase 09～10：若 DB polling worker 可接受，持續沿用，Vision/Nutrition 共用 `ai_jobs`。
+- Phase 09～12：Vision/Nutrition 共用 `ai_jobs`，一律使用 DB polling worker。
 - 任務量與延遲明顯上升時才進入 Phase 13 升級。
 
 ## Phase 06 子階段規劃

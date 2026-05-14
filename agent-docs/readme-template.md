@@ -20,7 +20,7 @@ Phase 06-5：Shopping UI ✅
 Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
 Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 06-6C：前端共用元件盤點與小幅整理 ✅
-Phase 07：CI/CD 與部署 ⏳
+Phase 07：CI/CD 與部署（基礎 CI 已完成）✅
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅

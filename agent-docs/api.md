@@ -212,7 +212,7 @@ request 補充：
 
 ## AI Job API 共通規則
 
-Phase 08～11 AI 功能統一採 job-based API：
+Phase 08～12 AI 功能統一採 job-based API：
 
 - POST 建立 job
 - GET 查詢 job status/result

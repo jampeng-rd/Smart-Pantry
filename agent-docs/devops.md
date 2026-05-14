@@ -79,7 +79,7 @@ jobs:
 
 ## Background Job 規劃
 
-Phase 08～11 採 job-based 流程，backend 不同步等待 AI 任務：
+Phase 08～12 採 job-based 流程，backend 不同步等待 AI 任務：
 
 ```text
 POST 建立任務 → 回傳 job_id → worker 執行 → GET 查詢狀態 → 前端顯示結果
@@ -88,7 +88,7 @@ POST 建立任務 → 回傳 job_id → worker 執行 → GET 查詢狀態 → �
 階段策略：
 
 - Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker，不新增 Redis/Celery/RQ/Dramatiq/RabbitMQ。
-- Phase 09～12：Vision/Nutrition 共用 `ai_jobs`；若延遲可接受，持續 DB polling。
+- Phase 09～12：Vision/Nutrition 共用 `ai_jobs`，一律使用 DB polling worker。
 - Phase 13：再升級 queue（評估 RQ + Redis）。
 - RabbitMQ 暫不採用，僅在未來需要複雜 message routing/事件流時評估。
 
@@ -124,7 +124,7 @@ LLM_VISION_MODEL=qwen3-vl:8b
 docker-compose 後續規劃：
 
 - 新增 `ai-server` 或 `ai-worker` service（共用同一個 PostgreSQL）。
-- Phase 08～11 不新增 `redis` service。
+- Phase 08～12 不新增 `redis` service。
 - Phase 13 若採 RQ + Redis，再新增 `redis` service。
 
 ## Migration 與部署規範（Phase 12-3）

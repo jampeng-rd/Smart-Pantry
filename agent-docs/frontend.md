@@ -240,7 +240,7 @@ Phase 06 必須拆分：
 - responsive fixes
 - 路由整理（登入/註冊/已登入首頁導向 `/pantry`）
 
-## AI 功能前端完成標準（Phase 08～11）
+## AI 功能前端完成標準（Phase 08～12）
 
 Recipes、食材辨識頁不可只保留 placeholder。Nutrition 暫緩，未進入對應階段前不可新增未完成 placeholder。
 

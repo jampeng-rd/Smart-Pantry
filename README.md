@@ -16,7 +16,7 @@ Phase 06-5：Shopping UI ✅
 Phase 06-6A：Pantry / Shopping 前端整合 UX 修正 ✅
 Phase 06-6B：前端路由與登入導向整理 ✅
 Phase 06-6C：前端共用元件盤點與小幅整理 ✅
-Phase 07：CI/CD 與部署 ⏳
+Phase 07：CI/CD 與部署（基礎 CI 已完成）✅
 Phase 08-0：AI Server / AI Job 架構初始化 ✅
 Phase 08-1：AI 食譜推薦 Mock（ai_jobs + fake worker）✅
 Phase 08-2：AI 食譜推薦 LangChain + Ollama ✅
@@ -615,9 +615,9 @@ docker-compose 後續規劃：
 
 開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～12 先採 `ai_jobs` + DB polling worker，Phase 13 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
 
-## AI 階段完成門檻（Phase 08～11）
+## AI 階段完成門檻（Phase 08～12）
 
-Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必須達成「前後端完整可操作」後，才能進入下一階段。
+Phase 08～12 不可只完成 backend API 或 ai_worker。每個 AI 階段都必須達成「前後端完整可操作」後，才能進入下一階段。
 
 每個 AI 階段至少需完成：
 
