@@ -260,6 +260,32 @@ def test_invalid_recipient_should_return_user_email_failure_message() -> None:
     assert failed_item.user_friendly_error_message == "此 Email 無法正確寄送通知，若有問題請來信諮詢。"
 
 
+def test_invalid_to_field_should_return_user_email_failure_message() -> None:
+    """invalid `to` field 應映射為使用者 Email 無法寄送訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "provider_4xx"
+    repository.deliveries[1].last_error_message = "Invalid `to` field"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "此 Email 無法正確寄送通知，若有問題請來信諮詢。"
+
+
+def test_incomplete_recipient_email_should_return_user_email_failure_message() -> None:
+    """不完整收件者 email 應映射為使用者 Email 無法寄送訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "provider_4xx"
+    repository.deliveries[1].last_error_message = "recipient address invalid: jampeng.rd@gmail"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "此 Email 無法正確寄送通知，若有問題請來信諮詢。"
+
+
 def test_api_key_invalid_should_return_system_failure_message() -> None:
     """API key invalid 應映射為系統異常訊息。"""
     repository = FakeProfileSettingsRepository()

@@ -18,7 +18,7 @@ export function HelpPage() {
 
       <h3 className="workspace-subtitle">3. 購物清單使用方式</h3>
       <p>
-        <FiShoppingCart aria-hidden="true" /> 可手動新增購物項目，或從庫存快速加入。標記已購買僅更新購物狀態，不會自動寫入庫存。
+        <FiShoppingCart aria-hidden="true" /> 可手動新增購物項目，或從庫存快速加入。標記已購買僅更新購物狀態，不會自動存入庫存。
       </p>
 
       <h3 className="workspace-subtitle">4. 食譜建議使用限制</h3>
@@ -29,12 +29,12 @@ export function HelpPage() {
         <FiCamera aria-hidden="true" /> 建議拍攝單一或少量食材，避免整桌料理、冰箱全景與模糊照片，以提高辨識品質。
       </p>
 
-      <h3 className="workspace-subtitle">6. 到期 Email 提醒規則</h3>
+      <h3 className="workspace-subtitle">6. 到期 Email 提醒設定</h3>
       <ul className="help-list">
         <li>不提醒</li>
         <li>前 1 天（預設）</li>
         <li>前 3 天</li>
-        <li>未來寄送時間為上午 8:00 與下午 5:00（Phase 10-2 實作）</li>
+        <li>寄送時間為上午 8:00 與下午 5:00</li>
       </ul>
 
       <h3 className="workspace-subtitle">7. FAQ</h3>
@@ -50,7 +50,7 @@ export function HelpPage() {
       </div>
 
       <p className="muted-text">
-        <FiMail aria-hidden="true" /> 若需回報問題，請在專案 issue 或維運通道提供重現步驟與畫面資訊。
+        <FiMail aria-hidden="true" /> 若有問題需回報，請提供「重現步驟」與「畫面錯誤資訊」等問題，來信詢問:  pantry_support@gmail.com 等候專員的處理，謝謝您。
       </p>
     </section>
   );

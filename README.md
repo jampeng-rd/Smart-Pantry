@@ -932,3 +932,10 @@ Email delivery 錯誤改為四類 user-facing 文案：
 - 系統設定或伺服器異常：`目前系統偵測異常，系統維修中。`
 
 前端不顯示 provider 原始英文錯誤、HTTP status、API key/domain/from 相關錯誤字串。
+
+### Phase 11-4 Bug Fix：Recipient Email 分類
+
+- `invalid to`、`invalid recipient`、不完整收件者 email（如 `jampeng.rd@gmail`）
+  - 顯示：`此 Email 無法正確寄送通知，若有問題請來信諮詢。`
+- `invalid from`、`invalid sender`、API key invalid、domain not verified
+  - 顯示：`目前系統偵測異常，系統維修中。`

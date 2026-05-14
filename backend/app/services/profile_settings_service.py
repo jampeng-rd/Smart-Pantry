@@ -1,5 +1,7 @@
 """Profile 與 Settings 商業邏輯服務。"""
 
+import re
+
 from fastapi import HTTPException, status
 
 from backend.app.domain.schemas.profile_settings_schema import (
@@ -152,9 +154,21 @@ class ProfileSettingsService:
         if not last_error_message:
             return False
         lowered = last_error_message.lower()
+        if "invalid `from`" in lowered or "invalid from" in lowered or "invalid sender" in lowered:
+            return False
+
+        email_like_tokens = re.findall(r"[a-z0-9._%+-]+@[a-z0-9.-]+", lowered)
+        for token in email_like_tokens:
+            domain_part = token.split("@", maxsplit=1)[1]
+            if "." not in domain_part:
+                return True
+
         keywords = [
             "invalid recipient",
             "recipient",
+            "invalid `to`",
+            "invalid to",
+            "to field",
             "mailbox",
             "user unknown",
             "no such user",

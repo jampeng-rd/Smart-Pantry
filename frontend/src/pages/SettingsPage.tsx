@@ -204,7 +204,7 @@ export function SettingsPage() {
             </option>
           ))}
         </select>
-        <p className="muted-text">MVP 目前使用 fake email client，寄送紀錄僅供功能驗證。</p>
+        {/* <p className="muted-text">MVP 目前使用 fake email client，寄送紀錄僅供功能驗證。</p> */}
 
         <div className="settings-delivery-block">
           <div className="settings-delivery-head">

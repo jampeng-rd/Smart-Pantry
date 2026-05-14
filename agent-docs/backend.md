@@ -215,3 +215,9 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 `invalid_configuration`（如 API key invalid / domain not verified / invalid from）屬於系統設定異常，不得映射為使用者 Email 問題。
 
 同時保留完整錯誤於 backend delivery log（`last_error_message`、`error_category`）與 structured logs，供 admin/monitoring 使用。
+
+## Phase 11-4 Recipient/From 錯誤分類補充
+
+- `invalid to` / `invalid recipient` / recipient email 格式錯誤（含不完整 domain/TLD） => 使用者 Email 無法寄送
+- `invalid from` / `invalid sender` / API key invalid / domain not verified => 系統設定或伺服器異常
+- backend user-facing mapping 必須明確區分 `to` 與 `from`，避免誤導使用者。

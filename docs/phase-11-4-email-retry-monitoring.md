@@ -130,3 +130,12 @@
 - 例：API key invalid、domain not verified、invalid from/sender、provider 設定錯誤、backend 500
 
 後端仍保留完整錯誤細節於 delivery log / structured logs；使用者 API 僅回傳 `user_friendly_error_message`。
+
+### Bug Fix：recipient email 格式錯誤分類
+
+修正：`invalid to` / `invalid recipient` / 收件者 email 不完整（例如 `jampeng.rd@gmail`）現在歸類為「使用者 Email 無法寄送」。
+
+- `invalid to` / `invalid recipient` / recipient mailbox / recipient email 格式錯誤
+  - `此 Email 無法正確寄送通知，若有問題請來信諮詢。`
+- `invalid from` / `invalid sender` / API key invalid / domain not verified
+  - `目前系統偵測異常，系統維修中。`
