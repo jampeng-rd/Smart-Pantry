@@ -64,13 +64,13 @@ Ollama runtime 與 worker 隔離注意：
 建立 job → 回傳 job_id → worker 處理 → 前端輪詢或查詢 job 狀態 → 完成後顯示結果
 ```
 
-可選工具：Celery / RQ / Dramatiq。AI 服務建議與一般 API server 分離。
+Phase 13 queue/scaling 規劃以 RQ + Redis 為評估方向。AI 服務建議與一般 API server 分離。
 
 階段策略：
 
 - Phase 08-0～08-2：PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 09～11：延用同一 `ai_jobs` 架構（Vision/Nutrition）。
-- Phase 12：首選升級 RQ + Redis；RabbitMQ 暫不採用，除非未來需要複雜 message routing 或多服務事件流。
+- Phase 09～12：延用同一 `ai_jobs` 架構（Vision/Nutrition）。
+- Phase 13：首選升級 RQ + Redis；RabbitMQ 暫不採用，除非未來需要複雜 message routing 或多服務事件流。
 
 Recipe recommendation 食材來源策略（Phase 08 起）：
 

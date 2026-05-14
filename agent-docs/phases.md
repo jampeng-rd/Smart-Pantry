@@ -116,11 +116,38 @@ Nutrition 暫緩，不在下一階段實作。原因是單張餐點照片難以�
 
 文件：`docs/phase-11-email-provider-scheduler-reliability.md`
 
-## AI Queue 策略補充（Phase 12 起）
+## Phase 12：Database Migration / Account Recovery
+
+### Phase 12-0：文件與階段方向調整
+
+- 將原本 Phase 12 AI Queue / Worker Scaling 順延到 Phase 13。
+- 先補 Migration 與 Account Recovery，避免 schema 變更持續手動維護。
+
+### Phase 12-1：Alembic Migration System
+
+- 導入 Alembic、建立 `alembic.ini` 與 `migrations/`。
+- 連接既有 SQLAlchemy metadata，建立 baseline migration 對齊現況。
+- 後續 schema 變更必須透過 migration，禁止手動 `ALTER TABLE` 作為正式流程。
+- MVP / production deployment 文件需納入 `alembic upgrade head`。
+
+### Phase 12-2：Forgot Password / Reset Password
+
+- Login 頁新增忘記密碼入口（前端階段）。
+- 後端新增 `POST /auth/forgot-password`、`POST /auth/reset-password`。
+- 新增 `password_reset_tokens` 資料表（token 只存 hash）。
+- Forgot Password 寄信必須共用既有 email provider abstraction（`email_client_factory`）。
+
+### Phase 12-3：Deployment Migration / DB Upgrade 驗收
+
+- 補齊 development/staging/production migration 流程差異。
+- 建立 deployment 前 migration checklist、rollback 策略、failure handling。
+- migration failure 應中止 deployment。
+
+## AI Queue 策略補充（Phase 13 起，先規劃）
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker，不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
 - Phase 09～10：若 DB polling worker 可接受，持續沿用，Vision/Nutrition 共用 `ai_jobs`。
-- 任務量與延遲明顯上升時才進入 Phase 12 升級。
+- 任務量與延遲明顯上升時才進入 Phase 13 升級。
 
 ## Phase 06 子階段規劃
 
@@ -260,6 +287,37 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 
 完成提醒設定 UI、寄送狀態/說明、錯誤提示與 Help 文件。
 
+## Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）
+
+### Phase 13-1：Redis / RQ 基礎導入
+
+- Redis service
+- RQ queue
+- enqueue/dequeue
+- worker process
+- queue isolation
+
+### Phase 13-2：Recipe / Ingredient Worker Queue Migration
+
+- recipe_recommendation migration
+- ingredient_photo migration
+- DB polling -> queue worker
+
+### Phase 13-3：Worker Scaling / Deployment
+
+- horizontal worker scaling
+- multi-worker deployment
+- queue concurrency
+- deployment strategy
+
+### Phase 13-4：Queue Monitoring / Failure Handling
+
+- queue monitoring
+- retry handling
+- dead job inspection
+- queue metrics
+- worker health check
+
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 
 - worker 可依 job_type 過濾任務
@@ -272,6 +330,6 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - `job_type` 隔離是 worker process 層級，不是 Ollama runtime/GPU 隔離。
 - 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 共用同一 runtime。
 - 本地或雲端只要同機共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe。
-- Phase 12 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
+- Phase 13 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
 
 收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。

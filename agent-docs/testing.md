@@ -77,7 +77,7 @@ npm run build
 - 圖片上傳需測試超過 5MB 時拒絕。
 - 測試 DB 僅保存 image_path / image_url，不保存圖片 blob/base64。
 - Phase 08～11 以 job-based 為主：需測 job 建立、狀態查詢、成功與失敗案例。
-- Phase 12 若導入 RQ + Redis，需補測 enqueue、worker process、retry、失敗重試策略。
+- Phase 13 若導入 RQ + Redis，需補測 enqueue、worker process、retry、失敗重試策略。
 
 ## Shopping 與 Pantry 關係測試補充
 
@@ -181,3 +181,21 @@ Frontend：
 9. runner summary 應有 `retry_count`、`permanent_failed_count`
 10. log 不可包含 secret
 11. resend/smtp timeout 設定存在（30s）
+
+## Phase 12-1/12-2 測試補充（Migration + Account Recovery）
+
+Alembic：
+
+- migration 可建立與可執行（至少驗證 `upgrade head` 可跑）。
+- 新增欄位/資料表必須有對應 migration 檔案。
+
+Forgot Password / Reset Password：
+
+- forgot password 在 email 存在/不存在時都回相同成功訊息。
+- reset token 僅儲存 hash，不可儲存明文 token。
+- reset token 過期時回中文友善錯誤。
+- reset token 已使用時回中文友善錯誤。
+- reset password 成功後，既有 refresh token 必須失效。
+- CI / automated tests 禁止寄送真實 forgot password email。
+- forgot password 測試必須使用 fake/stub email client。
+- local manual testing 可使用 Gmail SMTP / Resend 驗證 email flow。

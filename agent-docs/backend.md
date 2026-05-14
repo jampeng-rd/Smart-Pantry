@@ -77,10 +77,36 @@ backend/app/infra/{database,repository,settings,security,llm_client,ingredient_c
 - Dashboard summary 避免 N+1 query。
 - AI/OCR/Vision 在 worker 內可同步呼叫模型，但 backend request 不可同步等待 AI 任務完成。
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker（非 Redis queue）。
-- Phase 09～11：若延遲可接受，持續沿用 DB polling worker。
-- Phase 12：任務量明顯增加時，升級為 RQ + Redis（首選）；Dramatiq + Redis 為備選。
+- Phase 09～12：若延遲可接受，持續沿用 DB polling worker。
+- Phase 13：任務量明顯增加時，評估升級為 RQ + Redis。
 - RabbitMQ 非 MVP 與 Phase 08～11 預設方案，僅在複雜 routing/事件流需求時評估。
 - DB engine / session factory 集中管理，不可每次 request 重新建立 engine。
+
+## Phase 12：Database Migration / Account Recovery 後端規範
+
+### Phase 12-1：Alembic Migration System
+
+- 導入 Alembic，建立 `alembic.ini`、`migrations/`，並連接既有 SQLAlchemy metadata。
+- 建立 baseline migration 對齊現況資料表。
+- 後續 schema 變更（新增欄位、索引、資料表）必須透過 migration。
+- 不可再以手動 `ALTER TABLE` 作為正式流程。
+
+### Phase 12-2：Forgot Password / Reset Password
+
+- 新增 `POST /auth/forgot-password`、`POST /auth/reset-password`。
+- `password_reset_tokens` 僅儲存 `token_hash`，不可儲存明文 token。
+- forgot password API 不可暴露 email 是否存在，email 存在/不存在都回相同成功訊息。
+- reset token 過期、已使用、錯誤時回繁中友善錯誤。
+- reset password 成功後需：
+  - 更新 `password_hash`
+  - 標記 reset token `used_at`
+  - revoke 該使用者既有 refresh tokens
+
+Forgot Password 寄信實作限制：
+
+- 必須共用既有 email provider abstraction，不可直接綁定 Resend/Gmail。
+- 不可建立獨立 forgot password SMTP sender。
+- 必須共用既有 `EMAIL_PROVIDER`、Gmail SMTP provider、Resend provider、`FakeEmailClient`、`email_client_factory`。
 
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 

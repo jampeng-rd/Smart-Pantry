@@ -6,6 +6,14 @@
 - 部署階段再使用 managed PostgreSQL，例如 Render PostgreSQL、Railway PostgreSQL、AWS RDS。
 - 不使用 SQLite 作為主要資料庫。
 
+## Migration 規範（Phase 12-1）
+
+- 導入 Alembic migration system（`alembic.ini` + `migrations/`）。
+- 建立 baseline migration 對齊目前已存在 schema。
+- 後續 schema 變更必須新增 migration（新增欄位/索引/資料表/約束）。
+- 不可再以手動 `ALTER TABLE` 作為正式流程。
+- deployment 流程需納入 `alembic upgrade head`。
+
 ## Docker Compose service
 
 ```yaml
@@ -57,6 +65,25 @@ id、user_id indexed、token_hash unique indexed、expires_at indexed、revoked_
 - refresh token 預設 7 天。
 - 支援 revoke / logout。
 - `created_at`、`expires_at`、`revoked_at` 使用 UTC timezone-aware datetime。
+
+### password_reset_tokens（Phase 12-2）
+
+建議欄位：
+
+- id
+- user_id indexed
+- token_hash unique indexed
+- expires_at indexed
+- used_at nullable
+- created_at
+- request_ip nullable（可選）
+- request_user_agent nullable（可選）
+
+規則：
+
+- 只存 reset token hash，不存明文 token。
+- token 過期、已使用、錯誤需視為無效 token。
+- reset password 成功後需標記 `used_at` 並撤銷使用者既有 refresh tokens。
 
 ### pantry_items
 

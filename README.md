@@ -34,7 +34,11 @@ Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider（Resend）✅
 Phase 11-3：正式 scheduler / cron / docker deployment ✅
 Phase 11-4：retry / failure handling / monitoring ✅
-Phase 12：AI Queue / Worker Scaling（RQ + Redis，視需要）⏳
+Phase 12-0：文件與階段方向調整（Migration / Account Recovery）⏳
+Phase 12-1：Alembic Migration System ⏳
+Phase 12-2：Forgot Password / Reset Password ⏳
+Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
+Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 ```
 
 ## 環境需求
@@ -193,7 +197,7 @@ Route 行為：
 - 收合狀態依 theme 顯示 logo（light-soft/dark-soft），僅顯示 icon 不顯示文字，並縮小 logo 尺寸
 - 收合 sidebar header 預設顯示 logo，hover/focus 才顯示展開按鈕（不常駐）
 - Mobile/Tablet 改為 overlay drawer + 遮罩層，開啟時鎖定 `body` 捲動
-- Sidebar 主導覽移除 Settings；MVP 目前顯示 Pantry/Expiration/Shopping/Recipes/食材辨識/Nutrition
+- Sidebar 主導覽移除 Settings；MVP 目前顯示 Pantry/Expiration/Shopping/Recipes/食材辨識，Nutrition route 可保留但導航先隱藏
 - `/dashboard` route 保留為未來總覽頁 placeholder，MVP 側欄暫時隱藏「儀表板」導航
 - Sidebar 底部使用者區與向上展開 user menu（Profile/Settings/Help/Theme Toggle/Log out）
 - 收合 sidebar 的 nav/user 改為 square icon button（40x40），修正 hover/active 框外溢
@@ -512,7 +516,7 @@ Phase 09 worker isolation 補充：
   - `python -m ai_server.workers.job_worker --job-types recipe_recommendation`
   - `python -m ai_server.workers.job_worker --job-types ingredient_photo`
 - 即使分開 process，若共用同一個 Ollama runtime / GPU / CPU，Vision 推論仍可能影響文字推論效能。
-- MVP 可接受同機多 process；後續可再拆為不同 Ollama instance、不同 GPU、不同機器，或於 Phase 11 評估 queue/scaling。
+- MVP 可接受同機多 process；後續可再拆為不同 Ollama instance、不同 GPU、不同機器，或於 Phase 13 評估 queue/scaling。
 
 Ollama runtime 設定補充：
 
@@ -549,15 +553,16 @@ Ollama runtime 設定補充：
   - `OLLAMA_TEXT_BASE_URL=http://ollama-text.internal:11434`
   - `OLLAMA_VISION_BASE_URL=http://ollama-vision.internal:11434`
   - text/vision 分別放在不同機器或不同 GPU。
-- 當使用者量上升或延遲明顯時，再於 Phase 11 評估 queue/scaling（RQ + Redis、worker replicas、不同 job queue、GPU worker pool）。
+- 當使用者量上升或延遲明顯時，再於 Phase 13 評估 queue/scaling（RQ + Redis、worker replicas、不同 job queue、GPU worker pool）。
 
 ## AI Queue 階段策略
 
 - Phase 08-0～08-2：使用 PostgreSQL `ai_jobs` + DB polling worker。
-- Phase 08～10：不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
+- Phase 08～12：不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ。
 - Phase 09～10：Vision / Nutrition 先共用 `ai_jobs`。
-- 若任務延遲或數量增加，再進入 Phase 11。
-- Phase 11 首選：RQ + Redis；備選：Dramatiq + Redis。
+- Phase 11～12：維持 PostgreSQL `ai_jobs` + DB polling worker。
+- 若任務延遲或數量增加，再進入 Phase 13。
+- Phase 13：評估升級 RQ + Redis。
 - RabbitMQ 暫不採用，除非未來有複雜 message routing、多服務事件流或更高階 broker 需求。
 
 選 RQ + Redis 的原因：
@@ -596,7 +601,7 @@ docker-compose 後續規劃：
 - 新增 `ai-server` 或 `ai-worker` service。
 - 共用同一個 PostgreSQL。
 - Phase 08～10 暫不新增 `redis` service。
-- Phase 11 若導入 RQ + Redis，再新增 `redis` service。
+- Phase 13 若導入 RQ + Redis，再新增 `redis` service。
 
 目前設定檔策略：
 
@@ -608,7 +613,7 @@ docker-compose 後續規劃：
 
 ## 效能與擴充性
 
-開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～11 先採 `ai_jobs` + DB polling worker，Phase 12 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
+開發階段以本地 Docker PostgreSQL 為主，部署階段使用 managed PostgreSQL。列表 API 使用 pagination，常用查詢需 DB index。AI/Vision 在 worker 內可同步呼叫模型，但 backend 不同步等待；Phase 08～12 先採 `ai_jobs` + DB polling worker，Phase 13 視需求升級 RQ + Redis。圖片不存 DB blob/base64；DB 只存 image_path / image_url。
 
 ## AI 階段完成門檻（Phase 08～11）
 
@@ -626,6 +631,19 @@ Phase 08～11 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 8. 手動整合驗收（backend + frontend + worker + Ollama）
 
 frontend 不可直接呼叫 ai_server，只能透過 backend job API。
+
+## Phase 12：Database Migration / Account Recovery（規劃）
+
+- `Phase 12-0`：文件與階段方向調整，將原 Phase 12 AI Queue 順延到 Phase 13。
+- `Phase 12-1`：導入 Alembic migration system，建立 baseline，後續 schema 變更必須走 migration。
+- `Phase 12-2`：Forgot Password / Reset Password（`POST /auth/forgot-password`、`POST /auth/reset-password`）。
+- `Phase 12-3`：deployment migration checklist、rollback 策略、failure handling 與 DB upgrade 驗收。
+
+補充：
+
+- migration 導入後，正式流程不可再使用手動 `ALTER TABLE`。
+- Forgot Password 必須共用既有 `email_client_factory` 與 provider abstraction，不可新增獨立 SMTP 實作。
+- deployment 前需執行 `alembic upgrade head`。
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 
@@ -744,8 +762,8 @@ Help 頁面建議包含：
 - Help FAQ 補充：
   - 可在「系統設定 > 到期 Email 提醒 > 最近寄送紀錄」查看。
   - 最近寄送紀錄只保留 7 天，並在每天上午 8:00 runner 順便清理。
-  - Phase 10-3 仍是 fake email client，不代表真實寄信。
-  - 真實 email provider 留待後續 Production Infrastructure / External Services 階段。
+  - Phase 10-3 當時僅完成寄送紀錄 UI。
+  - 真實寄信已於 Phase 11-1（Gmail SMTP）與 Phase 11-2（Resend）完成。
 
 維持限制：
 
@@ -860,7 +878,7 @@ python -m backend.app.jobs.expiration_email_runner --send-window evening_17 --sc
 - DB datetime 維持 UTC；`scheduled_date` 為業務日期。
 - 排程時間依部署時區設定。
 - 主要防重為 delivery log `user_id + scheduled_date + send_window` success 去重。
-- retry / monitoring 於 Phase 11-4 實作。
+- retry / monitoring 已於 Phase 11-4 完成。
 
 ## Phase 11-4：Email Retry / Failure Handling / Monitoring
 

@@ -48,6 +48,32 @@ Response data：
 
 取得目前登入使用者。
 
+### POST /auth/forgot-password
+
+送出忘記密碼請求，透過既有 email provider abstraction 寄送 reset link。
+
+```json
+{"email":"user@example.com"}
+```
+
+規則：
+
+- 不可暴露 email 是否存在。
+- email 存在與不存在都回相同成功訊息。
+
+### POST /auth/reset-password
+
+使用 reset token 重設密碼。
+
+```json
+{"token":"reset-token-from-email","new_password":"new-password123"}
+```
+
+規則：
+
+- reset token 過期、已使用、錯誤時回中文友善錯誤。
+- 成功後需撤銷該使用者既有 refresh tokens。
+
 ## Pantry
 
 ### POST /pantry/items
