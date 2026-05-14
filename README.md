@@ -911,3 +911,24 @@ Monitoring log：
 - `email permanent failure`
 
 安全：log 不可包含 API key / Authorization / SMTP password / secret。
+
+### Phase 11-4 Email Delivery UX（同階段修正）
+
+Settings 最近寄送紀錄不再顯示 provider 原始錯誤，改由後端提供 `user_friendly_error_message`：
+
+- 永久失敗：`此 Email 無法正確寄送通知，若有問題請來信諮詢。`
+- 暫時失敗：`信件通知服務暫時無法使用，系統維護中...`
+- 前端網路異常：`網路異常，請稍後再試。`
+
+後端仍保留完整錯誤於 delivery log 與 structured logs，供未來 admin/monitoring 使用。
+
+### Phase 11-4 錯誤訊息分類（修正）
+
+Email delivery 錯誤改為四類 user-facing 文案：
+
+- 使用者 Email 無法寄送：`此 Email 無法正確寄送通知，若有問題請來信諮詢。`
+- 信件服務暫時不可用：`信件通知服務暫時無法使用，系統維護中...`
+- 使用者前端網路異常：`網路異常，請稍後再試。`
+- 系統設定或伺服器異常：`目前系統偵測異常，系統維修中。`
+
+前端不顯示 provider 原始英文錯誤、HTTP status、API key/domain/from 相關錯誤字串。

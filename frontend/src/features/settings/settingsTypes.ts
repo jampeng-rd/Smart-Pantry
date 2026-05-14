@@ -3,6 +3,7 @@ import type { ThemeMode } from "../theme/themeTypes";
 export type ExpirationReminderDays = "none" | "1" | "3";
 export type ExpirationReminderSendWindow = "morning_08" | "evening_17";
 export type ExpirationReminderDeliveryStatus = "pending" | "success" | "failed";
+export type ExpirationReminderFinalStatus = "success" | "failed" | "permanent_failed";
 
 /** Settings 回應資料。 */
 export interface SettingsData {
@@ -30,8 +31,11 @@ export interface ExpirationReminderDelivery {
   item_count: number;
   email_to: string;
   status: ExpirationReminderDeliveryStatus;
+  final_status: ExpirationReminderFinalStatus;
+  attempt_count: number;
+  last_attempt_at: string | null;
   sent_at: string | null;
-  error_message: string | null;
+  user_friendly_error_message: string | null;
   created_at: string;
 }
 

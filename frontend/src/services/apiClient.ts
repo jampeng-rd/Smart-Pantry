@@ -33,6 +33,8 @@ import { clearTokens, getAccessToken, getRefreshToken, isAccessTokenExpiringSoon
 
 /** API 基底網址。 */
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const NETWORK_ERROR_MESSAGE = "網路異常，請稍後再試。";
+const SYSTEM_FAILURE_MESSAGE = "目前系統偵測異常，系統維修中。";
 
 interface LoginPayload {
   email: string;
@@ -182,14 +184,19 @@ export async function requestWithAuth<T>(path: string, init: RequestInit, retrie
     throw new Error("尚未登入");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      ...(init.headers ?? {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    throw toNetworkSafeError(error);
+  }
 
   if (response.status === 401 && !retried) {
     await refreshTokensOrThrow();
@@ -198,7 +205,7 @@ export async function requestWithAuth<T>(path: string, init: RequestInit, retrie
 
   const body = (await response.json()) as ApiResponse<T> & { detail?: string };
   if (!response.ok || body.status !== "success" || body.data === null) {
-    throw new Error(body.message ?? body.detail ?? "API 請求失敗");
+    throw new Error(toSafeApiErrorMessage(response.status, body.message ?? body.detail ?? ""));
   }
 
   return body.data;
@@ -214,13 +221,18 @@ async function requestWithAuthFormData<T>(path: string, formData: FormData, retr
     throw new Error("尚未登入");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: formData,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+  } catch (error) {
+    throw toNetworkSafeError(error);
+  }
 
   if (response.status === 401 && !retried) {
     await refreshTokensOrThrow();
@@ -229,24 +241,29 @@ async function requestWithAuthFormData<T>(path: string, formData: FormData, retr
 
   const body = (await response.json()) as ApiResponse<T> & { detail?: string };
   if (!response.ok || body.status !== "success" || body.data === null) {
-    throw new Error(body.message ?? body.detail ?? "API 請求失敗");
+    throw new Error(toSafeApiErrorMessage(response.status, body.message ?? body.detail ?? ""));
   }
 
   return body.data;
 }
 
 async function post<T>(path: string, payload: unknown): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    throw toNetworkSafeError(error);
+  }
 
   const body = (await response.json()) as ApiResponse<T>;
   if (!response.ok || body.status !== "success" || body.data === null) {
-    throw new Error(body.message ?? "API 請求失敗");
+    throw new Error(toSafeApiErrorMessage(response.status, body.message ?? ""));
   }
 
   return body.data;
@@ -267,4 +284,46 @@ export async function refreshTokensOrThrow(): Promise<void> {
     clearTokens();
     throw error;
   }
+}
+
+/** 將前端/瀏覽器網路錯誤轉為固定對外訊息。 */
+function toNetworkSafeError(error: unknown): Error {
+  if (!(error instanceof Error)) {
+    return new Error(NETWORK_ERROR_MESSAGE);
+  }
+  const text = error.message.toLowerCase();
+  if (
+    text.includes("networkerror")
+    || text.includes("failed to fetch")
+    || text.includes("load failed")
+    || text.includes("network request failed")
+    || text.includes("fetch")
+    || text.includes("axios")
+  ) {
+    return new Error(NETWORK_ERROR_MESSAGE);
+  }
+  return error;
+}
+
+/** 將 API 錯誤轉為安全、可顯示給使用者的訊息。 */
+function toSafeApiErrorMessage(status: number, fallbackMessage: string): string {
+  if (status >= 500) {
+    return SYSTEM_FAILURE_MESSAGE;
+  }
+  if (status === 401) {
+    return "登入狀態已失效，請重新登入。";
+  }
+  if (status === 403) {
+    return "目前無法執行此操作，請稍後再試。";
+  }
+  if (status === 404) {
+    return "資料不存在或已被移除。";
+  }
+  if (status === 422) {
+    return "送出資料格式不正確，請檢查後再試。";
+  }
+  if (status >= 400) {
+    return "目前無法處理此請求，請稍後再試。";
+  }
+  return fallbackMessage || "API 請求失敗";
 }

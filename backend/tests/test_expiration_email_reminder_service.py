@@ -53,6 +53,7 @@ class FakeDelivery:
     email_to: str
     status: str
     final_status: str = "failed"
+    error_category: str | None = None
     attempt_count: int = 0
     last_error_message: str | None = None
     last_attempt_at: datetime | None = None
@@ -128,6 +129,7 @@ class FakeExpirationEmailReminderRepository:
         self,
         row: FakeDelivery,
         error_message: str,
+        error_category: str | None,
         attempt_count: int,
         attempted_at: datetime,
         permanent: bool,
@@ -135,6 +137,7 @@ class FakeExpirationEmailReminderRepository:
         """標記失敗。"""
         row.status = "failed"
         row.final_status = "permanent_failed" if permanent else "failed"
+        row.error_category = error_category
         row.attempt_count = attempt_count
         row.last_attempt_at = attempted_at
         row.last_error_message = error_message

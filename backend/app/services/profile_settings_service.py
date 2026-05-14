@@ -14,6 +14,9 @@ from backend.app.infra.security import hash_password, verify_password
 
 class ProfileSettingsService:
     """處理個人資料與偏好設定。"""
+    USER_EMAIL_FAILURE_MESSAGE = "此 Email 無法正確寄送通知，若有問題請來信諮詢。"
+    TEMPORARY_SERVICE_FAILURE_MESSAGE = "信件通知服務暫時無法使用，系統維護中..."
+    SYSTEM_FAILURE_MESSAGE = "目前系統偵測異常，系統維修中。"
 
     def __init__(self, repository: ProfileSettingsRepository):
         """建立服務實例。"""
@@ -106,15 +109,59 @@ class ProfileSettingsService:
                 status=row.status,
                 final_status=row.final_status,
                 attempt_count=row.attempt_count,
-                last_error_message=row.last_error_message,
                 last_attempt_at=row.last_attempt_at,
                 sent_at=row.sent_at,
-                error_message=row.error_message,
+                user_friendly_error_message=self._map_delivery_user_friendly_error_message(
+                    status=row.status,
+                    final_status=row.final_status,
+                    error_category=row.error_category,
+                    attempt_count=row.attempt_count,
+                    last_error_message=row.last_error_message,
+                ),
                 created_at=row.created_at,
             )
             for row in rows
         ]
         return ExpirationReminderDeliveryListResponseData(items=items, page=page, page_size=page_size, total=total)
+
+    def _map_delivery_user_friendly_error_message(
+        self,
+        status: str,
+        final_status: str,
+        error_category: str | None,
+        attempt_count: int,
+        last_error_message: str | None,
+    ) -> str | None:
+        """將 delivery 狀態轉換為可給一般使用者的錯誤訊息。"""
+        if status == "success":
+            return None
+        if status == "pending" and attempt_count > 0:
+            return self.TEMPORARY_SERVICE_FAILURE_MESSAGE
+        if final_status == "failed":
+            return self.TEMPORARY_SERVICE_FAILURE_MESSAGE
+        if error_category in {"timeout", "network_error", "provider_5xx"}:
+            return self.TEMPORARY_SERVICE_FAILURE_MESSAGE
+        if self._is_user_email_failure(last_error_message=last_error_message):
+            return self.USER_EMAIL_FAILURE_MESSAGE
+        if error_category in {"invalid_configuration", "unknown_error", "provider_4xx"}:
+            return self.SYSTEM_FAILURE_MESSAGE
+        return self.SYSTEM_FAILURE_MESSAGE
+
+    def _is_user_email_failure(self, last_error_message: str | None) -> bool:
+        """判斷是否屬於使用者收件信箱錯誤。"""
+        if not last_error_message:
+            return False
+        lowered = last_error_message.lower()
+        keywords = [
+            "invalid recipient",
+            "recipient",
+            "mailbox",
+            "user unknown",
+            "no such user",
+            "recipient address",
+            "email address is invalid",
+        ]
+        return any(keyword in lowered for keyword in keywords)
 
     def _ensure_user_exists(self, user_id: int) -> None:
         """確認使用者存在。"""

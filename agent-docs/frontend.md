@@ -319,3 +319,16 @@ Phase 10-1 已完成重點：
 - Help FAQ 補充可查看寄送紀錄位置，並註明目前為 fake email client。
 - 手機版 card 必須顯示：排程日期、寄送時段、提醒天數、食材數量、收件 Email、狀態、寄送時間、錯誤訊息（若有）。
 - 補充說明寄送紀錄只保留 7 天，且於每天上午 8:00 runner 時清理超過 7 天紀錄。
+
+## Phase 11-4 Email Delivery UX 規範
+
+- 前端不得直接顯示 provider 原始錯誤（HTTP status、API key/domain/from 欄位錯誤、SMTP exception、traceback）。
+- Settings 寄送紀錄只使用後端 `user_friendly_error_message`。
+- 前端網路連線問題（`NetworkError` / `Failed to fetch` / browser network failure）統一顯示：`網路異常，請稍後再試。`
+- 前端不可自行用 provider keyword 硬編碼映射。
+
+## Phase 11-4 錯誤訊息四分類
+
+- 前端只顯示後端 `user_friendly_error_message` 與統一網路錯誤文案。
+- 禁止顯示 provider 原始錯誤、HTTP status、API key/domain/from/sender 錯誤字串。
+- backend 500 或系統異常情境應顯示：`目前系統偵測異常，系統維修中。`

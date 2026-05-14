@@ -193,3 +193,25 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 安全要求：
 
 - structured log 不可輸出 API key、Authorization header、SMTP password、secret
+
+## Phase 11-4 User-facing Error Mapping 規範
+
+- 後端保留完整 delivery 錯誤細節（`last_error_message`、`error_category`、structured logs）。
+- 提供給一般使用者的 API 需回傳 `user_friendly_error_message`，不可直接暴露 provider 原始錯誤內容。
+- 錯誤分類映射：
+  - temporary：`timeout` / `provider_5xx` / retry 中
+  - permanent：`provider_4xx` / `invalid_configuration` / 不可 retry
+- user API 回應不可洩漏 API key、provider 詳細 exception、traceback。
+
+## Phase 11-4 錯誤映射修正
+
+後端 `user_friendly_error_message` 需區分四類：
+
+1. 使用者 Email 無法寄送
+2. 信件服務暫時不可用
+3. 前端網路異常（由前端 API client 統一處理）
+4. 系統設定或伺服器異常
+
+`invalid_configuration`（如 API key invalid / domain not verified / invalid from）屬於系統設定異常，不得映射為使用者 Email 問題。
+
+同時保留完整錯誤於 backend delivery log（`last_error_message`、`error_category`）與 structured logs，供 admin/monitoring 使用。

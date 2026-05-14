@@ -26,6 +26,7 @@ class ExpirationReminderDelivery(Base):
     email_to: Mapped[str] = mapped_column(String(320), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     final_status: Mapped[str] = mapped_column(String(32), nullable=False, default="failed")
+    error_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
     attempt_count: Mapped[int] = mapped_column(nullable=False, default=0)
     last_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

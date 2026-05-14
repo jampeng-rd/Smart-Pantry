@@ -34,15 +34,18 @@ function mapReminderDaysLabel(reminderDays: ExpirationReminderDays): string {
   return "不提醒";
 }
 
-/** 轉換寄送狀態文字。 */
-function mapDeliveryStatusLabel(status: ExpirationReminderDelivery["status"]): string {
-  if (status === "success") {
-    return "成功";
+/** 轉換最終狀態文字。 */
+function mapDeliveryFinalStatusLabel(item: ExpirationReminderDelivery): string {
+  if (item.status === "pending") {
+    return "重新嘗試中";
   }
-  if (status === "failed") {
-    return "失敗";
+  if (item.status === "success") {
+    return "寄送成功";
   }
-  return "處理中";
+  if (item.final_status === "failed") {
+    return "暫時失敗";
+  }
+  return "寄送失敗";
 }
 
 /** Settings 設定頁面。 */
@@ -76,7 +79,12 @@ export function SettingsPage() {
       setDeliveryTotal(response.total);
       setExpandedDeliveryIds([]);
     } catch (apiError) {
-      setDeliveryError(apiError instanceof Error ? apiError.message : "載入寄送紀錄失敗");
+      const message = apiError instanceof Error ? apiError.message : "";
+      if (message.includes("網路異常")) {
+        setDeliveryError("網路異常，請稍後再試。");
+      } else {
+        setDeliveryError("目前系統偵測異常，系統維修中。");
+      }
     } finally {
       setDeliveryLoading(false);
     }
@@ -94,7 +102,12 @@ export function SettingsPage() {
         setReminderDays(data.expiration_email_reminder_days);
         dispatch(setTheme(data.theme));
       } catch (apiError) {
-        setError(apiError instanceof Error ? apiError.message : "載入設定失敗");
+        const message = apiError instanceof Error ? apiError.message : "";
+        if (message.includes("網路異常")) {
+          setError("網路異常，請稍後再試。");
+        } else {
+          setError("目前系統偵測異常，系統維修中。");
+        }
         setThemeValue("dark-soft");
         dispatch(setTheme("dark-soft"));
       } finally {
@@ -126,7 +139,12 @@ export function SettingsPage() {
       dispatch(setTheme(updated.theme));
       setMessage("設定已儲存");
     } catch (apiError) {
-      setError(apiError instanceof Error ? apiError.message : "儲存設定失敗");
+      const message = apiError instanceof Error ? apiError.message : "";
+      if (message.includes("網路異常")) {
+        setError("網路異常，請稍後再試。");
+      } else {
+        setError("目前系統偵測異常，系統維修中。");
+      }
     } finally {
       setSaving(false);
     }
@@ -247,9 +265,9 @@ export function SettingsPage() {
                         <td>{mapReminderDaysLabel(item.reminder_days)}</td>
                         <td>{item.item_count}</td>
                         <td>{item.email_to}</td>
-                        <td>{mapDeliveryStatusLabel(item.status)}</td>
+                        <td>{mapDeliveryFinalStatusLabel(item)}</td>
                         <td>{formatLocalDateTime(item.sent_at)}</td>
-                        <td>{item.status === "failed" ? item.error_message ?? "-" : "-"}</td>
+                        <td>{item.user_friendly_error_message ?? "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -264,12 +282,12 @@ export function SettingsPage() {
                       className="settings-delivery-accordion-trigger"
                       aria-expanded={expandedDeliveryIds.includes(item.id)}
                       aria-controls={`delivery-detail-${item.id}`}
-                      aria-label={`切換寄送紀錄詳情：${formatLocalDateTime(item.sent_at)} ${mapDeliveryStatusLabel(item.status)}`}
+                      aria-label={`切換寄送紀錄詳情：${formatLocalDateTime(item.sent_at)} ${mapDeliveryFinalStatusLabel(item)}`}
                       onClick={() => toggleDeliveryExpanded(item.id)}
                     >
                       <span className="settings-delivery-accordion-summary">
                         <strong>{formatLocalDateTime(item.sent_at)}</strong>
-                        <em>{mapDeliveryStatusLabel(item.status)}</em>
+                        <em>{mapDeliveryFinalStatusLabel(item)}</em>
                       </span>
                       {expandedDeliveryIds.includes(item.id) ? <FiChevronUp aria-hidden="true" /> : <FiChevronDown aria-hidden="true" />}
                     </button>
@@ -298,16 +316,16 @@ export function SettingsPage() {
                         </p>
                         <p>
                           <span>狀態</span>
-                          <strong>{mapDeliveryStatusLabel(item.status)}</strong>
+                          <strong>{mapDeliveryFinalStatusLabel(item)}</strong>
                         </p>
                         <p>
                           <span>寄送時間</span>
                           <strong>{formatLocalDateTime(item.sent_at)}</strong>
                         </p>
-                        {item.status === "failed" ? (
+                        {item.user_friendly_error_message ? (
                           <p>
                             <span>錯誤訊息</span>
-                            <strong>{item.error_message ?? "-"}</strong>
+                            <strong>{item.user_friendly_error_message}</strong>
                           </p>
                         ) : null}
                       </div>

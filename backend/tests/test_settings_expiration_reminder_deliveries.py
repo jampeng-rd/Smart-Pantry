@@ -32,6 +32,7 @@ class FakeDelivery:
     email_to: str
     status: str
     final_status: str
+    error_category: str | None
     attempt_count: int
     last_error_message: str | None
     last_attempt_at: datetime | None
@@ -57,6 +58,7 @@ class FakeProfileSettingsRepository:
                 email_to="user1@example.com",
                 status="success",
                 final_status="success",
+                error_category=None,
                 attempt_count=1,
                 last_error_message=None,
                 last_attempt_at=datetime(2026, 5, 12, 17, 33, 26, 479836, tzinfo=timezone.utc),
@@ -74,6 +76,7 @@ class FakeProfileSettingsRepository:
                 email_to="user1@example.com",
                 status="failed",
                 final_status="permanent_failed",
+                error_category="invalid_configuration",
                 attempt_count=2,
                 last_error_message="fake email provider timeout",
                 last_attempt_at=datetime(2026, 5, 12, 8, 5, tzinfo=timezone.utc),
@@ -91,6 +94,7 @@ class FakeProfileSettingsRepository:
                 email_to="user1@example.com",
                 status="pending",
                 final_status="failed",
+                error_category="timeout",
                 attempt_count=0,
                 last_error_message=None,
                 last_attempt_at=None,
@@ -108,6 +112,7 @@ class FakeProfileSettingsRepository:
                 email_to="user2@example.com",
                 status="success",
                 final_status="success",
+                error_category=None,
                 attempt_count=1,
                 last_error_message=None,
                 last_attempt_at=datetime(2026, 5, 12, 1, 0, tzinfo=timezone.utc),
@@ -180,14 +185,131 @@ def test_item_count_should_equal_item_ids_length() -> None:
     assert first.item_count == 3
 
 
-def test_failed_delivery_should_return_error_message() -> None:
-    """失敗紀錄應回傳錯誤訊息。"""
+def test_failed_delivery_should_return_user_friendly_error_message() -> None:
+    """失敗紀錄應回傳使用者友善錯誤訊息，不暴露 provider 詳細內容。"""
     service = ProfileSettingsService(repository=FakeProfileSettingsRepository())
 
     result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
 
     failed_item = next(item for item in result.items if item.status == "failed")
-    assert failed_item.error_message == "fake email provider timeout"
+    assert failed_item.user_friendly_error_message == "目前系統偵測異常，系統維修中。"
+
+
+def test_temporary_failure_should_return_temporary_user_message() -> None:
+    """暫時性錯誤應回傳暫時失敗訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "failed"
+    repository.deliveries[1].error_category = "provider_5xx"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "信件通知服務暫時無法使用，系統維護中..."
+
+
+def test_timeout_should_return_temporary_user_message() -> None:
+    """timeout 類型應回傳暫時失敗訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "failed"
+    repository.deliveries[1].error_category = "timeout"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "信件通知服務暫時無法使用，系統維護中..."
+
+
+def test_network_error_should_return_temporary_user_message() -> None:
+    """network_error 類型應回傳暫時失敗訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "failed"
+    repository.deliveries[1].error_category = "network_error"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "信件通知服務暫時無法使用，系統維護中..."
+
+
+def test_provider_4xx_should_return_permanent_user_message() -> None:
+    """provider_4xx 類型預設應回傳系統異常訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "provider_4xx"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "目前系統偵測異常，系統維修中。"
+
+
+def test_invalid_recipient_should_return_user_email_failure_message() -> None:
+    """invalid recipient 應映射為使用者 Email 無法寄送訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "provider_4xx"
+    repository.deliveries[1].last_error_message = "Invalid recipient address"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "此 Email 無法正確寄送通知，若有問題請來信諮詢。"
+
+
+def test_api_key_invalid_should_return_system_failure_message() -> None:
+    """API key invalid 應映射為系統異常訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "invalid_configuration"
+    repository.deliveries[1].last_error_message = "API key is invalid"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "目前系統偵測異常，系統維修中。"
+
+
+def test_domain_not_verified_should_return_system_failure_message() -> None:
+    """domain not verified 應映射為系統異常訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "invalid_configuration"
+    repository.deliveries[1].last_error_message = "domain is not verified"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "目前系統偵測異常，系統維修中。"
+
+
+def test_invalid_from_address_should_return_system_failure_message() -> None:
+    """invalid from address 應映射為系統異常訊息。"""
+    repository = FakeProfileSettingsRepository()
+    repository.deliveries[1].final_status = "permanent_failed"
+    repository.deliveries[1].error_category = "invalid_configuration"
+    repository.deliveries[1].last_error_message = "Invalid `from` field"
+    service = ProfileSettingsService(repository=repository)
+
+    result = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10)
+    failed_item = next(item for item in result.items if item.id == 10)
+    assert failed_item.user_friendly_error_message == "目前系統偵測異常，系統維修中。"
+
+
+def test_api_payload_should_not_include_provider_raw_error() -> None:
+    """API payload 不應暴露 provider 原始英文錯誤內容。"""
+    service = ProfileSettingsService(repository=FakeProfileSettingsRepository())
+
+    payload = service.list_expiration_reminder_deliveries(user_id=1, page=1, page_size=10).model_dump(mode="json")
+    text = str(payload)
+
+    assert "fake email provider timeout" not in text
+    assert "api key is invalid" not in text.lower()
+    assert "domain is not verified" not in text.lower()
+    assert "invalid `from` field" not in text.lower()
 
 
 def test_datetime_should_include_timezone() -> None:

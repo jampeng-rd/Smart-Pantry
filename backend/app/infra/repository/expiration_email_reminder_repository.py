@@ -83,6 +83,7 @@ class ExpirationEmailReminderRepository:
         """將寄送紀錄更新為成功。"""
         row.status = "success"
         row.final_status = "success"
+        row.error_category = None
         row.attempt_count = attempt_count
         row.last_attempt_at = sent_at
         row.last_error_message = None
@@ -97,6 +98,7 @@ class ExpirationEmailReminderRepository:
         self,
         row: ExpirationReminderDelivery,
         error_message: str,
+        error_category: str | None,
         attempt_count: int,
         attempted_at: datetime,
         permanent: bool,
@@ -104,6 +106,7 @@ class ExpirationEmailReminderRepository:
         """將寄送紀錄更新為失敗或永久失敗。"""
         row.status = "failed"
         row.final_status = "permanent_failed" if permanent else "failed"
+        row.error_category = error_category
         row.attempt_count = attempt_count
         row.last_attempt_at = attempted_at
         row.last_error_message = error_message

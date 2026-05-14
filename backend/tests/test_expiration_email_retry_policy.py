@@ -51,6 +51,7 @@ class FakeDelivery:
     email_to: str
     status: str = "pending"
     final_status: str = "failed"
+    error_category: str | None = None
     attempt_count: int = 0
     last_error_message: str | None = None
     last_attempt_at: datetime | None = None
@@ -98,9 +99,18 @@ class FakeRepository:
         row.error_message = None
         return row
 
-    def mark_delivery_failed(self, row: FakeDelivery, error_message: str, attempt_count: int, attempted_at: datetime, permanent: bool):
+    def mark_delivery_failed(
+        self,
+        row: FakeDelivery,
+        error_message: str,
+        error_category: str | None,
+        attempt_count: int,
+        attempted_at: datetime,
+        permanent: bool,
+    ):
         row.status = "failed"
         row.final_status = "permanent_failed" if permanent else "failed"
+        row.error_category = error_category
         row.attempt_count = attempt_count
         row.last_attempt_at = attempted_at
         row.last_error_message = error_message
@@ -208,3 +218,17 @@ def test_monitoring_log_should_not_include_secret(caplog) -> None:
 
     assert result.retry_count == 1
     assert "secret-abc" not in caplog.text
+
+
+def test_backend_should_keep_full_error_for_monitoring() -> None:
+    """backend delivery log 應保留完整錯誤供監控使用。"""
+    repo = FakeRepository()
+    client = SequenceEmailClient([
+        EmailSendResult(success=False, should_retry=False, error_category="invalid_configuration", error_message="HTTP 403: domain is not verified"),
+    ])
+    service = ExpirationEmailReminderService(repo, client, retry_max_attempts=1, sleep_fn=lambda sec: None)
+
+    result = service.run_for_window(date(2026, 5, 13), "morning_08")
+
+    assert result.permanent_failed_count == 1
+    assert repo.deliveries[0].last_error_message == "HTTP 403: domain is not verified"

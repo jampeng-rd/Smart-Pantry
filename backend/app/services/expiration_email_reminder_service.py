@@ -136,6 +136,7 @@ class ExpirationEmailReminderService:
                 self.repository.mark_delivery_failed(
                     row=delivery,
                     error_message=safe_error_message,
+                    error_category=email_result.error_category,
                     attempt_count=attempt,
                     attempted_at=attempted_at,
                     permanent=False,
@@ -164,6 +165,7 @@ class ExpirationEmailReminderService:
             self.repository.mark_delivery_failed(
                 row=delivery,
                 error_message=safe_error_message,
+                error_category=email_result.error_category,
                 attempt_count=attempt,
                 attempted_at=attempted_at,
                 permanent=True,
