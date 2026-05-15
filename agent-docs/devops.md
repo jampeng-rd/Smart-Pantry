@@ -71,6 +71,14 @@ jobs:
 - 圖片正式環境：S3 / R2 / MinIO 等 object storage。
 - Ollama：本機或獨立 GPU / VPS，不建議免費雲端直接跑大型模型。
 
+## Phase 14 Web Deployment 方向（規劃）
+
+- 本輪 Web deployment baseline 先固定：
+  - backend -> Render
+  - frontend -> Vercel
+- AI server / Ollama 暫不列入本輪免費雲端部署範圍。
+- 金流 callback / notify 需要公開網址，因此先完成 Web deployment 再進入 NewebPay runtime 串接。
+
 ## 使用者過多與服務穩定性
 
 風險：backend CPU/RAM 不足、DB connection 過多、慢查詢、AI 推論阻塞、圖片佔用頻寬與儲存。

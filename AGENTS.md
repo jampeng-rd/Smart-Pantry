@@ -163,6 +163,7 @@ Sidebar 需包含：
 - Logo 右側需有 Sidebar 收合按鈕（icon button）。
 - 中間為功能導覽區（MVP 目前顯示）：Pantry、Expiration、Shopping、Recipes、食材辨識。Nutrition route 可保留但 Sidebar 先隱藏。
 - Dashboard route 保留但導航先隱藏；Settings 由使用者選單進入。
+- Phase 14-1 後可新增「會員管理」導航，但僅 admin 可見。
 - 底部固定顯示目前登入使用者。
 
 ### 使用者選單規範
@@ -175,7 +176,12 @@ Sidebar 需包含：
   - Profile
   - Settings
   - Help
+  - 升級 PRO（Phase 14 規劃，位置在 Help 下方、Log out 上方）
   - Log out
+
+- 「升級 PRO」入口不放 Sidebar 主導航。
+- 「升級 PRO」入口規劃放在 `frontend/components/layout/UserMenu.tsx`。
+- 「登出」維持最後一個選項。
 
 ### Workspace 規範
 
@@ -230,6 +236,27 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 13 目前只做文件規劃，不立即實作 queue migration。
 - Phase 08～12 不將 RabbitMQ 作為預設方案。
 - 僅在未來需要複雜 message routing、多服務事件流或更高階 broker 能力時，再評估 RabbitMQ。
+
+## 14. Phase 14：Admin / Billing / Web Deployment（新主線）
+
+- Phase 14-0：文件與架構方向調整
+- Phase 14-1：Admin 權限與會員管理基礎
+- Phase 14-2：Web Deployment Baseline（Render + Vercel）
+- Phase 14-3：Billing 核心資料模型與 Upgrade 入口
+- Phase 14-4：藍新單次付款（one-time）
+- Phase 14-5：藍新訂閱制（subscription）
+- Phase 14-6：Admin Billing Management
+
+規劃重點：
+
+- admin 權限最終需由 DB 欄位控制（`role` 或 `is_admin`），不可只做前端判斷。
+- backend admin API 不混入既有 `backend/app/api/`，改為獨立資料夾（例如 `backend/app/admin_api/`），但仍維持分層架構。
+- 既有帳號 `jampeng.rd@gmail.com` 規劃為第一個 admin 帳號來源之一。
+- 空 DB 初始部署需有第一個 admin 建立方案（migration seed / init script / bootstrap command / 手動 SQL / 後台初始化流程），Phase 14-0 僅文件規劃，不先實作 runtime。
+- Billing 統一入口：`/billing/upgrade`，並依 `BILLING_MODE=one_time|subscription` 導向 `/billing/newebpay-one-time` 或 `/billing/newebpay-subscription`。
+- 單次付款與訂閱制為不同制度，但需共用部分 billing 資料模型。
+- Web 先部署 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
+- 金流 callback / notify 需要公開網址，因此 Web Deployment 需先完成。
 
 ## 12.1 AI 功能階段完成門檻（Phase 08～12）
 

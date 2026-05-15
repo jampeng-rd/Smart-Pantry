@@ -318,6 +318,24 @@ Response `data`：
 - 僅可查詢目前登入使用者自己的 delivery logs，不可跨使用者。
 - 排序為 `created_at desc, id desc`（最新在前）。
 - `item_count` 由 `item_ids` 長度計算。
+
+## Phase 14（規劃）API 方向
+
+Admin API：
+
+- admin 相關 route 規劃放在獨立 `admin_api` 模組，不混入既有 `backend/app/api/`。
+- 會員管理 API 僅 admin 可呼叫，權限驗證以後端 + DB 欄位為準。
+
+Billing API / Route 規劃：
+
+- `/billing/upgrade`：統一入口。
+- `/billing/newebpay-one-time`：單次付款頁/流程入口。
+- `/billing/newebpay-subscription`：訂閱制頁/流程入口。
+- `BILLING_MODE=one_time|subscription`：控制統一入口導向。
+
+說明：
+
+- Phase 14-0 只做文件規劃，不實作 runtime endpoint 行為。
 - datetime 回傳需帶 timezone（`Z` 或 `+00:00`）。
 
 ## Expiration Email Reminder（Phase 10-2 已實作）

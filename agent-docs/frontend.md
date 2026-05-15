@@ -161,6 +161,7 @@ Sidebar 功能導覽至少包含：
 - Nutrition route 可保留，但 MVP Sidebar 先隱藏（Nutrition 暫緩，避免未完成 placeholder）
 - Dashboard route（`/dashboard`）目前保留為未來總覽頁，MVP 側欄可先隱藏該導航項目。
 - Settings 由使用者選單進入。
+- 未來 Phase 14-1 可新增「會員管理」導航，但僅 admin 可見。
 
 ### Sidebar 收合規範
 
@@ -180,7 +181,17 @@ Sidebar 功能導覽至少包含：
 - Profile（個人資料）
 - Settings（系統設定）
 - Help（說明）
+- 升級 PRO（Phase 14 規劃）
 - Log out
+
+Phase 14 補充規劃：
+
+- 「升級 PRO」入口不放 Sidebar 主導航。
+- 入口位置固定在 `frontend/components/layout/UserMenu.tsx`。
+- 顯示順序：`Help` 下方、`Log out` 上方。
+- `Log out` 維持最後一個選項。
+- 後續若 `BILLING_MODE` 開啟，從此入口導向 `/billing/upgrade`。
+- Phase 14-0 僅文件規劃，不先修改 runtime UI。
 
 ### Workspace 規範
 

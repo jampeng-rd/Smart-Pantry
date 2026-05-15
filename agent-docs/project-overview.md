@@ -108,3 +108,20 @@ Phase 10 改做：
 - Phase 13：AI Queue / Worker Scaling
   - 先規劃 Redis / RQ、queue migration、worker scaling、monitoring。
   - 當前仍沿用 PostgreSQL `ai_jobs` + DB polling worker，不立即實作 queue migration。
+
+## Phase 14 新主線（Admin / Billing / Web Deployment）
+
+- Phase 14 以 Web 系統商業化基礎為主，不先做 AI queue runtime。
+- 子階段：
+  - 14-0：文件與架構方向調整
+  - 14-1：Admin 權限與會員管理基礎
+  - 14-2：Web Deployment Baseline（Render + Vercel）
+  - 14-3：Billing 核心資料模型與 Upgrade 入口
+  - 14-4：藍新單次付款（one-time）
+  - 14-5：藍新訂閱制（subscription）
+  - 14-6：Admin Billing Management
+
+關鍵邊界：
+
+- AI server / Ollama 暫不列入本輪雲端部署。
+- 金流 callback/notify 需要公開網址，因此先完成 backend(Render) + frontend(Vercel) Web deployment baseline。

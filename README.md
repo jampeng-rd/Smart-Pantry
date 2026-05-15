@@ -39,6 +39,13 @@ Phase 12-1：Alembic Migration System ✅
 Phase 12-2：Forgot Password / Reset Password ✅
 Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整) ✅
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
+Phase 14-0：Admin / Billing / Web Deployment 文件與架構方向調整 ✅
+Phase 14-1：Admin 權限與會員管理基礎 ⏳
+Phase 14-2：Web Deployment Baseline（Render + Vercel）⏳
+Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ⏳
+Phase 14-4：藍新單次付款（one-time）⏳
+Phase 14-5：藍新訂閱制（subscription）⏳
+Phase 14-6：Admin Billing Management ⏳
 ```
 
 ## 環境需求
@@ -710,6 +717,36 @@ curl http://127.0.0.1:8000/health
 ```
 
 若 migration 失敗，必須先中止流程並修正，不可繼續部署。
+
+## Phase 14：Admin / Billing / Web Deployment（新主線）
+
+本主線在 Phase 14-0 先完成文件與架構方向調整，不提前實作 runtime。
+
+子階段規劃：
+
+- Phase 14-0：文件與架構方向調整（已完成）
+- Phase 14-1：Admin 權限與會員管理基礎
+- Phase 14-2：Web Deployment Baseline（Render + Vercel）
+- Phase 14-3：Billing 核心資料模型與 Upgrade 入口
+- Phase 14-4：藍新單次付款（one-time）
+- Phase 14-5：藍新訂閱制（subscription）
+- Phase 14-6：Admin Billing Management
+
+關鍵規範：
+
+- Phase 13 保留原定位不變（AI Queue / Worker Scaling，先規劃不實作）。
+- Admin 權限最終必須以 DB 欄位控管（`role` 或 `is_admin`），不可只做前端判斷。
+- backend admin API 不混入既有 `backend/app/api/`，規劃使用獨立 `backend/app/admin_api/`。
+- 既有帳號 `jampeng.rd@gmail.com` 規劃作為第一個 admin 帳號來源之一。
+- 空 DB 初始部署需定義第一個 admin 建立方式（migration seed / bootstrap command / init script / 手動 SQL / 後台初始化流程），Phase 14-0 只做文件規劃。
+- Billing 入口規劃：
+  - `/billing/upgrade`
+  - `/billing/newebpay-one-time`
+  - `/billing/newebpay-subscription`
+- `BILLING_MODE=one_time|subscription` 決定 upgrade 入口導向。
+- 「升級 PRO」入口不放 Sidebar 主導航，規劃放在 `frontend/components/layout/UserMenu.tsx` 的 Help 下方、Log out 上方。
+- Web deployment 先做 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
+- 金流 callback / notify 需公開網址，因此先完成 Web deployment baseline。
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

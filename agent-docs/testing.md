@@ -209,3 +209,13 @@ Forgot Password / Reset Password：
 3. migration 故障演練時，部署流程必須中止（staging/prod）。
 4. production 升級驗收文件需包含 backup/snapshot 與 rollback 路徑。
 5. 不可用 drop/recreate DB 取代正式升級流程。
+
+## Phase 14-0 測試與驗收補充（文件與架構方向調整）
+
+- 本階段不做 runtime 功能測試，重點為文件一致性驗收。
+- 至少確認：
+  1. Phase 14-0～14-6 子階段規劃文件完整。
+  2. Phase 13 定位仍保留為 AI Queue / Worker Scaling（先規劃，暫不實作）。
+  3. Admin 權限規範明確要求 DB 欄位控制，不可只靠前端判斷。
+  4. Billing 入口與 `BILLING_MODE=one_time|subscription` 規範已文件化。
+  5. Render + Vercel 部署邊界與 AI server 暫不部署範圍已明確記錄。

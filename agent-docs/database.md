@@ -242,3 +242,23 @@ API layer 不可直接操作資料庫。Service 透過 repository。DB session /
 - 避免 Vision 任務拖慢 recipe_recommendation
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+## Phase 14（規劃）：Admin / Billing 資料模型方向
+
+Admin 權限：
+
+- admin 權限最終必須由 DB 欄位控制，不可只做前端判斷。
+- 可接受方案：
+  - `users.role`（`user` / `admin`）
+  - `users.is_admin`（boolean）
+- `jampeng.rd@gmail.com` 規劃為第一個既有 admin 帳號，具體寫入方式留在 Phase 14-1 實作。
+
+空 DB 初始化第一個 admin（Phase 14-0 文件規劃）：
+
+- 可接受方案：migration seed、bootstrap command、init script、手動 SQL 或後台初始化流程。
+- 無論採哪一種，必須可重複執行且避免重複建立 admin。
+
+Billing 共用模型（one-time / subscription 共用）：
+
+- 建議新增 `billing_memberships`、`billing_transactions`、`billing_webhook_events`（名稱可於 Phase 14-3 定稿）。
+- one-time 與 subscription 為不同制度，但共用使用者、交易紀錄、provider event log 基礎欄位。

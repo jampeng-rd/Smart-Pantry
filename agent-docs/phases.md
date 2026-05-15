@@ -318,6 +318,47 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - queue metrics
 - worker health check
 
+## Phase 14：Admin / Billing / Web Deployment
+
+### Phase 14-0：文件與架構方向調整
+
+- 建立 Admin / Billing / Web Deployment 新主線文件。
+- 明確保留 Phase 13 定位不變（AI Queue / Worker Scaling）。
+- 明確定義 AI server / Ollama 暫不列入本輪免費雲端部署。
+
+### Phase 14-1：Admin 權限與會員管理基礎
+
+- 建立 admin 權限模型（DB 欄位，如 `role` 或 `is_admin`）。
+- 新增 admin 可見的會員管理入口與基礎 API。
+- admin API 與既有 `backend/app/api/` 分離（例如 `backend/app/admin_api/`）。
+
+### Phase 14-2：Web Deployment Baseline（Render + Vercel）
+
+- backend 部署到 Render。
+- frontend 部署到 Vercel。
+- 完成 Web production/staging baseline、環境變數與 health check 流程。
+
+### Phase 14-3：Billing 核心資料模型與 Upgrade 入口
+
+- 建立 billing 共用資料模型（供 one-time / subscription 共用）。
+- 建立 `/billing/upgrade` 統一入口與導向規則。
+- 新增 `BILLING_MODE=one_time|subscription` 設定規範。
+
+### Phase 14-4：藍新單次付款（one-time）
+
+- 實作藍新 one-time 付款流程與 callback/notify 對帳基礎。
+- 與會員升級狀態串接（PRO 啟用/失敗處理）。
+
+### Phase 14-5：藍新訂閱制（subscription）
+
+- 實作藍新 subscription 流程（建立、續扣、取消、失敗重試策略）。
+- 與會員有效期與狀態同步。
+
+### Phase 14-6：Admin Billing Management
+
+- admin 後台可查詢付款紀錄、訂閱狀態、升級來源與異常交易。
+- 補齊 refund/cancel/manual review 文件與操作流程。
+
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 
 - worker 可依 job_type 過濾任務

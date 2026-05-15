@@ -45,6 +45,7 @@ langchain-ollama>=1.0,<2.0
 
 ```text
 backend/app/api/{health,auth,pantry,expiration,shopping,recipes,ingredients,nutrition}.py
+backend/app/admin_api/{auth,members,billing}.py
 backend/app/services/{auth_service,pantry_service,expiration_service,shopping_service,recipe_service,ingredient_service,nutrition_service}.py
 backend/app/domain/{schemas,models,enums}.py
 backend/app/infra/{database,repository,settings,security,llm_client,ingredient_client,storage}.py
@@ -247,3 +248,15 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - `invalid to` / `invalid recipient` / recipient email 格式錯誤（含不完整 domain/TLD） => 使用者 Email 無法寄送
 - `invalid from` / `invalid sender` / API key invalid / domain not verified => 系統設定或伺服器異常
 - backend user-facing mapping 必須明確區分 `to` 與 `from`，避免誤導使用者。
+
+## Phase 14（規劃）：Admin / Billing / Web Deployment 後端方向
+
+- Admin API 不混入既有 `backend/app/api/`，改放 `backend/app/admin_api/`。
+- admin 權限判斷不可只在前端，最終必須由 DB 欄位與後端權限驗證控制（例如 `users.role` 或 `users.is_admin`）。
+- `jampeng.rd@gmail.com` 需作為第一個既有 admin 帳號來源之一（實際寫入方式於 Phase 14-1 實作）。
+- 若為空 DB 初始部署，第一個 admin 建立方式可採：migration seed、bootstrap command、init script、手動 SQL（皆需文件化）；Phase 14-0 僅規劃不實作。
+- Billing 路由規劃：
+  - `/billing/upgrade`
+  - `/billing/newebpay-one-time`
+  - `/billing/newebpay-subscription`
+- `BILLING_MODE=one_time|subscription` 由後端設定決定 upgrade 入口導向策略（Phase 14-3+ 實作）。
