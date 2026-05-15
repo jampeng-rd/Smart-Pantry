@@ -52,6 +52,13 @@ MVP 可先使用單一 API server + PostgreSQL，但設計時需保留 paginatio
 - Phase 12 先補 Alembic migration 與 Account Recovery；AI Queue / Worker Scaling 順延到 Phase 13，且目前僅文件規劃。
 - AI 階段使用 LangChain 1.x 系列，LLM client 仍封裝在 infra 層。
 
+## 前端使用者狀態隔離（Critical）
+
+- `recipes`、`ingredients`、`theme/settings` 屬於 user-scoped 狀態，需以目前登入使用者為隔離邊界。
+- 同一使用者切頁返回時可保留其 recipes/ingredients 進度。
+- `logout`、切換帳號、auth 初始化失敗或 token 失效時，必須清空前一使用者的 user-scoped 狀態。
+- backend recipes/ingredients job 查詢仍必須以 `user_id` 隔離，避免跨使用者讀取。
+
 ## Shopping 與 Pantry 關係
 
 - `pantry_items` 代表目前庫存，`shopping_list_items` 代表購物清單。

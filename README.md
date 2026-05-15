@@ -115,6 +115,14 @@ docker compose up --build
 
 MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環境建議 refresh token 改為 httpOnly secure cookie。
 
+前端 user-scoped 狀態隔離（critical）：
+
+- `recipes`、`ingredients`、`theme/settings` 屬於 user-scoped 狀態。
+- 同一使用者在站內切頁再回功能頁時，可保留自己的 recipes/ingredients 進度與結果。
+- `logout`、切換帳號、`initializeAuth` 失敗、token 失效後，必須清空前一位使用者的 user-scoped 狀態。
+- 不可讓下一位登入者看到上一位使用者的 recipe result / ingredient preview 與候選表單 / theme 偏好。
+- 食材辨識狀態隔離不可使用「component unmount 一律清空」作為最終修法。
+
 ## Pantry 與 Expiration
 
 已完成：
@@ -403,6 +411,7 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認。餐�
   - `note`
 - failed 顯示中文友善錯誤，不顯示 traceback 或技術細節。
 - polling 間隔約 2.5 秒；job 完成與 component unmount 都會停止 polling，避免 memory leak。
+- recipes frontend state 為 user-scoped：同一使用者切頁可保留；`logout`/切帳號/auth 失效時必須 reset，避免跨帳號污染。
 
 job-based 流程：
 
@@ -502,9 +511,11 @@ MVP 使用範圍與注意事項：
 - 支援圖片格式/大小前置檢查（JPG/PNG/WEBP、<=5MB）與預覽。
 - 建立 job 後自動 polling 狀態（pending/running/success/failed）。
 - 頁面切換回來若 job 仍在 pending/running，會恢復 polling。
+- ingredients frontend state 為 user-scoped：同一使用者切頁可保留 preview/檔名/candidates/job 狀態；`logout`/切帳號/auth 失效時必須 reset。
 - success 後顯示 `candidate_items`，可逐筆編輯/刪除。
 - 使用者按「確認加入庫存」後，前端逐筆呼叫既有 `pantryApi.create` 寫入 `pantry_items`（無 bulk API）。
 - 保持「AI 候選不可自動寫入 pantry」原則，必須由使用者確認才寫入。
+- 不可使用「component unmount 一律清空」作為跨帳號污染修法，以免同一使用者切頁回來遺失進度。
 - 部分成功/部分失敗時，會回報失敗項目與原因（中文友善訊息）。
 - `uploads/ingredient_photos/` 僅作暫存；worker 於 ingredient_photo job 終態（success/failed/timeout/stale failed）後會嘗試刪除原始圖片。
 - `ai_jobs` 與 `result.candidate_items` 仍保留，前端顯示與後續確認加入 pantry 流程不受影響。

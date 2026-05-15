@@ -202,6 +202,10 @@ request 補充：
 
 查詢食材照片辨識 job 狀態與結果。
 
+規則：
+
+- ingredient photo job 查詢必須驗證 `user_id`，不可跨使用者查詢他人任務與結果。
+
 ### （未來可類推）POST /nutrition/estimate-jobs
 
 建立營養粗估 job，僅供生活參考。

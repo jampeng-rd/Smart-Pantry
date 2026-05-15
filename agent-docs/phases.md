@@ -258,6 +258,7 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - 中文友善錯誤
 - selected_items / auto_from_pantry UI
 - 不直連 ai_server
+- recipes frontend state 視為 user-scoped：同一使用者切頁可保留；logout/切換帳號/auth 失效時需 reset。
 
 完成標準：backend + worker + frontend UI + 手動驗收皆完成。
 
@@ -268,6 +269,9 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 ### Phase 09-2：Vision Model 食材辨識
 
 ### Phase 09-3：Ingredient Photo 前端 UI + 使用者確認寫入 Pantry
+
+- ingredients frontend state 視為 user-scoped：同一使用者切頁可保留 preview/candidates/job 狀態；logout/切換帳號/auth 失效時需 reset。
+- 跨帳號污染修正不可使用「component unmount 一律清空」，避免同一使用者切頁回來遺失進度。
 
 ## Phase 10：Profile / Settings / Help / Expiration Email Reminder
 

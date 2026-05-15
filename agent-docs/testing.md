@@ -65,12 +65,24 @@ npm run build
 - Phase 06 MVP 需驗證使用瀏覽器 `Intl API` 將 UTC datetime 轉成本地時間顯示。
 - 若後續加入 `user_preferences.timezone`，需驗證可覆蓋瀏覽器時區。
 
+前端 user-scoped state isolation 測試補充：
+
+- Recipes：
+  - 使用者 A 產生 recipe result 後登出，使用者 B 登入不可看到 A 的 `result/jobStatus/polling/currentJobId`。
+  - 同一使用者切到其他頁再回 `/recipes`，既有 job/result 狀態可保留，不應被誤清空。
+- Ingredients：
+  - 使用者 A 上傳圖片並出現 preview/candidates 後登出，使用者 B 登入不可看到 A 的 preview/檔名/候選表單/job 狀態。
+  - 同一使用者切到其他頁再回 `/ingredients`，既有 preview/candidates/job 狀態可保留，不應被誤清空。
+- Theme：
+  - 使用者 A 變更主題後登出，使用者 B 登入應顯示 B 自己的 theme 偏好，不可沿用 A 的有效偏好。
+
 ## Token 與儲存測試補充
 
 - refresh token 必須測試 hash 儲存，不可儲存明文 token。
 - 測試 access token 過期後可透過 refresh token 取得新 access token。
 - 測試 logout / revoke 後 refresh token 不可再使用。
 - 前端 tokenService 需測試 sessionStorage 儲存、快過期 refresh、401 後最多重試一次。
+- 驗證 `logout` / 切換帳號 / auth 初始化失敗後，recipes 與 ingredients 的 user-scoped state 會被 reset。
 
 ## 圖片與 Background Job 測試補充
 

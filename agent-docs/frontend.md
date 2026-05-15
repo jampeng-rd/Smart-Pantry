@@ -35,6 +35,14 @@ React、Vite、TypeScript、Redux Toolkit、React Redux、react-icons、CSS vari
 
 主題切換由 `themeSlice.ts` 管理，主題偏好可持久化到 localStorage。Token 不建議放 localStorage。
 
+主題與狀態隔離規範：
+
+- `recipes`、`ingredients`、`theme/settings` 為 user-scoped 狀態，不可跨帳號共用。
+- 同一登入使用者切換頁面時，recipes/ingredients 可保留目前進度與結果。
+- `logout`、切換帳號、auth 初始化失敗或 token 失效後，必須清空前一使用者的 recipes/ingredients 狀態。
+- theme 若使用 localStorage，不可只用全域單一 key 直接覆蓋所有帳號偏好；登入後應以目前使用者 settings/theme 為準。
+- 不可使用「component unmount 一律清空」做 ingredients 隔離，避免同一使用者切頁回來遺失進度。
+
 ## Redux 目錄規範
 
 ```text
@@ -271,12 +279,14 @@ Recipes UI：
 - auto_from_pantry
 - recipe result UI
 - cooking tools / allergies / diet preference
+- recipes 狀態為 user-scoped：同一使用者切頁可保留；帳號切換或 auth 失效時必須 reset。
 
 食材辨識 UI：
 
 - ingredient photo upload
 - 食材辨識 candidate items
 - 使用者確認後寫入 pantry
+- ingredients 狀態為 user-scoped：preview / 檔名 / candidates / job status / polling / 確認表單在同一使用者切頁可保留；帳號切換或 auth 失效時必須 reset。
 
 Nutrition UI（未來恢復後）：
 

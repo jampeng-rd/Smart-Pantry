@@ -60,6 +60,14 @@ frontend/src/styles/{theme.css,globals.css}
 - 若 API 回傳 401，最多 refresh 一次並重送原 request。
 - Refresh 失敗才清除登入狀態並導回登入頁。
 
+### 4.3 前端 User-Scoped State Isolation（Critical）
+
+- `recipes`、`ingredients`、`theme/settings` 屬於 user-scoped 前端狀態，必須以目前登入使用者為隔離邊界。
+- 同一使用者在站內切頁再返回時，可保留其進行中的 recipes / ingredients 狀態。
+- `logout`、切換帳號、auth 初始化失敗、token 失效導致登入狀態失效時，必須重置前一使用者的 user-scoped 狀態。
+- 不可讓下一位登入者看到上一位使用者的 recipes 結果、ingredient preview/candidates、或 theme 偏好。
+- `ingredients` 狀態清理不可採用「component unmount 一律清空」作為最終方案，需改以 auth/user identity 變更事件清理。
+
 ## 4.1 時間與時區策略
 
 - 後端與 DB 一律使用 UTC timezone-aware datetime。
@@ -98,6 +106,7 @@ frontend/src/styles/{theme.css,globals.css}
 - frontend 不可直接呼叫 `ai_server/`，只能呼叫 `backend/`。
 - API route 不可直接 import 或呼叫 LangChain / ChatOllama。
 - AI 任務採 job-based：建立 job → 回傳 `job_id` → worker 處理 → 前端輪詢 backend job status。
+- recipes / ingredient photo job 查詢 API 必須以 `user_id` 做資料隔離，不可跨使用者讀取任務狀態與結果。
 - Phase 08-0～08-2 使用 PostgreSQL `ai_jobs` + DB polling worker。
 - Phase 08～12 不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ；Expiration Email Reminder 在 Phase 08～12 一律使用 DB polling / scheduler worker 實作，
 Phase 13 再評估 queue。
