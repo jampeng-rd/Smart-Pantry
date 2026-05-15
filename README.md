@@ -37,7 +37,7 @@ Phase 11-4：retry / failure handling / monitoring ✅
 Phase 12-0：文件與階段方向調整（Migration / Account Recovery）✅
 Phase 12-1：Alembic Migration System ✅
 Phase 12-2：Forgot Password / Reset Password ✅
-Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
+Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整) ✅
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 ```
 
@@ -636,7 +636,7 @@ Phase 08～12 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 
 frontend 不可直接呼叫 ai_server，只能透過 backend job API。
 
-## Phase 12：Database Migration / Account Recovery（規劃）
+## Phase 12：Database Migration / Account Recovery（已完成）
 
 - `Phase 12-0`：文件與階段方向調整，將原 Phase 12 AI Queue 順延到 Phase 13。
 - `Phase 12-1`：導入 Alembic migration system，建立 baseline，後續 schema 變更必須走 migration。
@@ -649,7 +649,7 @@ frontend 不可直接呼叫 ai_server，只能透過 backend job API。
 - Forgot Password 必須共用既有 `email_client_factory` 與 provider abstraction，不可新增獨立 SMTP 實作。
 - deployment 前需執行 `alembic upgrade head`。
 
-## Phase 12-1：Alembic Migration System（進行中）
+## Phase 12-1：Alembic Migration System（已完成）
 
 本階段已導入 Alembic 基礎結構：
 
@@ -677,6 +677,39 @@ alembic stamp 20260514_1201
 ```
 
 之後再以 migration revision 管理後續 schema 變更。
+
+## Phase 12-3：Deployment Migration / DB Upgrade 驗收（已完成）
+
+本階段已補齊 deployment migration 驗收規範，重點如下：
+
+- deployment 前必須執行 `alembic upgrade head`。
+- migration 失敗必須中止 deployment，不可忽略錯誤繼續 rollout。
+- production 不可使用 drop/recreate DB 作為升級方式。
+- 已明確區分 development / staging / production 的 migration 流程差異。
+- 已定義 migration failure handling 與 rollback 策略（可逆變更可 downgrade，不可逆風險優先 restore backup/snapshot）。
+
+詳細文件請參考：
+
+- `docs/phase-12-3-deployment-migration-db-upgrade-validation.md`
+
+### Deployment 前 Migration Checklist（摘要）
+
+1. 確認 migration 檔案與 head 狀態（`alembic heads`）。
+2. 確認目標環境 `DATABASE_URL` 與 secrets 正確。
+3. production 升級前先完成 DB backup/snapshot。
+4. 執行 `alembic upgrade head`。
+5. 執行 `alembic current` 並做 `GET /health` smoke test。
+
+### 本地 DB Upgrade 驗收（最小流程）
+
+```bash
+alembic upgrade head
+alembic current
+python -m uvicorn backend.app.main:app --reload
+curl http://127.0.0.1:8000/health
+```
+
+若 migration 失敗，必須先中止流程並修正，不可繼續部署。
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

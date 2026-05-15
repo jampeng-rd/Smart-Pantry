@@ -13,6 +13,22 @@
 - 後續 schema 變更必須新增 migration（新增欄位/索引/資料表/約束）。
 - 不可再以手動 `ALTER TABLE` 作為正式流程。
 - deployment 流程需納入 `alembic upgrade head`。
+- migration 失敗必須中止 deployment，不可繼續上線。
+- production 升級不可使用 drop/recreate DB。
+
+## DB Upgrade 驗收（Phase 12-3）
+
+最小驗收流程：
+
+1. 執行 `alembic upgrade head`。
+2. 執行 `alembic current` 確認 revision 已到預期 head。
+3. 啟動 backend，驗證 `GET /health`。
+4. 進行核心 API smoke test（auth + pantry/shopping 至少各一條讀取路徑）。
+
+Failure handling：
+
+- migration 失敗時必須停止流程並保留錯誤資訊。
+- 可安全回滾時才執行 downgrade；不可逆情境優先 restore backup/snapshot。
 
 ## Docker Compose service
 

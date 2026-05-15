@@ -136,6 +136,27 @@ docker-compose 後續規劃：
 - 需有 migration rollback 策略與 failure handling 文件。
 - MVP 與目前 production deployment 的 AI 任務仍使用 PostgreSQL `ai_jobs` + DB polling worker。
 
+### Deployment 前 Migration Checklist
+
+1. 確認 migration 檔案已提交且 `alembic heads` 狀態正確。
+2. 確認目標環境 `DATABASE_URL` 與 secret 設定正確（不可混用環境 DB）。
+3. production 升級前先建立 DB backup/snapshot。
+4. 執行 `alembic upgrade head`。
+5. 執行 `alembic current` + `GET /health` 作最小驗收。
+
+### Environment 差異
+
+- development：開發者本機手動執行 migration 與基本 smoke test。
+- staging：先執行 migration，再做部署前回歸驗收；失敗即停止 staging rollout。
+- production：先 backup/snapshot，再 migration，成功後才能 rollout app。
+
+### Failure Handling / Rollback
+
+- `alembic upgrade head` 任一步驟失敗，部署流程必須立即停止。
+- 可逆 schema 變更可評估 `alembic downgrade -1`。
+- 若為不可逆或高風險變更，優先使用 DB backup/snapshot restore。
+- 僅回滾 app 版本不足以處理 schema 問題時，不可單獨做 app rollback。
+
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離
 
 - worker 可依 job_type 過濾任務

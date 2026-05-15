@@ -38,10 +38,10 @@ Phase 11-1：Gmail SMTP 真實寄信 ✅
 Phase 11-2：Production Email Provider（Resend）✅
 Phase 11-3：正式 scheduler / cron / docker deployment ✅
 Phase 11-4：retry / failure handling / monitoring ✅
-Phase 12-0：文件與階段方向調整（Migration / Account Recovery）⏳
-Phase 12-1：Alembic Migration System ⏳
-Phase 12-2：Forgot Password / Reset Password ⏳
-Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
+Phase 12-0：文件與階段方向調整（Migration / Account Recovery）✅
+Phase 12-1：Alembic Migration System ✅
+Phase 12-2：Forgot Password / Reset Password ✅
+Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整) ✅
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 ```
 

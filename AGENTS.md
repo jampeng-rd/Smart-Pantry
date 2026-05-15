@@ -206,7 +206,7 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - Phase 12-0：文件與階段方向調整
 - Phase 12-1：Alembic Migration System
 - Phase 12-2：Forgot Password / Reset Password
-- Phase 12-3：Deployment Migration / DB Upgrade 驗收
+- Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整)
 
 策略：
 

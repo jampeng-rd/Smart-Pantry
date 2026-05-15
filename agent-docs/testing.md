@@ -199,3 +199,13 @@ Forgot Password / Reset Password：
 - CI / automated tests 禁止寄送真實 forgot password email。
 - forgot password 測試必須使用 fake/stub email client。
 - local manual testing 可使用 Gmail SMTP / Resend 驗證 email flow。
+
+## Phase 12-3 測試與驗收補充（Deployment Migration / DB Upgrade）
+
+至少補齊下列驗收：
+
+1. `alembic upgrade head` 可在本地開發 DB 成功執行。
+2. `alembic current` 可驗證目前 revision 已到 head。
+3. migration 故障演練時，部署流程必須中止（staging/prod）。
+4. production 升級驗收文件需包含 backup/snapshot 與 rollback 路徑。
+5. 不可用 drop/recreate DB 取代正式升級流程。
