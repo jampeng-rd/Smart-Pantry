@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+import { initializeAuth, login, logout, register } from "../auth/authSlice";
 import type { PantryCreatePayload } from "../pantry/pantryTypes";
 import { ingredientsApi, pantryApi } from "../../services/apiClient";
 import type {
@@ -31,6 +32,21 @@ let candidateClientIdSeed = 0;
 function createCandidateClientId(): string {
   candidateClientIdSeed += 1;
   return `ingredient-candidate-${Date.now()}-${candidateClientIdSeed}`;
+}
+
+function resetIngredientState(state: IngredientState): void {
+  state.uploading = false;
+  state.polling = false;
+  state.currentJobId = null;
+  state.jobStatus = null;
+  state.jobError = null;
+  state.previewUrl = null;
+  state.selectedImageName = null;
+  state.candidates = [];
+  state.resultNote = null;
+  state.confirmLoading = false;
+  state.confirmSummary = null;
+  state.showNoItemsState = false;
 }
 
 function toStorageLocationUi(value: string): string {
@@ -133,16 +149,7 @@ const ingredientSlice = createSlice({
       state.jobError = null;
     },
     clearIngredientResult: (state) => {
-      state.previewUrl = null;
-      state.selectedImageName = null;
-      state.candidates = [];
-      state.resultNote = null;
-      state.confirmSummary = null;
-      state.jobError = null;
-      state.jobStatus = null;
-      state.currentJobId = null;
-      state.polling = false;
-      state.showNoItemsState = false;
+      resetIngredientState(state);
     },
     setIngredientPolling: (state, action: PayloadAction<boolean>) => {
       state.polling = action.payload;
@@ -171,15 +178,7 @@ const ingredientSlice = createSlice({
     removeCandidate: (state, action: PayloadAction<string>) => {
       state.candidates = state.candidates.filter((candidate) => candidate.clientId !== action.payload);
       if (state.candidates.length === 0) {
-        state.previewUrl = null;
-        state.selectedImageName = null;
-        state.resultNote = null;
-        state.confirmSummary = null;
-        state.jobError = null;
-        state.jobStatus = null;
-        state.currentJobId = null;
-        state.polling = false;
-        state.showNoItemsState = false;
+        resetIngredientState(state);
       }
     },
   },
@@ -266,6 +265,24 @@ const ingredientSlice = createSlice({
       .addCase(confirmCandidatesToPantry.rejected, (state, action) => {
         state.confirmLoading = false;
         state.jobError = action.payload ?? "候選食材加入庫存失敗，請稍後再試。";
+      })
+      .addCase(logout.pending, (state) => {
+        resetIngredientState(state);
+      })
+      .addCase(logout.fulfilled, (state) => {
+        resetIngredientState(state);
+      })
+      .addCase(logout.rejected, (state) => {
+        resetIngredientState(state);
+      })
+      .addCase(login.fulfilled, (state) => {
+        resetIngredientState(state);
+      })
+      .addCase(register.fulfilled, (state) => {
+        resetIngredientState(state);
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        resetIngredientState(state);
       });
   },
 });
