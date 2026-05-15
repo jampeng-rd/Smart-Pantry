@@ -9,6 +9,8 @@ import pytest
 from fastapi import HTTPException
 
 from backend.app.infra.security import create_access_token, hash_password
+from backend.app.infra.email_client import EmailMessage, EmailSendResult
+from backend.app.infra.settings import Settings
 from backend.app.services.auth_service import AuthService
 
 
@@ -34,6 +36,17 @@ class FakeRefreshToken:
     replaced_by_token_id: int | None = None
 
 
+@dataclass
+class FakePasswordResetToken:
+    """測試用重設密碼 token 資料。"""
+
+    id: int
+    user_id: int
+    token_hash: str
+    expires_at: datetime
+    used_at: datetime | None = None
+
+
 class FakeAuthRepository:
     """以記憶體模擬 AuthRepository。"""
 
@@ -44,6 +57,8 @@ class FakeAuthRepository:
         self.tokens_by_hash: dict[str, FakeRefreshToken] = {}
         self._user_seq = 1
         self._token_seq = 1
+        self.password_reset_tokens_by_hash: dict[str, FakePasswordResetToken] = {}
+        self._password_reset_seq = 1
 
     def get_user_by_email(self, email: str) -> FakeUser | None:
         """依 email 取得使用者。"""
@@ -81,12 +96,60 @@ class FakeAuthRepository:
         token_row.revoked_at = datetime.now(timezone.utc)
         token_row.replaced_by_token_id = replacement_id
 
+    def revoke_all_active_refresh_tokens_by_user_id(self, user_id: int) -> None:
+        """撤銷使用者所有有效 refresh token。"""
+        now = datetime.now(timezone.utc)
+        for token in self.tokens_by_hash.values():
+            if token.user_id == user_id and token.revoked_at is None:
+                token.revoked_at = now
+
+    def create_password_reset_token(self, user_id: int, token_hash: str, expires_at: datetime) -> FakePasswordResetToken:
+        """建立重設密碼 token。"""
+        row = FakePasswordResetToken(
+            id=self._password_reset_seq,
+            user_id=user_id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+        self.password_reset_tokens_by_hash[token_hash] = row
+        self._password_reset_seq += 1
+        return row
+
+    def get_password_reset_token_by_hash(self, token_hash: str) -> FakePasswordResetToken | None:
+        """依 hash 取得重設密碼 token。"""
+        return self.password_reset_tokens_by_hash.get(token_hash)
+
+    def mark_password_reset_token_used(self, token_row: FakePasswordResetToken) -> None:
+        """標記 token 已使用。"""
+        token_row.used_at = datetime.now(timezone.utc)
+
+    def save_user(self, user: FakeUser) -> FakeUser:
+        """儲存使用者。"""
+        self.users_by_id[user.id] = user
+        self.users_by_email[user.email] = user
+        return user
+
+
+class FakeEmailClient:
+    """測試用 fake email client。"""
+
+    def __init__(self) -> None:
+        """初始化已寄送信件紀錄。"""
+        self.sent_messages: list[EmailMessage] = []
+
+    def send_email(self, message: EmailMessage) -> EmailSendResult:
+        """記錄信件並回傳成功。"""
+        self.sent_messages.append(message)
+        return EmailSendResult(success=True)
+
 
 @pytest.fixture
 def auth_service() -> tuple[AuthService, FakeAuthRepository]:
     """建立 AuthService 與假 repository。"""
     repository = FakeAuthRepository()
-    return AuthService(auth_repository=repository), repository
+    email_client = FakeEmailClient()
+    settings = Settings(email_provider="fake")
+    return AuthService(auth_repository=repository, email_client=email_client, settings=settings), repository
 
 
 def test_register_success(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
@@ -182,3 +245,85 @@ def test_auth_me_unauthorized(auth_service: tuple[AuthService, FakeAuthRepositor
     with pytest.raises(HTTPException) as exc:
         service.get_me(invalid_access_token)
     assert exc.value.status_code == 401
+
+
+def test_forgot_password_should_return_same_message_when_user_exists_or_not(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
+    """忘記密碼在存在/不存在 email 時，需回相同成功訊息。"""
+    service, repository = auth_service
+    repository.create_user("user@example.com", hash_password("password123"), "測試者")
+
+    existing_message = service.forgot_password("user@example.com")
+    missing_message = service.forgot_password("ghost@example.com")
+    assert existing_message == missing_message
+
+
+def test_forgot_password_should_store_reset_token_hash_only(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
+    """忘記密碼只可儲存 token hash，不可儲存明文。"""
+    service, repository = auth_service
+    repository.create_user("user@example.com", hash_password("password123"), "測試者")
+
+    service.forgot_password("user@example.com")
+    assert len(repository.password_reset_tokens_by_hash) == 1
+    token_hash = next(iter(repository.password_reset_tokens_by_hash.keys()))
+    assert len(token_hash) == 64
+    message = service.email_client.sent_messages[0]
+    assert message.content_text.find(token_hash) == -1
+
+
+def test_reset_password_should_return_friendly_error_when_token_expired(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
+    """重設密碼 token 過期時應回繁中友善錯誤。"""
+    service, repository = auth_service
+    user = repository.create_user("user@example.com", hash_password("password123"), "測試者")
+    raw_token = "expired-token"
+    from backend.app.infra.security import hash_password_reset_token
+
+    repository.create_password_reset_token(
+        user_id=user.id,
+        token_hash=hash_password_reset_token(raw_token),
+        expires_at=datetime.now(timezone.utc) - timedelta(minutes=1),
+    )
+    with pytest.raises(HTTPException) as exc:
+        service.reset_password(raw_token, "new-password-123")
+    assert exc.value.status_code == 400
+    assert "已過期" in str(exc.value.detail)
+
+
+def test_reset_password_should_return_friendly_error_when_token_used(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
+    """重設密碼 token 已使用時應回繁中友善錯誤。"""
+    service, repository = auth_service
+    user = repository.create_user("user@example.com", hash_password("password123"), "測試者")
+    raw_token = "used-token"
+    from backend.app.infra.security import hash_password_reset_token
+
+    row = repository.create_password_reset_token(
+        user_id=user.id,
+        token_hash=hash_password_reset_token(raw_token),
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+    )
+    row.used_at = datetime.now(timezone.utc)
+
+    with pytest.raises(HTTPException) as exc:
+        service.reset_password(raw_token, "new-password-123")
+    assert exc.value.status_code == 400
+    assert "已使用" in str(exc.value.detail)
+
+
+def test_reset_password_should_revoke_existing_refresh_tokens(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
+    """重設密碼成功後，既有 refresh token 應全部失效。"""
+    service, repository = auth_service
+    user = repository.create_user("user@example.com", hash_password("password123"), "測試者")
+    login_result = service.login("user@example.com", "password123")
+    raw_token = "valid-token"
+    from backend.app.infra.security import hash_password_reset_token
+
+    repository.create_password_reset_token(
+        user_id=user.id,
+        token_hash=hash_password_reset_token(raw_token),
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+    )
+
+    message = service.reset_password(raw_token, "new-password-123")
+    assert "成功" in message
+
+    with pytest.raises(HTTPException):
+        service.refresh(login_result.refresh_token)

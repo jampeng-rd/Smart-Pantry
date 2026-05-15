@@ -7,10 +7,11 @@ import { clearAuthError, login } from "../features/auth/authSlice";
 interface LoginPageProps {
   onLoggedIn: () => void;
   onShowRegister: () => void;
+  onShowForgotPassword: () => void;
 }
 
 /** 登入頁。 */
-export function LoginPage({ onLoggedIn, onShowRegister }: LoginPageProps) {
+export function LoginPage({ onLoggedIn, onShowRegister, onShowForgotPassword }: LoginPageProps) {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
@@ -86,6 +87,9 @@ export function LoginPage({ onLoggedIn, onShowRegister }: LoginPageProps) {
       <button type="button" className="btn ghost" onClick={onShowRegister} aria-label="切換到註冊頁">
         沒有帳號？前往註冊
         <FiUserPlus aria-hidden="true" />
+      </button>
+      <button type="button" className="btn ghost" onClick={onShowForgotPassword} aria-label="前往忘記密碼頁">
+        忘記密碼
       </button>
     </section>
   );

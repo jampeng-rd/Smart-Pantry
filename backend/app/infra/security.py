@@ -56,6 +56,16 @@ def hash_refresh_token(refresh_token: str) -> str:
     return hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
 
 
+def create_password_reset_token() -> str:
+    """建立重設密碼用的一次性明文 token。"""
+    return secrets.token_urlsafe(32)
+
+
+def hash_password_reset_token(reset_token: str) -> str:
+    """將重設密碼 token 轉為 SHA-256 hash。"""
+    return hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+
+
 def decode_token(token: str) -> dict:
     """解碼 JWT token。"""
     return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])

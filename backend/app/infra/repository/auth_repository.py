@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.app.domain.models.password_reset_token_model import PasswordResetToken
 from backend.app.domain.models.refresh_token_model import RefreshToken
 from backend.app.domain.models.user_model import User
 
@@ -34,6 +35,13 @@ class AuthRepository:
         self.db.refresh(user)
         return user
 
+    def save_user(self, user: User) -> User:
+        """儲存使用者變更。"""
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
     def create_refresh_token(self, token_hash: str, user_id: int, expires_at: datetime) -> RefreshToken:
         """建立 refresh token 紀錄。"""
         token_row = RefreshToken(token_hash=token_hash, user_id=user_id, expires_at=expires_at)
@@ -57,5 +65,41 @@ class AuthRepository:
         """撤銷舊 token 並設定 replacement token。"""
         token_row.revoked_at = datetime.now(timezone.utc)
         token_row.replaced_by_token_id = replacement_id
+        self.db.add(token_row)
+        self.db.commit()
+
+    def revoke_all_active_refresh_tokens_by_user_id(self, user_id: int) -> None:
+        """撤銷指定使用者所有尚未撤銷的 refresh token。"""
+        now = datetime.now(timezone.utc)
+        statement = select(RefreshToken).where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
+        )
+        rows = self.db.execute(statement).scalars().all()
+        for row in rows:
+            row.revoked_at = now
+            self.db.add(row)
+        self.db.commit()
+
+    def create_password_reset_token(self, user_id: int, token_hash: str, expires_at: datetime) -> PasswordResetToken:
+        """建立重設密碼 token 紀錄。"""
+        row = PasswordResetToken(
+            user_id=user_id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return row
+
+    def get_password_reset_token_by_hash(self, token_hash: str) -> PasswordResetToken | None:
+        """依 hash 查詢重設密碼 token。"""
+        statement = select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash)
+        return self.db.execute(statement).scalar_one_or_none()
+
+    def mark_password_reset_token_used(self, token_row: PasswordResetToken) -> None:
+        """標記重設密碼 token 已使用。"""
+        token_row.used_at = datetime.now(timezone.utc)
         self.db.add(token_row)
         self.db.commit()

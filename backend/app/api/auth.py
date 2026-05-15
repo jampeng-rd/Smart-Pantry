@@ -3,7 +3,14 @@
 from fastapi import APIRouter, Depends
 
 from backend.app.api.dependencies import get_auth_service, get_bearer_token
-from backend.app.domain.schemas.auth_schema import LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest
+from backend.app.domain.schemas.auth_schema import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    LogoutRequest,
+    RefreshRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+)
 from backend.app.domain.schemas.common_schema import ApiResponse
 from backend.app.services.auth_service import AuthService
 
@@ -46,3 +53,17 @@ def me(
     """取得當前登入使用者資訊。"""
     data = service.get_me(access_token=access_token)
     return ApiResponse(status="success", data=data.model_dump(), message=None)
+
+
+@router.post("/forgot-password", response_model=ApiResponse)
+def forgot_password(payload: ForgotPasswordRequest, service: AuthService = Depends(get_auth_service)) -> ApiResponse:
+    """送出忘記密碼請求。"""
+    message = service.forgot_password(email=payload.email)
+    return ApiResponse(status="success", data={"requested": True}, message=message)
+
+
+@router.post("/reset-password", response_model=ApiResponse)
+def reset_password(payload: ResetPasswordRequest, service: AuthService = Depends(get_auth_service)) -> ApiResponse:
+    """使用 token 重設密碼。"""
+    message = service.reset_password(token=payload.token, new_password=payload.new_password)
+    return ApiResponse(status="success", data={"password_reset": True}, message=message)

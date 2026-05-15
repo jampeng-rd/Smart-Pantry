@@ -36,7 +36,7 @@ Phase 11-3：正式 scheduler / cron / docker deployment ✅
 Phase 11-4：retry / failure handling / monitoring ✅
 Phase 12-0：文件與階段方向調整（Migration / Account Recovery）✅
 Phase 12-1：Alembic Migration System ✅
-Phase 12-2：Forgot Password / Reset Password ⏳
+Phase 12-2：Forgot Password / Reset Password ✅
 Phase 12-3：Deployment Migration / DB Upgrade 驗收 ⏳
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 ```
@@ -96,12 +96,15 @@ docker compose up --build
 
 ## Auth 與 Token
 
-已完成 `register/login/refresh/logout/me`：
+已完成 `register/login/refresh/logout/me/forgot-password/reset-password`：
 
 - Access token 預設 15 分鐘。
 - Refresh token 預設 7 天。
 - Refresh token 僅存 DB hash，不存明文。
 - `logout` 會撤銷 refresh token，撤銷後 refresh 會失敗。
+- forgot password 不會暴露 email 是否存在，存在/不存在都回相同成功訊息。
+- reset token 僅存 DB hash，不存明文 token。
+- reset password 成功後會更新 `password_hash`、標記 reset token `used_at`，並撤銷使用者既有 refresh tokens。
 
 MVP 前端可使用 sessionStorage 儲存 token（有 XSS 風險）；正式環境建議 refresh token 改為 httpOnly secure cookie。
 

@@ -8,16 +8,18 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ExpirationPage } from "./pages/ExpirationPage";
 import { IngredientsPage } from "./pages/IngredientsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { NutritionPage } from "./pages/NutritionPage";
 import { PantryPage } from "./pages/PantryPage";
 import { RecipesPage } from "./pages/RecipesPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ShoppingPage } from "./pages/ShoppingPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { HelpPage } from "./pages/HelpPage";
 
-type AuthViewMode = "login" | "register";
+type AuthViewMode = "login" | "register" | "forgot-password" | "reset-password";
 type ProtectedPath =
   | "/dashboard"
   | "/pantry"
@@ -49,6 +51,10 @@ function App() {
   const auth = useAppSelector((state) => state.auth);
   const [pathname, setPathname] = useState(window.location.pathname);
   const [authViewMode, setAuthViewMode] = useState<AuthViewMode>("login");
+  const tokenFromUrl = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("token") ?? "";
+  }, []);
 
   useEffect(() => {
     void dispatch(initializeAuth());
@@ -65,6 +71,22 @@ function App() {
       navigateTo("/pantry", true, setPathname);
     }
   }, [auth.initialized, auth.isAuthenticated, pathname]);
+
+  useEffect(() => {
+    if (pathname === "/forgot-password") {
+      setAuthViewMode("forgot-password");
+      return;
+    }
+    if (pathname === "/reset-password") {
+      setAuthViewMode("reset-password");
+      return;
+    }
+    if (pathname === "/register") {
+      setAuthViewMode("register");
+      return;
+    }
+    setAuthViewMode("login");
+  }, [pathname]);
 
   const isProtectedRoute = useMemo(() => protectedRoutes.includes(pathname as ProtectedPath), [pathname]);
 
@@ -87,13 +109,21 @@ function App() {
       {authViewMode === "login" ? (
         <LoginPage
           onLoggedIn={() => navigateTo("/pantry", false, setPathname)}
-          onShowRegister={() => setAuthViewMode("register")}
+          onShowRegister={() => navigateTo("/register", false, setPathname)}
+          onShowForgotPassword={() => navigateTo("/forgot-password", false, setPathname)}
         />
-      ) : (
+      ) : authViewMode === "register" ? (
         <RegisterPage
           onRegistered={() => navigateTo("/pantry", false, setPathname)}
-          onShowLogin={() => setAuthViewMode("login")}
+          onShowLogin={() => navigateTo("/", false, setPathname)}
         />
+      ) : authViewMode === "forgot-password" ? (
+        <ForgotPasswordPage
+          onBackToLogin={() => navigateTo("/", false, setPathname)}
+          onShowResetPassword={() => navigateTo("/reset-password", false, setPathname)}
+        />
+      ) : (
+        <ResetPasswordPage tokenFromUrl={tokenFromUrl} onBackToLogin={() => navigateTo("/", false, setPathname)} />
       )}
     </main>
   );

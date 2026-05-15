@@ -26,5 +26,6 @@ class User(Base):
     )
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user")
     user_preference = relationship("UserPreference", back_populates="user", uselist=False)
     expiration_reminder_deliveries = relationship("ExpirationReminderDelivery", back_populates="user")

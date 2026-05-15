@@ -1,4 +1,11 @@
-import type { ApiResponse, AuthTokenData, MeData, RegisterPayload } from "../features/auth/authTypes";
+import type {
+  ApiResponse,
+  AuthTokenData,
+  ForgotPasswordPayload,
+  MeData,
+  RegisterPayload,
+  ResetPasswordPayload,
+} from "../features/auth/authTypes";
 import type { ExpirationSummary } from "../features/expiration/expirationTypes";
 import type {
   PantryCreatePayload,
@@ -56,6 +63,8 @@ export const authApi = {
   refresh: (payload: RefreshPayload) => post<AuthTokenData>("/auth/refresh", payload),
   logout: (payload: LogoutPayload) => post<unknown>("/auth/logout", payload),
   me: () => requestWithAuth<MeData>("/auth/me", { method: "GET" }),
+  forgotPassword: (payload: ForgotPasswordPayload) => post<unknown>("/auth/forgot-password", payload),
+  resetPassword: (payload: ResetPasswordPayload) => post<unknown>("/auth/reset-password", payload),
 };
 
 /** Pantry API 封裝。 */
@@ -321,6 +330,9 @@ function toSafeApiErrorMessage(status: number, fallbackMessage: string): string 
   }
   if (status === 422) {
     return "送出資料格式不正確，請檢查後再試。";
+  }
+  if (status === 400) {
+    return fallbackMessage || "目前無法處理此請求，請稍後再試。";
   }
   if (status >= 400) {
     return "目前無法處理此請求，請稍後再試。";

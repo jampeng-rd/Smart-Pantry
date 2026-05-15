@@ -30,6 +30,19 @@ class LogoutRequest(BaseModel):
     refresh_token: str = Field(min_length=1)
 
 
+class ForgotPasswordRequest(BaseModel):
+    """忘記密碼請求資料。"""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """重設密碼請求資料。"""
+
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserProfile(BaseModel):
     """使用者基本資料。"""
 

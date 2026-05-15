@@ -8,6 +8,8 @@ from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.infra.database import get_db_session
+from backend.app.infra.email_client_factory import build_email_client
+from backend.app.infra.settings import get_settings
 from backend.app.infra.storage import LocalStorage
 
 if TYPE_CHECKING:
@@ -23,7 +25,9 @@ def get_auth_service(db: Session = Depends(get_db_session)):
     from backend.app.services.auth_service import AuthService
 
     repository = AuthRepository(db=db)
-    return AuthService(auth_repository=repository)
+    settings = get_settings()
+    email_client = build_email_client(settings)
+    return AuthService(auth_repository=repository, email_client=email_client, settings=settings)
 
 
 def get_pantry_service(db: Session = Depends(get_db_session)):

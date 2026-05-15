@@ -28,6 +28,17 @@ export interface RegisterPayload {
   display_name: string;
 }
 
+/** 忘記密碼請求參數。 */
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+/** 重設密碼請求參數。 */
+export interface ResetPasswordPayload {
+  token: string;
+  new_password: string;
+}
+
 /** 後端統一回應結構。 */
 export interface ApiResponse<T> {
   status: "success" | "error";

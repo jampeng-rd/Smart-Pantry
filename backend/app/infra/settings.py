@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
+    password_reset_token_expire_minutes: int = 30
 
     cors_origins: str = "http://localhost:5173"
     vite_api_base_url: str = "http://localhost:8000"
