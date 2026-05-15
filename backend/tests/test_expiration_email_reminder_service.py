@@ -181,7 +181,7 @@ def test_reminder_days_1_should_send_correct_items() -> None:
     assert result.success_count == 1
     assert len(fake_email.sent_messages) == 1
     sent = fake_email.sent_messages[0]
-    assert sent.subject == "【智慧食材保存系統】食材即將到期提醒"
+    assert sent.subject == "【智慧食材保存系統】食材到期提醒"
     assert "小明 您好：" in sent.content_text
     assert "以下是 2026-05-14 即將到期的食材：" in sent.content_text
     assert "食材名稱 | 數量 | 單位 | 保存位置" in sent.content_text

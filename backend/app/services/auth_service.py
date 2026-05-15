@@ -135,7 +135,7 @@ class AuthService:
 
     def forgot_password(self, email: str) -> str:
         """建立重設密碼 token，並寄送忘記密碼信。"""
-        success_message = "若此 Email 已註冊，我們已寄出重設密碼說明信。"
+        success_message = "若此 Email 已註冊，我們已寄出重設密碼通知信。"
         user = self.auth_repository.get_user_by_email(email=email)
         if user is None:
             return success_message
@@ -153,7 +153,7 @@ class AuthService:
         content_text = (
             f"{user.display_name} 您好，\n\n"
             "我們收到您的重設密碼請求。\n"
-            f"請在 {minutes} 分鐘內使用下列重設 token 完成密碼重設：\n\n"
+            f"請在 {minutes} 分鐘內使用下列 臨時密碼 完成密碼重設：\n\n"
             f"{raw_token}\n\n"
             "若這不是您本人操作，請忽略此信。\n"
             "此信件由系統自動發送，無需回覆。"

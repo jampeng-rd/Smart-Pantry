@@ -34,7 +34,7 @@ class ExpirationReminderRunResult:
 
 class ExpirationEmailReminderService:
     """依使用者偏好寄送到期提醒，並記錄 delivery log。"""
-    FOOTER_TEXT = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。"
+    FOOTER_TEXT = "此信件由系統自動發送，無需回覆。"
 
     def __init__(
         self,
@@ -257,7 +257,7 @@ class ExpirationEmailReminderService:
         )
         return EmailMessage(
             to_email=email_to,
-            subject="【智慧食材保存系統】食材即將到期提醒",
+            subject="【智慧食材保存系統】食材到期提醒",
             content_text=text_content,
             content_html=html_content,
         )

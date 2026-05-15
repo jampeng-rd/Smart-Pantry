@@ -197,6 +197,15 @@ def test_refresh_success(auth_service: tuple[AuthService, FakeAuthRepository]) -
     assert refresh_result.access_token
     assert refresh_result.refresh_token != login_result.refresh_token
 
+    from backend.app.infra.security import hash_refresh_token
+
+    old_row = repository.get_refresh_token_by_hash(hash_refresh_token(login_result.refresh_token))
+    new_row = repository.get_refresh_token_by_hash(hash_refresh_token(refresh_result.refresh_token))
+    assert old_row is not None
+    assert new_row is not None
+    assert old_row.revoked_at is not None
+    assert old_row.replaced_by_token_id == new_row.id
+
 
 def test_refresh_token_expired(auth_service: tuple[AuthService, FakeAuthRepository]) -> None:
     """refresh token 過期應失敗。"""
@@ -324,6 +333,14 @@ def test_reset_password_should_revoke_existing_refresh_tokens(auth_service: tupl
 
     message = service.reset_password(raw_token, "new-password-123")
     assert "成功" in message
+    reset_token_row = repository.get_password_reset_token_by_hash(hash_password_reset_token(raw_token))
+    assert reset_token_row is not None
+    assert reset_token_row.used_at is not None
 
     with pytest.raises(HTTPException):
         service.refresh(login_result.refresh_token)
+
+    with pytest.raises(HTTPException) as reuse_exc:
+        service.reset_password(raw_token, "new-password-456")
+    assert reuse_exc.value.status_code == 400
+    assert "已使用" in str(reuse_exc.value.detail)

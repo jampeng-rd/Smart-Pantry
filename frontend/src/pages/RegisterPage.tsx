@@ -72,7 +72,7 @@ export function RegisterPage({ onRegistered, onShowLogin }: RegisterPageProps) {
           autoComplete="name"
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
-          placeholder="王小明"
+          placeholder="請輸入使用者名稱"
         />
 
         <label htmlFor="register-email">Email</label>
@@ -83,7 +83,7 @@ export function RegisterPage({ onRegistered, onShowLogin }: RegisterPageProps) {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="user@example.com"
+          placeholder="請輸入正確 Email，以免相關功能無法自動通知  "
         />
 
         <label htmlFor="register-password">密碼</label>

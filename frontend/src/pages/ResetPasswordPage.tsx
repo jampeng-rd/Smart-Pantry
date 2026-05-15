@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { FiArrowLeft, FiCheckCircle, FiEye, FiEyeOff, FiKey } from "react-icons/fi";
 
 import { authApi } from "../services/apiClient";
@@ -18,6 +18,16 @@ export function ResetPasswordPage({ tokenFromUrl, onBackToLogin }: ResetPassword
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      onBackToLogin();
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [message, onBackToLogin]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,7 +50,7 @@ export function ResetPasswordPage({ tokenFromUrl, onBackToLogin }: ResetPassword
     setLoading(true);
     try {
       await authApi.resetPassword({ token: token.trim(), new_password: newPassword });
-      setMessage("密碼重設成功，請返回登入頁重新登入。");
+      setMessage("密碼重設成功，1.5 秒後將返回登入頁，請使用新密碼重新登入。");
     } catch (caughtError) {
       const safeMessage = caughtError instanceof Error ? caughtError.message : "目前無法處理此請求，請稍後再試。";
       setError(safeMessage);
@@ -56,16 +66,16 @@ export function ResetPasswordPage({ tokenFromUrl, onBackToLogin }: ResetPassword
         <p>Smart Pantry & Nutritionist System</p>
       </header>
 
-      <h2 className="auth-form-title">重設密碼</h2>
+      {/* <h2 className="auth-form-title">臨時密碼</h2> */}
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <label htmlFor="reset-password-token">重設 token</label>
+        <label htmlFor="reset-password-token">臨時密碼</label>
         <input
           id="reset-password-token"
           name="token"
           type="text"
           value={token}
           onChange={(event) => setToken(event.target.value)}
-          placeholder="請貼上信件中的重設 token"
+          placeholder="請貼上信件中的臨時密碼"
         />
 
         <label htmlFor="reset-password-new-password">新密碼</label>
@@ -124,7 +134,7 @@ export function ResetPasswordPage({ tokenFromUrl, onBackToLogin }: ResetPassword
         返回登入
       </button>
       <p className="muted-text">
-        <FiCheckCircle aria-hidden="true" /> 重設成功後，系統會要求你重新登入。
+        <FiCheckCircle aria-hidden="true" /> 重設成功後，系統會要求重新登入。
       </p>
     </section>
   );

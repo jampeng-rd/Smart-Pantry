@@ -8,7 +8,18 @@ interface ForgotPasswordPageProps {
   onShowResetPassword: () => void;
 }
 
-const SUCCESS_MESSAGE = "若此 Email 已註冊，我們已寄出重設密碼說明信。";
+const SUCCESS_MESSAGE = "若此 Email 已註冊，我們已寄出重設密碼通知信。";
+
+/**
+ * 驗證 Email 格式（前端基本檢查，避免顯示成伺服器錯誤）。
+ */
+export function isValidEmailFormat(email: string): boolean {
+  const normalized = email.trim();
+  if (!normalized) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
 
 /** 忘記密碼頁面。 */
 export function ForgotPasswordPage({ onBackToLogin, onShowResetPassword }: ForgotPasswordPageProps) {
@@ -24,6 +35,11 @@ export function ForgotPasswordPage({ onBackToLogin, onShowResetPassword }: Forgo
 
     if (!email.trim()) {
       setError("請輸入 Email");
+      return;
+    }
+
+    if (!isValidEmailFormat(email)) {
+      setError("請輸入正確的 Email 格式");
       return;
     }
 
@@ -72,10 +88,10 @@ export function ForgotPasswordPage({ onBackToLogin, onShowResetPassword }: Forgo
         返回登入
       </button>
       <button type="button" className="btn ghost" onClick={onShowResetPassword} aria-label="前往重設密碼頁">
-        我已取得 token，前往重設密碼
+        已取得臨時密碼，前往重設密碼
       </button>
       <p className="muted-text">
-        <FiMail aria-hidden="true" /> 請至信箱取得重設 token，再到重設密碼頁完成操作。
+        <FiMail aria-hidden="true" /> 請至信箱取得臨時密碼，再前往 重設密碼 完成操作。
       </p>
     </section>
   );
