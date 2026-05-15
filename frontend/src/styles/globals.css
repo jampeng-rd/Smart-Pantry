@@ -722,7 +722,7 @@ body {
   background: color-mix(in srgb, var(--color-surface) 92%, var(--color-bg) 8%);
   padding: 0.7rem 0.8rem;
   display: grid;
-  grid-template-columns: minmax(72px, 0.7fr) minmax(220px, 2fr) minmax(130px, 1fr) minmax(100px, 0.8fr) minmax(170px, 1.3fr);
+  grid-template-columns: minmax(72px, 0.8fr) minmax(110px, 1fr) minmax(280px, 2.5fr) minmax(100px, 0.9fr) minmax(170px, 1.3fr);
   gap: 0.55rem 0.7rem;
   align-items: center;
 }
@@ -732,6 +732,10 @@ body {
 }
 
 .admin-member-mobile-summary {
+  display: none;
+}
+
+.admin-member-detail-field {
   display: none;
 }
 
