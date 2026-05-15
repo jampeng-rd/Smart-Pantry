@@ -40,7 +40,7 @@ Phase 12-2：Forgot Password / Reset Password ✅
 Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整) ✅
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 Phase 14-0：Admin / Billing / Web Deployment 文件與架構方向調整 ✅
-Phase 14-1：Admin 權限與會員管理基礎 ⏳
+Phase 14-1：Admin 權限與會員管理基礎 ✅
 Phase 14-2：Web Deployment Baseline（Render + Vercel）⏳
 Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ⏳
 Phase 14-4：藍新單次付款（one-time）⏳
@@ -725,7 +725,7 @@ curl http://127.0.0.1:8000/health
 子階段規劃：
 
 - Phase 14-0：文件與架構方向調整（已完成）
-- Phase 14-1：Admin 權限與會員管理基礎
+- Phase 14-1：Admin 權限與會員管理基礎（已完成）
 - Phase 14-2：Web Deployment Baseline（Render + Vercel）
 - Phase 14-3：Billing 核心資料模型與 Upgrade 入口
 - Phase 14-4：藍新單次付款（one-time）
@@ -747,6 +747,38 @@ curl http://127.0.0.1:8000/health
 - 「升級 PRO」入口不放 Sidebar 主導航，規劃放在 `frontend/components/layout/UserMenu.tsx` 的 Help 下方、Log out 上方。
 - Web deployment 先做 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
 - 金流 callback / notify 需公開網址，因此先完成 Web deployment baseline。
+
+## Phase 14-1：Admin 權限與會員管理基礎（已完成）
+
+已完成項目：
+
+- DB 權限模型：`users.is_admin`（透過 Alembic migration 管理）。
+- 新增 migration：`migrations/versions/20260515_1401_admin_role_and_members_api.py`。
+- 新增 admin 專用 API 模組：`backend/app/admin_api/`。
+- 新增 admin guard（非 admin 回 403）與會員列表 API：`GET /admin/members`。
+- 新增第一個 admin 可執行初始化方案：`python -m backend.app.jobs.bootstrap_admin`。
+- 既有帳號 `jampeng.rd@gmail.com` 可直接設為 admin。
+- 空 DB 可用 `--create-if-not-exists` 建立第一個 admin。
+- 前端 Sidebar 新增「會員管理」入口（僅 admin 可見）。
+- 前端新增最小可操作頁面：`/admin/members`（含載入/錯誤/空狀態/列表）。
+
+### Admin Bootstrap 指令
+
+將既有使用者設為 admin（預設 email 即 `jampeng.rd@gmail.com`）：
+
+```bash
+python -m backend.app.jobs.bootstrap_admin --email jampeng.rd@gmail.com
+```
+
+空 DB 建立第一個 admin：
+
+```bash
+python -m backend.app.jobs.bootstrap_admin \
+  --email first-admin@example.com \
+  --create-if-not-exists \
+  --password 'change-me-strong-password' \
+  --display-name '第一位管理員'
+```
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

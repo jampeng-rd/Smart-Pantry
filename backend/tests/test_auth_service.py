@@ -22,6 +22,7 @@ class FakeUser:
     email: str
     password_hash: str
     display_name: str
+    is_admin: bool = False
 
 
 @dataclass

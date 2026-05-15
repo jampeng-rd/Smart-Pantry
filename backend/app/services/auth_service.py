@@ -49,7 +49,9 @@ class AuthService:
             password_hash=hash_password(password),
             display_name=display_name,
         )
-        return RegisterResponseData(user=UserProfile(id=user.id, email=user.email, display_name=user.display_name))
+        return RegisterResponseData(
+            user=UserProfile(id=user.id, email=user.email, display_name=user.display_name, is_admin=user.is_admin)
+        )
 
     def login(self, email: str, password: str) -> LoginResponseData:
         """登入並簽發 access/refresh token。"""
@@ -122,7 +124,7 @@ class AuthService:
         user = self.auth_repository.get_user_by_id(user_id=user_id)
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="使用者不存在")
-        return MeResponseData(user=UserProfile(id=user.id, email=user.email, display_name=user.display_name))
+        return MeResponseData(user=UserProfile(id=user.id, email=user.email, display_name=user.display_name, is_admin=user.is_admin))
 
     def get_current_user_id(self, access_token: str) -> int:
         """取得目前登入者 user_id。"""

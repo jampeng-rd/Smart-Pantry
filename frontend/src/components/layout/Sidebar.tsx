@@ -10,6 +10,7 @@ import {
   FiGrid,
   FiShoppingCart,
   FiUser,
+  FiUsers,
 } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
@@ -49,6 +50,7 @@ const iconMap: Record<string, ReactElement> = {
   recipes: <FiBookOpen aria-hidden="true" />,
   ingredients: <FiCamera aria-hidden="true" />,
   nutrition: <FiActivity aria-hidden="true" />,
+  "admin-members": <FiUsers aria-hidden="true" />,
 };
 
 /** Dashboard 側邊導覽。 */

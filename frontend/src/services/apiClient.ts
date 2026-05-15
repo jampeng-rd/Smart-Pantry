@@ -30,6 +30,7 @@ import type {
   RecipeRecommendationJobCreatePayload,
   RecipeRecommendationJobStatusData,
 } from "../features/recipes/recipeTypes";
+import type { AdminMemberListData } from "../features/admin/adminTypes";
 import type { ChangePasswordPayload, ProfileData, ProfileUpdatePayload } from "../features/profile/profileTypes";
 import type {
   ExpirationReminderDeliveryListResponse,
@@ -179,6 +180,18 @@ export const settingsApi = {
       page_size: String(params.pageSize),
     });
     return requestWithAuth<ExpirationReminderDeliveryListResponse>(`/settings/expiration-reminder-deliveries?${query.toString()}`, { method: "GET" });
+  },
+};
+
+/** Admin 會員管理 API 封裝。 */
+export const adminApi = {
+  /** 查詢會員列表（僅 admin）。 */
+  listMembers: (params: { page: number; pageSize: number }) => {
+    const query = new URLSearchParams({
+      page: String(params.page),
+      page_size: String(params.pageSize),
+    });
+    return requestWithAuth<AdminMemberListData>(`/admin/members?${query.toString()}`, { method: "GET" });
   },
 };
 

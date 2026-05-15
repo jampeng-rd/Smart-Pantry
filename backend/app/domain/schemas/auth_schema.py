@@ -49,6 +49,7 @@ class UserProfile(BaseModel):
     id: int
     email: EmailStr
     display_name: str
+    is_admin: bool
 
 
 class AuthTokenData(BaseModel):

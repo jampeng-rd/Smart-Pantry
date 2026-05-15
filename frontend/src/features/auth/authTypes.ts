@@ -3,6 +3,7 @@ export interface UserProfile {
   id: number;
   email: string;
   display_name: string;
+  is_admin: boolean;
 }
 
 /** Auth 狀態定義。 */

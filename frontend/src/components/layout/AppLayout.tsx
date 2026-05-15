@@ -10,8 +10,10 @@ import {
   FiShoppingCart,
   FiSettings,
   FiUser,
+  FiUsers,
 } from "react-icons/fi";
 
+import { useAppSelector } from "../../app/hooks";
 import { Sidebar, type NavItem } from "./Sidebar";
 import { TopToolbar } from "./TopToolbar";
 
@@ -35,6 +37,7 @@ const navItems: NavItem[] = [
 
 /** Dashboard 主版型。 */
 export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
+  const user = useAppSelector((state) => state.auth.user);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -63,6 +66,14 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
     };
   }, [isMobile, mobileOpen]);
 
+  const visibleNavItems = useMemo(() => {
+    const items = [...navItems];
+    if (user?.is_admin) {
+      items.push({ key: "admin-members", label: "會員管理", path: "/admin/members", icon: <FiUsers aria-hidden="true" /> });
+    }
+    return items;
+  }, [user?.is_admin]);
+
   const currentTitle = useMemo(() => {
     if (pathname === "/profile") {
       return { icon: <FiUser aria-hidden="true" />, text: "個人資料" };
@@ -77,18 +88,18 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
       return { icon: <FiArchive aria-hidden="true" />, text: "食材庫存" };
     }
 
-    const matched = navItems.find((item) => item.path === pathname);
+    const matched = visibleNavItems.find((item) => item.path === pathname);
     if (matched) {
       return { icon: matched.icon, text: matched.label };
     }
 
     return { icon: <FiGrid aria-hidden="true" />, text: "儀表板" };
-  }, [pathname]);
+  }, [pathname, visibleNavItems]);
 
   return (
     <main className="dashboard-shell">
       <Sidebar
-        navItems={navItems}
+        navItems={visibleNavItems}
         activePath={pathname}
         collapsed={collapsed}
         isMobile={isMobile}
