@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { FiArrowLeft, FiMail, FiSend } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiMail, FiSend } from "react-icons/fi";
 
 import { authApi } from "../services/apiClient";
 
@@ -83,13 +83,16 @@ export function ForgotPasswordPage({ onBackToLogin, onShowResetPassword }: Forgo
         </button>
       </form>
 
-      <button type="button" className="btn ghost" onClick={onBackToLogin} aria-label="返回登入頁">
-        <FiArrowLeft aria-hidden="true" />
-        返回登入
-      </button>
-      <button type="button" className="btn ghost" onClick={onShowResetPassword} aria-label="前往重設密碼頁">
-        已取得臨時密碼，前往重設密碼
-      </button>
+      <div className="auth-action-group">
+        <button type="button" className="btn ghost" onClick={onBackToLogin} aria-label="返回登入頁">
+          <FiArrowLeft aria-hidden="true" />
+          返回登入
+        </button>
+        <button type="button" className="btn ghost" onClick={onShowResetPassword} aria-label="前往重設密碼頁">
+          已取得臨時密碼，前往重設密碼
+          <FiArrowRight aria-hidden="true" />
+        </button>
+      </div>
       <p className="muted-text">
         <FiMail aria-hidden="true" /> 請至信箱取得臨時密碼，再前往 重設密碼 完成操作。
       </p>

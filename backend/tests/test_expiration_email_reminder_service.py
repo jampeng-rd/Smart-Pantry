@@ -8,7 +8,7 @@ from datetime import date, datetime, timezone
 from backend.app.infra.email_client import FakeEmailClient, GmailSmtpEmailClient
 from backend.app.services.expiration_email_reminder_service import ExpirationEmailReminderService
 
-EXPECTED_FOOTER = "此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。"
+EXPECTED_FOOTER = "此信件由系統自動發送，無需回覆。"
 
 
 @dataclass

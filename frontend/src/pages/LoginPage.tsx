@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { FiEye, FiEyeOff, FiLogIn, FiUserPlus } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiHelpCircle, FiLogIn, FiUserPlus } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { clearAuthError, login } from "../features/auth/authSlice";
@@ -84,13 +84,16 @@ export function LoginPage({ onLoggedIn, onShowRegister, onShowForgotPassword }: 
         </button>
       </form>
 
-      <button type="button" className="btn ghost" onClick={onShowRegister} aria-label="切換到註冊頁">
-        沒有帳號？前往註冊
-        <FiUserPlus aria-hidden="true" />
-      </button>
-      <button type="button" className="btn ghost" onClick={onShowForgotPassword} aria-label="前往忘記密碼頁">
-        忘記密碼
-      </button>
+      <div className="auth-action-group">
+        <button type="button" className="btn ghost" onClick={onShowRegister} aria-label="切換到註冊頁">
+          <FiUserPlus aria-hidden="true" />
+          沒有帳號 前往註冊
+        </button>
+        <button type="button" className="btn ghost" onClick={onShowForgotPassword} aria-label="前往忘記密碼頁">
+          <FiHelpCircle aria-hidden="true" />
+          忘記密碼
+        </button>
+      </div>
     </section>
   );
 }

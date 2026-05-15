@@ -137,8 +137,8 @@ export function RegisterPage({ onRegistered, onShowLogin }: RegisterPageProps) {
       </form>
 
       <button type="button" className="btn ghost" onClick={onShowLogin} aria-label="返回登入頁">
-        已有帳號？返回登入
         <FiLogIn aria-hidden="true" />
+        已有帳號 返回登入
       </button>
     </section>
   );

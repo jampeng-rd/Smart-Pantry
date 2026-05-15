@@ -44,7 +44,7 @@
   - 前文已顯示「以下是 <target_expiration_date> 即將到期的食材」，表格不重複放到期日欄位
   - quantity 顯示規則：整數顯示 `1`、`2`；有小數才顯示如 `1.5`
   - `storage_location` 空值時顯示 `未設定`
-  - 結尾固定：`此信件來自【智慧食材保存與膳食管理系統】自動發送，無需回覆 謝謝您。`
+  - 結尾固定：`此信件由系統自動發送，無需回覆。`
   - HTML 使用 inline style、不依賴外部 CSS/圖片，確保 Gmail 可讀性
   - HTML 結構已簡化為單一主要容器，`table` 後直接接 footer `<p>`，降低 Gmail 折疊 footer 的機率
 - 更新：`backend/app/infra/email_client.py`

@@ -75,7 +75,7 @@ export function ResetPasswordPage({ tokenFromUrl, onBackToLogin }: ResetPassword
           type="text"
           value={token}
           onChange={(event) => setToken(event.target.value)}
-          placeholder="請貼上信件中的臨時密碼"
+          placeholder="請輸入臨時密碼"
         />
 
         <label htmlFor="reset-password-new-password">新密碼</label>
