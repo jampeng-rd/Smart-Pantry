@@ -186,11 +186,15 @@ export const settingsApi = {
 /** Admin 會員管理 API 封裝。 */
 export const adminApi = {
   /** 查詢會員列表（僅 admin）。 */
-  listMembers: (params: { page: number; pageSize: number }) => {
+  listMembers: (params: { page: number; pageSize: number; q?: string }) => {
     const query = new URLSearchParams({
       page: String(params.page),
       page_size: String(params.pageSize),
     });
+    const keyword = params.q?.trim();
+    if (keyword) {
+      query.set("q", keyword);
+    }
     return requestWithAuth<AdminMemberListData>(`/admin/members?${query.toString()}`, { method: "GET" });
   },
 };

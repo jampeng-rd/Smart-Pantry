@@ -22,9 +22,9 @@ class AdminMemberService:
         if not user.is_admin:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="需要管理員權限")
 
-    def list_members(self, page: int, page_size: int) -> AdminMemberListResponseData:
-        """查詢會員列表。"""
-        rows, total = self.repository.list_members(page=page, page_size=page_size)
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> AdminMemberListResponseData:
+        """查詢會員列表（依 ID 由小到大），支援 display_name / email 關鍵字搜尋。"""
+        rows, total = self.repository.list_members(page=page, page_size=page_size, q=q)
         items = [
             AdminMemberItem(
                 id=row.id,

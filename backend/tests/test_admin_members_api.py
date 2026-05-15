@@ -18,15 +18,16 @@ class FakeAdminMemberService(AdminMemberService):
 
     def __init__(self) -> None:
         """建立測試服務實例。"""
-        pass
+        self.last_q: str | None = None
 
     def ensure_admin_user(self, user_id: int) -> None:
         """模擬 admin 權限檢查。"""
         if user_id != 1:
             raise HTTPException(status_code=403, detail="需要管理員權限")
 
-    def list_members(self, page: int, page_size: int) -> AdminMemberListResponseData:
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> AdminMemberListResponseData:
         """回傳固定會員列表。"""
+        self.last_q = q
         return AdminMemberListResponseData(
             items=[
                 AdminMemberItem(
@@ -54,9 +55,16 @@ def test_admin_dependency_should_reject_non_admin() -> None:
 def test_admin_members_route_should_return_member_list() -> None:
     """admin 可取得會員列表。"""
     service = FakeAdminMemberService()
-    response = list_members(page=1, page_size=10, _=1, service=service)
+    response = list_members(page=1, page_size=10, q=None, _=1, service=service)
     payload = response.model_dump()
 
     assert payload["status"] == "success"
     assert payload["data"]["total"] == 1
     assert payload["data"]["items"][0]["email"] == "admin@example.com"
+
+
+def test_admin_members_route_should_forward_q_parameter() -> None:
+    """會員查詢關鍵字需正確轉交 service。"""
+    service = FakeAdminMemberService()
+    _ = list_members(page=1, page_size=10, q="Boy", _=1, service=service)
+    assert service.last_q == "Boy"

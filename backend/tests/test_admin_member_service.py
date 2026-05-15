@@ -78,9 +78,12 @@ class FakeAdminMemberRepository:
         self.users[user.id] = user
         return user
 
-    def list_members(self, page: int, page_size: int) -> tuple[list[FakeUser], int]:
-        """分頁查詢使用者。"""
-        rows = sorted(self.users.values(), key=lambda user: (user.created_at, user.id), reverse=True)
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[FakeUser], int]:
+        """分頁查詢使用者（ID 由小到大），支援關鍵字搜尋。"""
+        rows = sorted(self.users.values(), key=lambda user: user.id)
+        keyword = (q or "").strip().lower()
+        if keyword:
+            rows = [row for row in rows if keyword in row.display_name.lower() or keyword in row.email.lower()]
         total = len(rows)
         start = (page - 1) * page_size
         end = start + page_size
@@ -114,6 +117,15 @@ def test_list_members_should_return_member_list(admin_service: tuple[AdminMember
     data = service.list_members(page=1, page_size=10)
     assert data.total == 2
     assert len(data.items) == 2
+    assert data.items[0].email == "admin@example.com"
+
+
+def test_list_members_should_support_keyword_search(admin_service: tuple[AdminMemberService, FakeAdminMemberRepository]) -> None:
+    """會員列表可依 display_name/email 關鍵字搜尋。"""
+    service, _ = admin_service
+    data = service.list_members(page=1, page_size=10, q="admin")
+    assert data.total == 1
+    assert len(data.items) == 1
     assert data.items[0].email == "admin@example.com"
 
 

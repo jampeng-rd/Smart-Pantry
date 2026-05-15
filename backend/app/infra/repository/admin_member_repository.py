@@ -1,6 +1,6 @@
 """Admin 會員管理資料存取層。"""
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import asc, func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.app.domain.models.user_model import User
@@ -38,14 +38,23 @@ class AdminMemberRepository:
         self.db.refresh(user)
         return user
 
-    def list_members(self, page: int, page_size: int) -> tuple[list[User], int]:
-        """分頁查詢會員列表（最新建立優先）。"""
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[User], int]:
+        """分頁查詢會員列表（依 ID 由小到大），可依姓名或 Email 搜尋。"""
+        filters = []
+        keyword = (q or "").strip()
+        if keyword:
+            like_pattern = f"%{keyword}%"
+            filters.append(or_(User.display_name.ilike(like_pattern), User.email.ilike(like_pattern)))
+
         total_statement = select(func.count(User.id))
+        if filters:
+            total_statement = total_statement.where(*filters)
         total = self.db.execute(total_statement).scalar_one()
 
         statement = (
             select(User)
-            .order_by(desc(User.created_at), desc(User.id))
+            .where(*filters)
+            .order_by(asc(User.id))
             .offset((page - 1) * page_size)
             .limit(page_size)
         )

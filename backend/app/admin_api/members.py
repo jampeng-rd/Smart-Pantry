@@ -13,9 +13,10 @@ router = APIRouter(prefix="/admin/members", tags=["admin-members"])
 def list_members(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    q: str | None = Query(default=None, max_length=120),
     _: int = Depends(get_current_admin_user_id),
     service: AdminMemberService = Depends(get_admin_member_service),
 ) -> ApiResponse:
     """查詢會員列表（僅 admin 可用）。"""
-    data = service.list_members(page=page, page_size=page_size)
+    data = service.list_members(page=page, page_size=page_size, q=q)
     return ApiResponse(status="success", data=data.model_dump(), message=None)
