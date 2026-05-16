@@ -21,6 +21,9 @@ import { ShoppingPage } from "./pages/ShoppingPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { HelpPage } from "./pages/HelpPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
+import { BillingUpgradePage } from "./pages/BillingUpgradePage";
+import { BillingNewebpayOneTimePage } from "./pages/BillingNewebpayOneTimePage";
+import { BillingNewebpaySubscriptionPage } from "./pages/BillingNewebpaySubscriptionPage";
 import { settingsApi } from "./services/apiClient";
 
 type AuthViewMode = "login" | "register" | "forgot-password" | "reset-password";
@@ -35,7 +38,10 @@ type ProtectedPath =
   | "/settings"
   | "/profile"
   | "/help"
-  | "/admin/members";
+  | "/admin/members"
+  | "/billing/upgrade"
+  | "/billing/newebpay-one-time"
+  | "/billing/newebpay-subscription";
 
 const protectedRoutes: ProtectedPath[] = [
   "/dashboard",
@@ -49,6 +55,9 @@ const protectedRoutes: ProtectedPath[] = [
   "/profile",
   "/help",
   "/admin/members",
+  "/billing/upgrade",
+  "/billing/newebpay-one-time",
+  "/billing/newebpay-subscription",
 ];
 
 /** 前端入口：處理 Auth UI 與受保護路由。 */
@@ -145,7 +154,7 @@ function App() {
         onUnauthorized={() => navigateTo("/", true, setPathname)}
       >
         <AppLayout pathname={pathname} onNavigate={(path) => navigateTo(path, false, setPathname)}>
-          <WorkspaceByPath pathname={pathname as ProtectedPath} />
+          <WorkspaceByPath pathname={pathname as ProtectedPath} onNavigate={(path) => navigateTo(path, false, setPathname)} />
         </AppLayout>
       </ProtectedRoute>
     );
@@ -176,7 +185,7 @@ function App() {
   );
 }
 
-function WorkspaceByPath({ pathname }: { pathname: ProtectedPath }) {
+function WorkspaceByPath({ pathname, onNavigate }: { pathname: ProtectedPath; onNavigate: (path: string) => void }) {
   switch (pathname) {
     case "/dashboard":
       return <DashboardPage />;
@@ -200,6 +209,12 @@ function WorkspaceByPath({ pathname }: { pathname: ProtectedPath }) {
       return <HelpPage />;
     case "/admin/members":
       return <AdminMembersPage />;
+    case "/billing/upgrade":
+      return <BillingUpgradePage onNavigate={onNavigate} />;
+    case "/billing/newebpay-one-time":
+      return <BillingNewebpayOneTimePage />;
+    case "/billing/newebpay-subscription":
+      return <BillingNewebpaySubscriptionPage />;
     default:
       return <DashboardPage />;
   }

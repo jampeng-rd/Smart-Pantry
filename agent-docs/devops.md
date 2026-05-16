@@ -303,3 +303,17 @@ Gmail SMTP 額外限制：
 - 預設補發 1 次，避免對錯誤收件地址重複轟炸
 - 監控以 structured logs 為主（本階段不導入 metrics/alert service）
 - 不可在 log 中輸出 secret（API key / SMTP password / Authorization）
+
+## Phase 14-3 部署補充（Billing）
+
+新增 backend 環境變數：
+
+- `BILLING_MODE=one_time|subscription`
+
+規則：
+- `one_time`：`/billing/upgrade` 導向 `/billing/newebpay-one-time`
+- `subscription`：`/billing/upgrade` 導向 `/billing/newebpay-subscription`
+
+注意：
+- Phase 14-3 僅提供入口與資料模型，不包含真實付款流程。
+- 真實金流串接在 Phase 14-4 / 14-5。

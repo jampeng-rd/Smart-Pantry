@@ -157,6 +157,7 @@ export function Sidebar({
               onProfile={() => handleNavigate("/profile")}
               onSettings={() => handleNavigate("/settings")}
               onHelp={() => handleNavigate("/help")}
+              onUpgradePro={() => handleNavigate("/billing/upgrade")}
               onToggleTheme={() => dispatch(toggleTheme())}
               onLogout={() => void handleLogout()}
             />

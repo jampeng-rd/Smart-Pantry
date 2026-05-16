@@ -366,3 +366,20 @@ python -m backend.app.jobs.expiration_email_runner
 
 - `--send-window morning_08|evening_17`
 - `--scheduled-date YYYY-MM-DD`
+
+## Phase 14-3：Billing API
+
+### GET /billing/upgrade
+
+用途：取得統一 upgrade 入口設定與目前會員狀態摘要。
+
+回傳重點：
+- `billing_mode`：`one_time` 或 `subscription`
+- `upgrade_entry_path`：目前模式對應入口
+- `one_time_entry_path`、`subscription_entry_path`
+- `membership.is_pro`、`membership.tier`、`membership.membership_status`
+- `message`
+
+行為規則：
+- `BILLING_MODE=one_time` → `upgrade_entry_path=/billing/newebpay-one-time`
+- `BILLING_MODE=subscription` → `upgrade_entry_path=/billing/newebpay-subscription`

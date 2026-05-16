@@ -11,6 +11,8 @@ import {
   FiSettings,
   FiUser,
   FiUsers,
+  FiCreditCard,
+  FiRepeat,
 } from "react-icons/fi";
 
 import { useAppSelector } from "../../app/hooks";
@@ -83,6 +85,15 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
     }
     if (pathname === "/help") {
       return { icon: <FiHelpCircle aria-hidden="true" />, text: "使用說明" };
+    }
+    if (pathname === "/billing/upgrade") {
+      return { icon: <FiCreditCard aria-hidden="true" />, text: "升級 PRO" };
+    }
+    if (pathname === "/billing/newebpay-one-time") {
+      return { icon: <FiCreditCard aria-hidden="true" />, text: "藍新單次付款" };
+    }
+    if (pathname === "/billing/newebpay-subscription") {
+      return { icon: <FiRepeat aria-hidden="true" />, text: "藍新訂閱付款" };
     }
     if (pathname === "/pantry") {
       return { icon: <FiArchive aria-hidden="true" />, text: "食材庫存" };

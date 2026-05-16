@@ -261,3 +261,15 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
   - `/billing/newebpay-one-time`
   - `/billing/newebpay-subscription`
 - `BILLING_MODE=one_time|subscription` 由後端設定決定 upgrade 入口導向策略（Phase 14-3+ 實作）。
+
+## Phase 14-3：Billing 核心資料模型與 Upgrade 入口
+
+- 新增 `backend/app/api/billing.py`：`GET /billing/upgrade`。
+- 新增 `backend/app/services/billing_service.py`、`backend/app/infra/repository/billing_repository.py`。
+- 新增 schema：`backend/app/domain/schemas/billing_schema.py`。
+- 新增 model：
+  - `billing_memberships`
+  - `billing_transactions`
+  - `billing_webhook_events`
+- `BILLING_MODE=one_time|subscription` 由 backend settings 控制入口導向。
+- 本階段僅建立基礎資料模型與入口，不包含真實金流扣款流程。

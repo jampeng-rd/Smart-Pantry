@@ -9,6 +9,9 @@ from backend.app.domain.models.refresh_token_model import RefreshToken
 from backend.app.domain.models.shopping_list_item_model import ShoppingListItem
 from backend.app.domain.models.user_preference_model import UserPreference
 from backend.app.domain.models.user_model import User
+from backend.app.domain.models.billing_membership_model import BillingMembership
+from backend.app.domain.models.billing_transaction_model import BillingTransaction
+from backend.app.domain.models.billing_webhook_event_model import BillingWebhookEvent
 
 __all__ = [
     "Base",
@@ -20,4 +23,7 @@ __all__ = [
     "ShoppingListItem",
     "AiJob",
     "ExpirationReminderDelivery",
+    "BillingMembership",
+    "BillingTransaction",
+    "BillingWebhookEvent",
 ]

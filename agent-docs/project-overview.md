@@ -132,3 +132,11 @@ Phase 10 改做：
 
 - AI server / Ollama 暫不列入本輪雲端部署。
 - 金流 callback/notify 需要公開網址，因此先完成 backend(Render) + frontend(Vercel) Web deployment baseline。
+
+## Phase 14-3 進度補充
+
+Billing 主線已完成基礎架構：
+
+- 後端建立共用 Billing 核心資料模型（membership / transaction / webhook event）。
+- 新增統一入口 `GET /billing/upgrade`，前端由 `/billing/upgrade` 顯示導向。
+- 入口導向由 `BILLING_MODE` 控制，不在本階段實作真實扣款。

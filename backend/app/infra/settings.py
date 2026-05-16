@@ -6,6 +6,7 @@ from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 EmailProvider = str
+BillingMode = str
 
 
 class Settings(BaseSettings):
@@ -57,6 +58,7 @@ class Settings(BaseSettings):
     aws_ses_access_key_id: str = ""
     aws_ses_secret_access_key: str = ""
     email_retry_max_attempts: int = 1
+    billing_mode: BillingMode = "one_time"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
@@ -86,6 +88,15 @@ class Settings(BaseSettings):
         allowed = {"resend", "sendgrid", "ses"}
         if normalized not in allowed:
             raise ValueError("PRODUCTION_EMAIL_PROVIDER 僅允許 resend、sendgrid、ses")
+        return normalized
+
+    @field_validator("billing_mode")
+    @classmethod
+    def validate_billing_mode(cls, value: str) -> str:
+        """驗證 BILLING_MODE 僅允許 one_time/subscription。"""
+        normalized = value.strip().lower()
+        if normalized not in {"one_time", "subscription"}:
+            raise ValueError("BILLING_MODE 僅允許 one_time 或 subscription")
         return normalized
 
     @model_validator(mode="after")

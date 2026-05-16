@@ -31,6 +31,7 @@ import type {
   RecipeRecommendationJobStatusData,
 } from "../features/recipes/recipeTypes";
 import type { AdminMemberListData } from "../features/admin/adminTypes";
+import type { BillingUpgradeEntryData } from "../features/billing/billingTypes";
 import type { ChangePasswordPayload, ProfileData, ProfileUpdatePayload } from "../features/profile/profileTypes";
 import type {
   ExpirationReminderDeliveryListResponse,
@@ -197,6 +198,12 @@ export const adminApi = {
     }
     return requestWithAuth<AdminMemberListData>(`/admin/members?${query.toString()}`, { method: "GET" });
   },
+};
+
+/** Billing API 封裝。 */
+export const billingApi = {
+  /** 取得升級統一入口設定。 */
+  getUpgradeEntry: () => requestWithAuth<BillingUpgradeEntryData>("/billing/upgrade", { method: "GET" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

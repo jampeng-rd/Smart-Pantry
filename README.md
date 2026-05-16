@@ -42,7 +42,7 @@ Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 Phase 14-0：Admin / Billing / Web Deployment 文件與架構方向調整 ✅
 Phase 14-1：Admin 權限與會員管理基礎 ✅
 Phase 14-2：Web Deployment Baseline（Render + Vercel）✅
-Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ⏳
+Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ✅
 Phase 14-4：藍新單次付款（one-time）⏳
 Phase 14-5：藍新訂閱制（subscription）⏳
 Phase 14-6：Admin Billing Management ⏳
@@ -63,6 +63,11 @@ Email provider 模式：
 - `EMAIL_PROVIDER=production`：正式環境建議，搭配 `PRODUCTION_EMAIL_PROVIDER`（`resend`/`sendgrid`/`ses`）。
 - `PRODUCTION_EMAIL_PROVIDER` 三選一，不需要同時申請三組 provider。
 - Phase 11-2 目前只實作 `resend`；`sendgrid` 與 `ses` 為預留，會明確回尚未實作。
+
+Billing mode（Phase 14-3）：
+
+- `BILLING_MODE=one_time`：`/billing/upgrade` 導向 `/billing/newebpay-one-time`
+- `BILLING_MODE=subscription`：`/billing/upgrade` 導向 `/billing/newebpay-subscription`
 
 安全限制：
 
@@ -835,6 +840,36 @@ Migration 規範重申：
 8. `alembic current` revision 正確
 
 詳細操作文件：`docs/phase-14-2-web-deployment-baseline-render-vercel.md`
+
+## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
+
+已完成項目：
+
+- 新增 migration：`migrations/versions/20260516_1900_phase_14_3_billing_core_models.py`
+- 新增 Billing 核心資料模型：
+  - `billing_memberships`
+  - `billing_transactions`
+  - `billing_webhook_events`
+- 新增 backend API：`GET /billing/upgrade`
+- 新增 backend billing 分層骨架：
+  - `backend/app/api/billing.py`
+  - `backend/app/services/billing_service.py`
+  - `backend/app/infra/repository/billing_repository.py`
+  - `backend/app/domain/schemas/billing_schema.py`
+- 新增 `BILLING_MODE=one_time|subscription` 設定驗證
+- 前端完成 `/billing/upgrade` 統一入口頁與導向邏輯
+- UserMenu 新增「升級 PRO」入口（Help 下方、Log out 上方）
+- 新增最小占位頁：
+  - `/billing/newebpay-one-time`（Phase 14-4 串接）
+  - `/billing/newebpay-subscription`（Phase 14-5 串接）
+
+本階段明確未實作：
+
+- Phase 14-4 真實藍新單次付款流程
+- Phase 14-5 真實藍新訂閱扣款流程
+- Phase 14-6 Admin Billing Management
+
+詳細操作文件：`docs/phase-14-3-billing-core-models-upgrade-entry.md`
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

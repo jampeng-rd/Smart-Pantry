@@ -250,3 +250,18 @@ migration 驗收強制規則：
 - 雲端部署也必須執行 `alembic upgrade head`
 - migration failure 必須中止 deployment
 - production 不可使用 drop/recreate DB
+
+## Phase 14-3 測試補充（Billing Core + Upgrade Entry）
+
+Backend：
+1. `BILLING_MODE=one_time` 時，`GET /billing/upgrade` 回傳單次付款入口。
+2. `BILLING_MODE=subscription` 時，`GET /billing/upgrade` 回傳訂閱入口。
+3. membership 存在且 `tier=PRO` + `membership_status=active/trialing` 時，`is_pro=true`。
+4. 設定驗證：`BILLING_MODE` 僅允許 `one_time`、`subscription`。
+5. migration 檔案存在且可在 DB 可用時執行 `alembic upgrade head`。
+
+Frontend：
+1. `/billing/upgrade` 可進入。
+2. UserMenu「升級 PRO」可導到 `/billing/upgrade`。
+3. `/billing/newebpay-one-time` 與 `/billing/newebpay-subscription` 目前為占位頁，不顯示成功付款。
+4. `npm run build` 必須通過。

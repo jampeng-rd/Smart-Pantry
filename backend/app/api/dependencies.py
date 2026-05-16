@@ -81,6 +81,15 @@ def get_profile_settings_service(db: Session = Depends(get_db_session)):
     repository = ProfileSettingsRepository(db=db)
     return ProfileSettingsService(repository=repository)
 
+def get_billing_service(db: Session = Depends(get_db_session)):
+    """提供 BillingService 依賴。"""
+    from backend.app.infra.repository.billing_repository import BillingRepository
+    from backend.app.services.billing_service import BillingService
+
+    repository = BillingRepository(db=db)
+    settings = get_settings()
+    return BillingService(repository=repository, settings=settings)
+
 
 def get_bearer_token(authorization: str | None = Header(default=None)) -> str:
     """從 Authorization Header 擷取 Bearer token。"""

@@ -270,3 +270,21 @@ Billing 共用模型（one-time / subscription 共用）：
 
 - 建議新增 `billing_memberships`、`billing_transactions`、`billing_webhook_events`（名稱可於 Phase 14-3 定稿）。
 - one-time 與 subscription 為不同制度，但共用使用者、交易紀錄、provider event log 基礎欄位。
+
+## Phase 14-3：Billing 共用資料模型
+
+新增三張共用資料表（Alembic 管理）：
+
+1. `billing_memberships`
+- 用途：記錄會員層級與狀態（`tier`、`membership_status`）
+- 核心欄位：`user_id`、`provider`、`billing_mode`、`started_at`、`ended_at`
+
+2. `billing_transactions`
+- 用途：記錄 one-time / subscription 交易
+- 核心欄位：`user_id`、`membership_id`、`transaction_status`、`amount`、`currency`、`external_trade_no`、`provider_reference`
+
+3. `billing_webhook_events`
+- 用途：保留 callback/webhook 原始資料，供對帳與除錯
+- 核心欄位：`provider`、`billing_mode`、`event_type`、`provider_event_id`、`payload`、`processing_status`
+
+Migration：`20260516_1900`（down_revision=`20260515_1401`）。

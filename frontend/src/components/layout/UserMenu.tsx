@@ -1,4 +1,4 @@
-import { FiHelpCircle, FiLogOut, FiMoon, FiSettings, FiSun, FiUser } from "react-icons/fi";
+import { FiHelpCircle, FiLogOut, FiMoon, FiSettings, FiStar, FiSun, FiUser } from "react-icons/fi";
 
 import type { ThemeMode } from "../../features/theme/themeTypes";
 
@@ -9,6 +9,7 @@ interface UserMenuProps {
   onProfile: () => void;
   onSettings: () => void;
   onHelp: () => void;
+  onUpgradePro: () => void;
   onToggleTheme: () => void;
   onLogout: () => void;
 }
@@ -21,6 +22,7 @@ export function UserMenu({
   onProfile,
   onSettings,
   onHelp,
+  onUpgradePro,
   onToggleTheme,
   onLogout,
 }: UserMenuProps) {
@@ -40,6 +42,10 @@ export function UserMenu({
       <button type="button" className="user-menu-item" role="menuitem" aria-label="說明" title="說明" onClick={onHelp}>
         <FiHelpCircle aria-hidden="true" />
         {collapsed ? null : "使用說明"}
+      </button>
+      <button type="button" className="user-menu-item" role="menuitem" aria-label="升級 PRO" title="升級 PRO" onClick={onUpgradePro}>
+        <FiStar aria-hidden="true" />
+        {collapsed ? null : "升級 PRO"}
       </button>
       {/* Phase 10-1 UX：主題切換功能已移到 Settings 第一個區塊，UserMenu 先暫時隱藏。 */}
       {/* <button

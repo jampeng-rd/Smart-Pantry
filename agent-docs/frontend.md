@@ -362,3 +362,13 @@ Phase 10-1 已完成重點：
 - 前端只顯示後端 `user_friendly_error_message` 與統一網路錯誤文案。
 - 禁止顯示 provider 原始錯誤、HTTP status、API key/domain/from/sender 錯誤字串。
 - backend 500 或系統異常情境應顯示：`目前系統偵測異常，系統維修中。`
+
+## Phase 14-3：Billing Upgrade 入口前端規範
+
+- 新增受保護路由：
+  - `/billing/upgrade`
+  - `/billing/newebpay-one-time`（Phase 14-4 占位頁）
+  - `/billing/newebpay-subscription`（Phase 14-5 占位頁）
+- UserMenu 必須包含「升級 PRO」，位置在 Help 下方、Log out 上方。
+- `/billing/upgrade` 透過 backend `GET /billing/upgrade` 取得 `billing_mode` 與導向路徑。
+- 本階段不可假裝已完成付款，不顯示付款成功結果。

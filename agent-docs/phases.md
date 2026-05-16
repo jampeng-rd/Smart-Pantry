@@ -378,3 +378,11 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - Phase 13 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
 
 收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。
+
+## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
+
+- 建立 Billing 三張共用基礎表：`billing_memberships`、`billing_transactions`、`billing_webhook_events`。
+- 完成 `GET /billing/upgrade` 統一入口。
+- 以 `BILLING_MODE=one_time|subscription` 控制入口導向。
+- 前端完成 `/billing/upgrade` 與 UserMenu「升級 PRO」入口。
+- `/billing/newebpay-one-time`、`/billing/newebpay-subscription` 先提供占位頁，待 Phase 14-4 / 14-5 串接。

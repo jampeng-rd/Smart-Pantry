@@ -13,6 +13,7 @@ from backend.app.api.recipes import router as recipes_router
 from backend.app.api.ingredients import router as ingredients_router
 from backend.app.api.profile import router as profile_router
 from backend.app.api.settings import router as settings_router
+from backend.app.api.billing import router as billing_router
 from backend.app.admin_api.members import router as admin_members_router
 from backend.app.infra.database import init_database
 from backend.app.infra.settings import get_cors_origin_list, get_settings
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(ingredients_router)
     app.include_router(profile_router)
     app.include_router(settings_router)
+    app.include_router(billing_router)
     app.include_router(admin_members_router)
 
     @app.on_event("startup")
