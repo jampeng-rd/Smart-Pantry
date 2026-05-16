@@ -288,3 +288,10 @@ Billing 共用模型（one-time / subscription 共用）：
 - 核心欄位：`provider`、`billing_mode`、`event_type`、`provider_event_id`、`payload`、`processing_status`
 
 Migration：`20260516_1900`（down_revision=`20260515_1401`）。
+
+## Phase 14-4：NewebPay one-time 狀態規則
+
+- `billing_transactions.transaction_status`：`pending` / `success` / `failed`。
+- idempotency：同一 `external_trade_no` 收到重送成功通知時，不重複升級 membership。
+- `billing_memberships` 在 one-time 成功時升級 `tier=PRO`、`membership_status=active`，`ended_at=null`。
+- `billing_webhook_events` 必須保存 notify 原始資料與處理狀態（`processed` / `failed` / `duplicated`）。

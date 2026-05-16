@@ -43,7 +43,7 @@ Phase 14-0：Admin / Billing / Web Deployment 文件與架構方向調整 ✅
 Phase 14-1：Admin 權限與會員管理基礎 ✅
 Phase 14-2：Web Deployment Baseline（Render + Vercel）✅
 Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ✅
-Phase 14-4：藍新單次付款（one-time）⏳
+Phase 14-4：藍新單次付款（one-time）✅
 Phase 14-5：藍新訂閱制（subscription）⏳
 Phase 14-6：Admin Billing Management ⏳
 ```
@@ -68,6 +68,17 @@ Billing mode（Phase 14-3）：
 
 - `BILLING_MODE=one_time`：`/billing/upgrade` 導向 `/billing/newebpay-one-time`
 - `BILLING_MODE=subscription`：`/billing/upgrade` 導向 `/billing/newebpay-subscription`
+
+NewebPay one-time（Phase 14-4）：
+
+- `NEWEBPAY_ENV=test|production`
+- `NEWEBPAY_MERCHANT_ID`
+- `NEWEBPAY_HASH_KEY`
+- `NEWEBPAY_HASH_IV`
+- `NEWEBPAY_MPG_VERSION`
+- `NEWEBPAY_NOTIFY_URL`
+- `NEWEBPAY_RETURN_URL`
+- `NEWEBPAY_CUSTOMER_BACK_URL`
 
 安全限制：
 
@@ -865,11 +876,30 @@ Migration 規範重申：
 
 本階段明確未實作：
 
-- Phase 14-4 真實藍新單次付款流程
 - Phase 14-5 真實藍新訂閱扣款流程
 - Phase 14-6 Admin Billing Management
 
 詳細操作文件：`docs/phase-14-3-billing-core-models-upgrade-entry.md`
+
+## Phase 14-4：藍新單次付款（one-time）（已完成）
+
+已完成項目：
+
+- 新增 checkout API：`POST /billing/newebpay/one-time/checkout`
+- 新增 notify API：`POST /billing/newebpay/notify`
+- 新增交易狀態 API：`GET /billing/newebpay/one-time/transactions/{external_trade_no}`
+- 後端完成 TradeInfo / TradeSha 產生與驗證、test/production gateway 切換
+- notify/callback 原始資料寫入 `billing_webhook_events`
+- 交易成功時更新 `billing_transactions` 並啟用 PRO 會員
+- idempotency：同一筆成功通知重送不重複升級
+- 前端完成 `/billing/newebpay-one-time` 付款頁與 `/billing/newebpay-one-time/result` 結果頁
+
+本階段明確未實作：
+
+- Phase 14-5 訂閱制 runtime
+- Phase 14-6 Admin Billing Management
+
+詳細操作文件：`docs/phase-14-4-newebpay-one-time-mvp.md`
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

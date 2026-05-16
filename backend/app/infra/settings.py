@@ -59,6 +59,14 @@ class Settings(BaseSettings):
     aws_ses_secret_access_key: str = ""
     email_retry_max_attempts: int = 1
     billing_mode: BillingMode = "one_time"
+    newebpay_env: str = "test"
+    newebpay_merchant_id: str = ""
+    newebpay_hash_key: str = ""
+    newebpay_hash_iv: str = ""
+    newebpay_mpg_version: str = "2.2"
+    newebpay_notify_url: str = "https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/notify"
+    newebpay_return_url: str = "https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result"
+    newebpay_customer_back_url: str = "https://smart-pantry-henna.vercel.app/billing/upgrade"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
@@ -97,6 +105,15 @@ class Settings(BaseSettings):
         normalized = value.strip().lower()
         if normalized not in {"one_time", "subscription"}:
             raise ValueError("BILLING_MODE 僅允許 one_time 或 subscription")
+        return normalized
+
+    @field_validator("newebpay_env")
+    @classmethod
+    def validate_newebpay_env(cls, value: str) -> str:
+        """驗證 NEWEBPAY_ENV 僅允許 test/production。"""
+        normalized = value.strip().lower()
+        if normalized not in {"test", "production"}:
+            raise ValueError("NEWEBPAY_ENV 僅允許 test 或 production")
         return normalized
 
     @model_validator(mode="after")

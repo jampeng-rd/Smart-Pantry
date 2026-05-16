@@ -23,6 +23,7 @@ import { HelpPage } from "./pages/HelpPage";
 import { AdminMembersPage } from "./pages/AdminMembersPage";
 import { BillingUpgradePage } from "./pages/BillingUpgradePage";
 import { BillingNewebpayOneTimePage } from "./pages/BillingNewebpayOneTimePage";
+import { BillingNewebpayOneTimeResultPage } from "./pages/BillingNewebpayOneTimeResultPage";
 import { BillingNewebpaySubscriptionPage } from "./pages/BillingNewebpaySubscriptionPage";
 import { settingsApi } from "./services/apiClient";
 
@@ -41,6 +42,7 @@ type ProtectedPath =
   | "/admin/members"
   | "/billing/upgrade"
   | "/billing/newebpay-one-time"
+  | "/billing/newebpay-one-time/result"
   | "/billing/newebpay-subscription";
 
 const protectedRoutes: ProtectedPath[] = [
@@ -57,6 +59,7 @@ const protectedRoutes: ProtectedPath[] = [
   "/admin/members",
   "/billing/upgrade",
   "/billing/newebpay-one-time",
+  "/billing/newebpay-one-time/result",
   "/billing/newebpay-subscription",
 ];
 
@@ -213,6 +216,8 @@ function WorkspaceByPath({ pathname, onNavigate }: { pathname: ProtectedPath; on
       return <BillingUpgradePage onNavigate={onNavigate} />;
     case "/billing/newebpay-one-time":
       return <BillingNewebpayOneTimePage />;
+    case "/billing/newebpay-one-time/result":
+      return <BillingNewebpayOneTimeResultPage />;
     case "/billing/newebpay-subscription":
       return <BillingNewebpaySubscriptionPage />;
     default:

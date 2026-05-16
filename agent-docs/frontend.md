@@ -372,3 +372,10 @@ Phase 10-1 已完成重點：
 - UserMenu 必須包含「升級 PRO」，位置在 Help 下方、Log out 上方。
 - `/billing/upgrade` 透過 backend `GET /billing/upgrade` 取得 `billing_mode` 與導向路徑。
 - 本階段不可假裝已完成付款，不顯示付款成功結果。
+
+## Phase 14-4：NewebPay one-time 前端規範
+
+- `/billing/newebpay-one-time` 顯示單次付款方案並可發起 checkout。
+- checkout 成功後，前端動態建立 form 並 `POST` 到藍新 gateway。
+- `ReturnURL` 導向 `/billing/newebpay-one-time/result`。
+- 結果頁以 `external_trade_no` 查詢 backend 交易狀態，不直接信任前端 query 文案。

@@ -31,7 +31,11 @@ import type {
   RecipeRecommendationJobStatusData,
 } from "../features/recipes/recipeTypes";
 import type { AdminMemberListData } from "../features/admin/adminTypes";
-import type { BillingUpgradeEntryData } from "../features/billing/billingTypes";
+import type {
+  BillingOneTimeCheckoutData,
+  BillingTransactionStatusData,
+  BillingUpgradeEntryData,
+} from "../features/billing/billingTypes";
 import type { ChangePasswordPayload, ProfileData, ProfileUpdatePayload } from "../features/profile/profileTypes";
 import type {
   ExpirationReminderDeliveryListResponse,
@@ -204,6 +208,12 @@ export const adminApi = {
 export const billingApi = {
   /** 取得升級統一入口設定。 */
   getUpgradeEntry: () => requestWithAuth<BillingUpgradeEntryData>("/billing/upgrade", { method: "GET" }),
+  /** 建立藍新單次付款交易。 */
+  createNewebPayOneTimeCheckout: () =>
+    requestWithAuth<BillingOneTimeCheckoutData>("/billing/newebpay/one-time/checkout", { method: "POST" }),
+  /** 查詢單次付款交易狀態。 */
+  getNewebPayOneTimeTransactionStatus: (externalTradeNo: string) =>
+    requestWithAuth<BillingTransactionStatusData>(`/billing/newebpay/one-time/transactions/${externalTradeNo}`, { method: "GET" }),
 };
 
 /** 送出需授權的請求，含 pre-refresh 與 401 單次重試。 */

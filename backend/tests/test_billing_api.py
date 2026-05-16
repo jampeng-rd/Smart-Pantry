@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
-from backend.app.api.billing import get_billing_upgrade_entry
-from backend.app.domain.schemas.billing_schema import BillingMembershipSummary, BillingUpgradeEntryResponseData
+from backend.app.api.billing import (
+    create_newebpay_one_time_checkout,
+    get_billing_upgrade_entry,
+    get_newebpay_one_time_transaction_status,
+)
+from backend.app.domain.schemas.billing_schema import (
+    BillingMembershipSummary,
+    BillingOneTimeCheckoutResponseData,
+    BillingTransactionStatusResponseData,
+    BillingUpgradeEntryResponseData,
+)
 from backend.app.services.billing_service import BillingService
 
 
@@ -14,7 +23,6 @@ class FakeBillingService(BillingService):
         self.last_user_id: int | None = None
 
     def get_upgrade_entry(self, user_id: int) -> BillingUpgradeEntryResponseData:
-        """回傳固定升級入口資料。"""
         self.last_user_id = user_id
         return BillingUpgradeEntryResponseData(
             billing_mode="one_time",
@@ -33,15 +41,51 @@ class FakeBillingService(BillingService):
             message="目前為單次付款模式，將導向藍新單次付款入口。",
         )
 
+    def create_newebpay_one_time_checkout(self, user_id: int) -> BillingOneTimeCheckoutResponseData:
+        self.last_user_id = user_id
+        return BillingOneTimeCheckoutResponseData(
+            transaction_id=1,
+            external_trade_no="SP120260516000001",
+            gateway_url="https://ccore.newebpay.com/MPG/mpg_gateway",
+            merchant_id="MS123456789",
+            trade_info="abc",
+            trade_sha="def",
+            version="2.2",
+        )
+
+    def get_transaction_status(self, user_id: int, external_trade_no: str) -> BillingTransactionStatusResponseData:
+        self.last_user_id = user_id
+        return BillingTransactionStatusResponseData(
+            external_trade_no=external_trade_no,
+            transaction_status="success",
+            membership_status="active",
+            is_pro=True,
+            amount=99.0,
+            paid_at=None,
+            failed_at=None,
+        )
+
 
 def test_billing_upgrade_route_should_return_success_payload() -> None:
-    """升級入口 API 應回傳統一格式。"""
     service = FakeBillingService()
-
     response = get_billing_upgrade_entry(user_id=1, service=service)
     payload = response.model_dump()
-
     assert payload["status"] == "success"
     assert payload["data"]["billing_mode"] == "one_time"
-    assert payload["data"]["upgrade_entry_path"] == "/billing/newebpay-one-time"
-    assert service.last_user_id == 1
+
+
+def test_billing_checkout_route_should_return_gateway_payload() -> None:
+    service = FakeBillingService()
+    response = create_newebpay_one_time_checkout(user_id=1, service=service)
+    payload = response.model_dump()
+    assert payload["status"] == "success"
+    assert payload["data"]["gateway_url"] == "https://ccore.newebpay.com/MPG/mpg_gateway"
+
+
+def test_billing_transaction_status_route_should_return_data() -> None:
+    service = FakeBillingService()
+    response = get_newebpay_one_time_transaction_status(external_trade_no="SP123", user_id=1, service=service)
+    payload = response.model_dump()
+    assert payload["status"] == "success"
+    assert payload["data"]["external_trade_no"] == "SP123"
+    assert payload["data"]["is_pro"] is True

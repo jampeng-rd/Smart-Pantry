@@ -264,6 +264,22 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 
 ## Phase 09：食材照片辨識完整功能
 
+## Phase 09-0：AI Worker 架構調整 / job_type 隔離
+
+- worker 可依 job_type 過濾任務
+- 避免 Vision 任務拖慢 recipe_recommendation
+- 可用 env 或 CLI 指定 worker 處理的 job types
+- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
+
+補充：
+
+- `job_type` 隔離是 worker process 層級，不是 Ollama runtime/GPU 隔離。
+- 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 共用同一 runtime。
+- 本地或雲端只要同機共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe。
+- Phase 13 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
+
+收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。
+
 ### Phase 09-1：Ingredient Photo Job API + Mock Worker
 
 ### Phase 09-2：Vision Model 食材辨識
@@ -363,22 +379,6 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - admin 後台可查詢付款紀錄、訂閱狀態、升級來源與異常交易。
 - 補齊 refund/cancel/manual review 文件與操作流程。
 
-## Phase 09-0：AI Worker 架構調整 / job_type 隔離
-
-- worker 可依 job_type 過濾任務
-- 避免 Vision 任務拖慢 recipe_recommendation
-- 可用 env 或 CLI 指定 worker 處理的 job types
-- 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
-
-補充：
-
-- `job_type` 隔離是 worker process 層級，不是 Ollama runtime/GPU 隔離。
-- 若 `OLLAMA_TEXT_BASE_URL` / `OLLAMA_VISION_BASE_URL` 留空，會 fallback 到 `OLLAMA_BASE_URL`，text/vision 共用同一 runtime。
-- 本地或雲端只要同機共用 CPU/GPU/RAM/VRAM，Vision 推論仍可能拖慢 recipe。
-- Phase 13 的 queue/scaling（RQ + Redis）重點是提升任務調度與擴充能力；若要解決模型互搶，仍需 runtime/硬體分離。
-
-收據 OCR 暫不列入 MVP，未來若能取得商品明細再評估。
-
 ## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
 
 - 建立 Billing 三張共用基礎表：`billing_memberships`、`billing_transactions`、`billing_webhook_events`。
@@ -386,3 +386,11 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - 以 `BILLING_MODE=one_time|subscription` 控制入口導向。
 - 前端完成 `/billing/upgrade` 與 UserMenu「升級 PRO」入口。
 - `/billing/newebpay-one-time`、`/billing/newebpay-subscription` 先提供占位頁，待 Phase 14-4 / 14-5 串接。
+
+## Phase 14-4：藍新單次付款（one-time）（已完成）
+
+- 新增 checkout API、notify API、交易狀態查詢 API。
+- 完成 NewebPay TradeInfo/TradeSha 產生與驗證。
+- 完成 one-time 前端付款頁與結果頁。
+- 成功交易啟用 PRO，通知重送具 idempotency 防護。
+- 本階段未實作 subscription runtime 與 admin billing management。

@@ -29,3 +29,27 @@ class BillingUpgradeEntryResponseData(BaseModel):
     subscription_entry_path: str
     membership: BillingMembershipSummary
     message: str
+
+
+class BillingOneTimeCheckoutResponseData(BaseModel):
+    """藍新單次付款表單提交資料。"""
+
+    transaction_id: int
+    external_trade_no: str
+    gateway_url: str
+    merchant_id: str
+    trade_info: str
+    trade_sha: str
+    version: str
+
+
+class BillingTransactionStatusResponseData(BaseModel):
+    """單筆交易狀態查詢回應。"""
+
+    external_trade_no: str
+    transaction_status: str
+    membership_status: str
+    is_pro: bool
+    amount: float
+    paid_at: datetime | None
+    failed_at: datetime | None

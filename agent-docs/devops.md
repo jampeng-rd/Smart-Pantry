@@ -317,3 +317,22 @@ Gmail SMTP 額外限制：
 注意：
 - Phase 14-3 僅提供入口與資料模型，不包含真實付款流程。
 - 真實金流串接在 Phase 14-4 / 14-5。
+
+## Phase 14-4 部署補充（NewebPay one-time）
+
+新增 backend 環境變數：
+
+- `NEWEBPAY_ENV=test|production`
+- `NEWEBPAY_MERCHANT_ID`
+- `NEWEBPAY_HASH_KEY`
+- `NEWEBPAY_HASH_IV`
+- `NEWEBPAY_MPG_VERSION`
+- `NEWEBPAY_NOTIFY_URL`
+- `NEWEBPAY_RETURN_URL`
+- `NEWEBPAY_CUSTOMER_BACK_URL`
+
+URL 規劃（目前 production baseline）：
+
+- `NEWEBPAY_NOTIFY_URL=https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/notify`
+- `NEWEBPAY_RETURN_URL=https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result`
+- `NEWEBPAY_CUSTOMER_BACK_URL=https://smart-pantry-henna.vercel.app/billing/upgrade`

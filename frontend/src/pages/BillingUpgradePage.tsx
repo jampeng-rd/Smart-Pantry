@@ -79,7 +79,7 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
         </button>
       </div>
       <p className="muted-text">
-        <FiCheckCircle aria-hidden="true" /> 本頁僅提供入口導向，實際付款串接將於下一階段完成。
+        <FiCheckCircle aria-hidden="true" /> 升級流程已支援藍新單次付款測試環境。
       </p>
     </section>
   );

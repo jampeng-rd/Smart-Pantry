@@ -2392,7 +2392,8 @@ body {
 }
 
 .billing-upgrade-page,
-.billing-placeholder-page {
+.billing-placeholder-page,
+.billing-one-time-page {
   display: flex;
   flex-direction: column;
   gap: 14px;

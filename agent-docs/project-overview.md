@@ -140,3 +140,9 @@ Billing 主線已完成基礎架構：
 - 後端建立共用 Billing 核心資料模型（membership / transaction / webhook event）。
 - 新增統一入口 `GET /billing/upgrade`，前端由 `/billing/upgrade` 顯示導向。
 - 入口導向由 `BILLING_MODE` 控制，不在本階段實作真實扣款。
+
+## Phase 14-4 進度補充
+
+- 完成藍新單次付款（one-time）最小可用流程：checkout → 跳轉付款頁 → notify → 結果查詢。
+- callback/notify 事件寫入 `billing_webhook_events`，交易與會員狀態同步更新。
+- 成功交易啟用 PRO，且重送通知不會重複升級。

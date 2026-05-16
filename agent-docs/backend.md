@@ -273,3 +273,12 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
   - `billing_webhook_events`
 - `BILLING_MODE=one_time|subscription` 由 backend settings 控制入口導向。
 - 本階段僅建立基礎資料模型與入口，不包含真實金流扣款流程。
+
+## Phase 14-4：NewebPay one-time 後端規範
+
+- 新增 checkout service（不可把金流邏輯寫在 route）。
+- checkout 需建立 `billing_transactions` 初始紀錄並回傳藍新表單欄位。
+- notify 需驗證 `TradeSha`、解密 `TradeInfo`、更新 transaction/membership。
+- webhook/callback 原始資料需保存到 `billing_webhook_events`。
+- idempotency 以 `external_trade_no`（MerchantOrderNo）+ 成功狀態防護重送通知。
+- 單次付款成功時啟用 PRO（MVP 規則：永久有效，`ended_at=null`）。

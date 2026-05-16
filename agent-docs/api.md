@@ -383,3 +383,24 @@ python -m backend.app.jobs.expiration_email_runner
 行為規則：
 - `BILLING_MODE=one_time` → `upgrade_entry_path=/billing/newebpay-one-time`
 - `BILLING_MODE=subscription` → `upgrade_entry_path=/billing/newebpay-subscription`
+
+## Phase 14-4：NewebPay one-time API
+
+### POST /billing/newebpay/one-time/checkout
+
+- 需登入使用者。
+- 建立 `billing_transactions` 初始紀錄（`pending`）。
+- 回傳送往藍新 MPG 的欄位：`MerchantID`、`TradeInfo`、`TradeSha`、`Version`、`gateway_url`。
+
+### POST /billing/newebpay/notify
+
+- 藍新背景通知 URL。
+- 驗證 `TradeSha`，解密 `TradeInfo`，更新交易狀態。
+- 原始 payload + 解密內容寫入 `billing_webhook_events`。
+- 成功交易啟用 PRO；失敗交易不得升級。
+- 回傳純文字 `OK`。
+
+### GET /billing/newebpay/one-time/transactions/{external_trade_no}
+
+- 需登入且僅可查自己的交易。
+- 提供結果頁查詢：`transaction_status`、`membership_status`、`is_pro`、`paid_at`、`failed_at`。
