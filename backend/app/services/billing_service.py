@@ -57,6 +57,12 @@ class BillingService:
         user = self.repository.get_user_by_id(user_id=user_id)
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="使用者不存在")
+
+        membership = self.repository.get_latest_membership(user_id=user_id)
+        membership_summary = self._to_membership_summary(membership=membership)
+        if membership_summary.is_pro and membership_summary.membership_status == "active":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="您目前已是 PRO 會員，無需重複付款")
+
         self._validate_newebpay_settings()
 
         external_trade_no = self._build_merchant_order_no(user_id=user_id)

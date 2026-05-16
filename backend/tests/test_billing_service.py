@@ -212,6 +212,26 @@ def test_checkout_should_create_transaction_and_payload(billing_service_one_time
     assert data.merchant_id == "MS123456789"
 
 
+def test_checkout_should_reject_when_user_is_already_pro_active(billing_service_one_time: tuple[BillingService, FakeBillingRepository]) -> None:
+    service, repository = billing_service_one_time
+    repository.membership = FakeMembership(
+        id=99,
+        user_id=1,
+        provider="newebpay",
+        billing_mode="one_time",
+        tier="PRO",
+        membership_status="active",
+        started_at=datetime.now(timezone.utc),
+        ended_at=None,
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        service.create_newebpay_one_time_checkout(user_id=1)
+
+    assert exc.value.status_code == 409
+    assert "已是 PRO" in str(exc.value.detail)
+
+
 def test_notify_success_should_upgrade_once(billing_service_one_time: tuple[BillingService, FakeBillingRepository]) -> None:
     service, repository = billing_service_one_time
     checkout = service.create_newebpay_one_time_checkout(user_id=1)

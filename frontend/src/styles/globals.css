@@ -427,13 +427,20 @@ body {
 
 .user-meta {
   min-width: 0;
-  display: grid;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 .user-meta strong {
   font-size: 0.9rem;
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pro-badge {
