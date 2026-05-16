@@ -21,6 +21,10 @@
   - 寫入 `billing_webhook_events`
   - 依通知結果更新 `billing_transactions`
   - 成功時啟用 PRO 會員
+- `POST /billing/newebpay/return`
+  - 接收藍新前台返回（form POST）
+  - 解析 `MerchantOrderNo` / `TradeInfo`
+  - 303 redirect 到前端結果頁並帶 `external_trade_no`
 - `GET /billing/newebpay/one-time/transactions/{external_trade_no}`
   - 供結果頁查詢交易狀態
   - 強制 `user_id` 隔離
@@ -35,6 +39,9 @@
   - 讀取 `external_trade_no`
   - 查詢 backend 交易狀態
   - 顯示 `success / failed / pending`
+- `/billing/upgrade`
+  - 顯示目前會員狀態（`is_pro`、`tier`、`membership_status`）
+  - PRO active 顯示已升級文案
 
 ## one-time PRO 規則（本階段）
 
@@ -54,11 +61,13 @@
 - `NEWEBPAY_HASH_IV`
 - `NEWEBPAY_MPG_VERSION`
 - `NEWEBPAY_NOTIFY_URL`
-- `NEWEBPAY_RETURN_URL`
+- `NEWEBPAY_RETURN_URL`（backend return endpoint）
+- `NEWEBPAY_FRONTEND_RESULT_URL`（frontend result page）
 - `NEWEBPAY_CUSTOMER_BACK_URL`
 
 部署 URL：
 
 - `NEWEBPAY_NOTIFY_URL=https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/notify`
-- `NEWEBPAY_RETURN_URL=https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result`
+- `NEWEBPAY_RETURN_URL=https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/return`
+- `NEWEBPAY_FRONTEND_RESULT_URL=https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result`
 - `NEWEBPAY_CUSTOMER_BACK_URL=https://smart-pantry-henna.vercel.app/billing/upgrade`

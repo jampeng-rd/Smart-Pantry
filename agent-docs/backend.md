@@ -279,6 +279,7 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 - 新增 checkout service（不可把金流邏輯寫在 route）。
 - checkout 需建立 `billing_transactions` 初始紀錄並回傳藍新表單欄位。
 - notify 需驗證 `TradeSha`、解密 `TradeInfo`、更新 transaction/membership。
+- return endpoint 需由 backend 接收（`POST /billing/newebpay/return`），再 redirect 到前端結果頁。
 - webhook/callback 原始資料需保存到 `billing_webhook_events`。
 - idempotency 以 `external_trade_no`（MerchantOrderNo）+ 成功狀態防護重送通知。
 - 單次付款成功時啟用 PRO（MVP 規則：永久有效，`ended_at=null`）。

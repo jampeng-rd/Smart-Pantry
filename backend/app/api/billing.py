@@ -1,7 +1,7 @@
 """Billing API 路由。"""
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, RedirectResponse
 
 from backend.app.api.dependencies import get_billing_service, get_current_user_id
 from backend.app.domain.schemas.common_schema import ApiResponse
@@ -40,6 +40,18 @@ async def handle_newebpay_notify(
     payload = dict(form)
     service.handle_newebpay_notify(payload=payload)
     return PlainTextResponse(content="OK")
+
+
+@router.post("/newebpay/return")
+async def handle_newebpay_return(
+    request: Request,
+    service: BillingService = Depends(get_billing_service),
+) -> RedirectResponse:
+    """接收藍新前台返回並導向前端結果頁。"""
+    form = await request.form()
+    payload = dict(form)
+    redirect_url = service.build_newebpay_return_redirect_url(payload=payload)
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @router.get("/newebpay/one-time/transactions/{external_trade_no}", response_model=ApiResponse)

@@ -377,5 +377,6 @@ Phase 10-1 已完成重點：
 
 - `/billing/newebpay-one-time` 顯示單次付款方案並可發起 checkout。
 - checkout 成功後，前端動態建立 form 並 `POST` 到藍新 gateway。
-- `ReturnURL` 導向 `/billing/newebpay-one-time/result`。
+- `ReturnURL` 必須指向 backend `POST /billing/newebpay/return`，不可直接指向 Vercel 靜態頁。
 - 結果頁以 `external_trade_no` 查詢 backend 交易狀態，不直接信任前端 query 文案。
+- 前端應使用 `GET /billing/upgrade` 回傳的 `membership.is_pro/tier/membership_status` 顯示 PRO 狀態。

@@ -6,6 +6,7 @@ from backend.app.api.billing import (
     create_newebpay_one_time_checkout,
     get_billing_upgrade_entry,
     get_newebpay_one_time_transaction_status,
+    handle_newebpay_return,
 )
 from backend.app.domain.schemas.billing_schema import (
     BillingMembershipSummary,
@@ -65,6 +66,9 @@ class FakeBillingService(BillingService):
             failed_at=None,
         )
 
+    def build_newebpay_return_redirect_url(self, payload: dict) -> str:
+        return f"https://example.com/result?external_trade_no={payload.get('MerchantOrderNo', '')}"
+
 
 def test_billing_upgrade_route_should_return_success_payload() -> None:
     service = FakeBillingService()
@@ -89,3 +93,19 @@ def test_billing_transaction_status_route_should_return_data() -> None:
     assert payload["status"] == "success"
     assert payload["data"]["external_trade_no"] == "SP123"
     assert payload["data"]["is_pro"] is True
+
+
+class FakeRequest:
+    """測試用 request form stub。"""
+
+    async def form(self) -> dict[str, str]:
+        return {"MerchantOrderNo": "SP123"}
+
+
+def test_billing_return_route_should_redirect_to_frontend_result_page() -> None:
+    import asyncio
+
+    service = FakeBillingService()
+    response = asyncio.run(handle_newebpay_return(request=FakeRequest(), service=service))
+    assert response.status_code == 303
+    assert response.headers["location"] == "https://example.com/result?external_trade_no=SP123"

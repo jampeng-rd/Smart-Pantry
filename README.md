@@ -77,7 +77,8 @@ NewebPay one-time（Phase 14-4）：
 - `NEWEBPAY_HASH_IV`
 - `NEWEBPAY_MPG_VERSION`
 - `NEWEBPAY_NOTIFY_URL`
-- `NEWEBPAY_RETURN_URL`
+- `NEWEBPAY_RETURN_URL`（需指向 backend：`POST /billing/newebpay/return`）
+- `NEWEBPAY_FRONTEND_RESULT_URL`（前端結果頁）
 - `NEWEBPAY_CUSTOMER_BACK_URL`
 
 安全限制：
@@ -887,9 +888,11 @@ Migration 規範重申：
 
 - 新增 checkout API：`POST /billing/newebpay/one-time/checkout`
 - 新增 notify API：`POST /billing/newebpay/notify`
+- 新增前台返回 API：`POST /billing/newebpay/return`
 - 新增交易狀態 API：`GET /billing/newebpay/one-time/transactions/{external_trade_no}`
 - 後端完成 TradeInfo / TradeSha 產生與驗證、test/production gateway 切換
 - notify/callback 原始資料寫入 `billing_webhook_events`
+- 前台返回由 backend 接收後 303 redirect 到前端結果頁（帶 `external_trade_no`）
 - 交易成功時更新 `billing_transactions` 並啟用 PRO 會員
 - idempotency：同一筆成功通知重送不重複升級
 - 前端完成 `/billing/newebpay-one-time` 付款頁與 `/billing/newebpay-one-time/result` 結果頁

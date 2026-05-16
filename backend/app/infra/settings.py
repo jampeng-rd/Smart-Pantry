@@ -65,7 +65,8 @@ class Settings(BaseSettings):
     newebpay_hash_iv: str = ""
     newebpay_mpg_version: str = "2.2"
     newebpay_notify_url: str = "https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/notify"
-    newebpay_return_url: str = "https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result"
+    newebpay_return_url: str = "https://smart-pantry-backend-41lm.onrender.com/billing/newebpay/return"
+    newebpay_frontend_result_url: str = "https://smart-pantry-henna.vercel.app/billing/newebpay-one-time/result"
     newebpay_customer_back_url: str = "https://smart-pantry-henna.vercel.app/billing/upgrade"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)

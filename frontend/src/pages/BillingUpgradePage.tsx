@@ -72,6 +72,11 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
           <strong>是否為 PRO：</strong>
           {data.membership.is_pro ? "是" : "否"}
         </p>
+        {data.membership.is_pro && data.membership.membership_status === "active" ? (
+          <p className="muted-text">
+            <FiCheckCircle aria-hidden="true" /> 已升級為 PRO（狀態：active）
+          </p>
+        ) : null}
       </div>
       <div className="billing-upgrade-actions">
         <button type="button" className="btn primary" aria-label={targetLabel} onClick={() => onNavigate(targetPath)}>

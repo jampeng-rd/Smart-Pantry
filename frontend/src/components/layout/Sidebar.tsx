@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import {
   FiActivity,
   FiArchive,
@@ -16,6 +16,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { logout } from "../../features/auth/authSlice";
 import { toggleTheme } from "../../features/theme/themeSlice";
+import { billingApi } from "../../services/apiClient";
 import { UserMenu } from "./UserMenu";
 import darkSoftLogo from "../../../assets/dark_soft_logo.png";
 import lightSoftLogo from "../../../assets/light_soft_logo.png";
@@ -71,9 +72,25 @@ export function Sidebar({
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
   const themeMode = useAppSelector((state) => state.theme.mode);
-  const subscriptionTier = (auth.user as { subscription_tier?: string } | null)?.subscription_tier;
+  const [isPro, setIsPro] = useState(false);
   const sidebarLogo = themeMode === "dark-soft" ? darkSoftLogo : lightSoftLogo;
   const isCollapsedDesktop = collapsed && !isMobile;
+
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      setIsPro(false);
+      return;
+    }
+    const loadMembership = async () => {
+      try {
+        const data = await billingApi.getUpgradeEntry();
+        setIsPro(Boolean(data.membership.is_pro));
+      } catch {
+        setIsPro(false);
+      }
+    };
+    void loadMembership();
+  }, [auth.isAuthenticated, auth.user?.id]);
 
   const handleNavigate = (path: string) => {
     onNavigate(path);
@@ -169,7 +186,7 @@ export function Sidebar({
             </span>
             <span className={`user-meta${collapsed && !isMobile ? " hidden" : ""}`}>
               <strong>{auth.user?.display_name ?? "使用者"}</strong>
-              {subscriptionTier === "PRO" ? <small className="pro-badge">PRO</small> : null}
+              {isPro ? <small className="pro-badge">PRO</small> : null}
             </span>
           </button>
         </section>

@@ -271,11 +271,14 @@ Frontend：
 Backend：
 1. `POST /billing/newebpay/one-time/checkout` 可建立 pending 交易並回傳藍新表單欄位。
 2. `POST /billing/newebpay/notify` 成功通知會更新交易為 success 並啟用 PRO。
-3. 同一成功通知重送不會重複升級（idempotency）。
-4. 失敗通知不會升級 PRO，交易應為 failed。
-5. webhook 原始資料會寫入 `billing_webhook_events`。
+3. `POST /billing/newebpay/return` 可接收前台返回並 redirect 到 `/billing/newebpay-one-time/result?external_trade_no=...`。
+4. 同一成功通知重送不會重複升級（idempotency）。
+5. 失敗通知不會升級 PRO，交易應為 failed。
+6. webhook 原始資料會寫入 `billing_webhook_events`。
 
 Frontend：
 1. `/billing/newebpay-one-time` 可發起 checkout 並 form POST 至藍新測試 gateway。
 2. `/billing/newebpay-one-time/result` 可查詢並顯示 success/failed/pending。
-3. `npm run build` 必須通過。
+3. `/billing/upgrade` 可明確顯示 `tier`、`membership_status`、`is_pro`。
+4. 使用者區塊至少一處可顯示 PRO（依 `GET /billing/upgrade`）。
+5. `npm run build` 必須通過。

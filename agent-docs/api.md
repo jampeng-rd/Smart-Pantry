@@ -400,6 +400,14 @@ python -m backend.app.jobs.expiration_email_runner
 - 成功交易啟用 PRO；失敗交易不得升級。
 - 回傳純文字 `OK`。
 
+### POST /billing/newebpay/return
+
+- 藍新前台返回 URL（不可直接指向 Vercel 靜態頁）。
+- backend 接收表單後解析 `MerchantOrderNo`（或解密 `TradeInfo` 取 `MerchantOrderNo`）。
+- 以 `303 redirect` 導向前端結果頁：
+  - `/billing/newebpay-one-time/result?external_trade_no=...`
+- 不取代 notify；僅負責前台返回導向。
+
 ### GET /billing/newebpay/one-time/transactions/{external_trade_no}
 
 - 需登入且僅可查自己的交易。

@@ -162,7 +162,8 @@ def billing_service_one_time() -> tuple[BillingService, FakeBillingRepository]:
         newebpay_hash_key="12345678901234567890123456789012",
         newebpay_hash_iv="1234567890123456",
         newebpay_notify_url="https://example.com/notify",
-        newebpay_return_url="https://example.com/result",
+        newebpay_return_url="https://example.com/newebpay/return",
+        newebpay_frontend_result_url="https://example.com/result",
         newebpay_customer_back_url="https://example.com/upgrade",
     )
     return BillingService(repository=repository, settings=settings), repository
@@ -249,3 +250,20 @@ def test_notify_invalid_sha_should_reject(billing_service_one_time: tuple[Billin
 
     assert exc.value.status_code == 400
     assert repository.membership is None
+
+
+def test_build_return_redirect_url_should_use_merchant_order_no_from_payload(
+    billing_service_one_time: tuple[BillingService, FakeBillingRepository],
+) -> None:
+    service, _ = billing_service_one_time
+    redirect_url = service.build_newebpay_return_redirect_url(payload={"MerchantOrderNo": "SP123"})
+    assert redirect_url == "https://example.com/result?external_trade_no=SP123"
+
+
+def test_build_return_redirect_url_should_extract_from_trade_info(
+    billing_service_one_time: tuple[BillingService, FakeBillingRepository],
+) -> None:
+    service, _ = billing_service_one_time
+    payload = _build_notify_payload(service=service, merchant_order_no="SPFROMTRADEINFO", status_text="SUCCESS")
+    redirect_url = service.build_newebpay_return_redirect_url(payload=payload)
+    assert redirect_url == "https://example.com/result?external_trade_no=SPFROMTRADEINFO"

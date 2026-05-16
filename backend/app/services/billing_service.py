@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import random
+from urllib.parse import urlencode
 
 from fastapi import HTTPException, status
 
@@ -77,7 +78,7 @@ class BillingService:
             "ItemDesc": "Smart Pantry PRO 升級",
             "Email": user.email,
             "NotifyURL": self.settings.newebpay_notify_url,
-            "ReturnURL": self._append_external_trade_no_to_return_url(external_trade_no=external_trade_no),
+            "ReturnURL": self.settings.newebpay_return_url,
             "ClientBackURL": self.settings.newebpay_customer_back_url,
             "CREDIT": "1",
         }
@@ -191,6 +192,13 @@ class BillingService:
             failed_at=transaction.failed_at,
         )
 
+    def build_newebpay_return_redirect_url(self, payload: dict) -> str:
+        """根據藍新前台返回資料建立前端結果頁導向 URL。"""
+        external_trade_no = self._extract_external_trade_no(payload=payload)
+        query = urlencode({"external_trade_no": external_trade_no}) if external_trade_no else ""
+        joiner = "&" if "?" in self.settings.newebpay_frontend_result_url else "?"
+        return f"{self.settings.newebpay_frontend_result_url}{joiner}{query}" if query else self.settings.newebpay_frontend_result_url
+
     def _validate_newebpay_settings(self) -> None:
         """驗證藍新設定是否齊全。"""
         missing_keys: list[str] = []
@@ -213,10 +221,23 @@ class BillingService:
         candidate = f"SP{user_id}{now}{suffix}"
         return candidate[:30]
 
-    def _append_external_trade_no_to_return_url(self, external_trade_no: str) -> str:
-        """在 ReturnURL 帶入 external_trade_no，供前端結果頁查詢。"""
-        joiner = "&" if "?" in self.settings.newebpay_return_url else "?"
-        return f"{self.settings.newebpay_return_url}{joiner}external_trade_no={external_trade_no}"
+    def _extract_external_trade_no(self, payload: dict) -> str:
+        """從藍新返回 payload 中提取 MerchantOrderNo。"""
+        merchant_order_no = str(payload.get("MerchantOrderNo") or "").strip()
+        if merchant_order_no:
+            return merchant_order_no
+
+        trade_info = str(payload.get("TradeInfo") or "").strip()
+        trade_sha = str(payload.get("TradeSha") or "").strip()
+        if not trade_info or not trade_sha:
+            return ""
+
+        crypto = NewebPayCrypto(hash_key=self.settings.newebpay_hash_key, hash_iv=self.settings.newebpay_hash_iv)
+        if not crypto.verify_trade_sha(trade_info=trade_info, trade_sha=trade_sha):
+            return ""
+        decrypted = crypto.decrypt_trade_info(trade_info=trade_info)
+        result = decrypted.get("Result", {}) if isinstance(decrypted, dict) else {}
+        return str(result.get("MerchantOrderNo") or "").strip()
 
     @staticmethod
     def _to_membership_summary(membership) -> BillingMembershipSummary:
