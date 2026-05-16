@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiCreditCard, FiLoader, FiSend } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiLoader, FiSend } from "react-icons/fi";
 
 import type { BillingUpgradeEntryData } from "../features/billing/billingTypes";
 import { billingApi } from "../services/apiClient";
@@ -66,9 +66,6 @@ export function BillingNewebpayOneTimePage() {
 
   return (
     <section className="card workspace-card billing-one-time-page">
-      <h2 className="workspace-title">
-        <FiCreditCard aria-hidden="true" /> 藍新單次付款
-      </h2>
       <div className="billing-upgrade-summary">
         <p>
           <strong>方案：</strong>PRO 單次升級

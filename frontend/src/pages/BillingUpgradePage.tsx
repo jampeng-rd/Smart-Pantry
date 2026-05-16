@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiArrowRight, FiCheckCircle, FiCreditCard, FiRefreshCw } from "react-icons/fi";
+import { FiArrowRight, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
 
 import type { BillingUpgradeEntryData } from "../features/billing/billingTypes";
 import { billingApi } from "../services/apiClient";
@@ -39,9 +39,6 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
   if (error || !data) {
     return (
       <section className="card workspace-card billing-upgrade-page">
-        <h2 className="workspace-title">
-          <FiCreditCard aria-hidden="true" /> 升級 PRO
-        </h2>
         <p>{error ?? "目前無法取得升級資訊"}</p>
         <button type="button" className="btn ghost" aria-label="重試載入升級資訊" onClick={() => void load()}>
           <FiRefreshCw aria-hidden="true" /> 重新整理
@@ -55,9 +52,6 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
 
   return (
     <section className="card workspace-card billing-upgrade-page">
-      <h2 className="workspace-title">
-        <FiCreditCard aria-hidden="true" /> 升級 PRO
-      </h2>
       <p className="muted-text">{data.message}</p>
       <div className="billing-upgrade-summary">
         <p>

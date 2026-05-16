@@ -427,6 +427,7 @@ body {
 
 .user-meta {
   min-width: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -437,6 +438,7 @@ body {
 .user-meta strong {
   font-size: 0.9rem;
   font-weight: 600;
+  margin-right: auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -446,9 +448,10 @@ body {
 .pro-badge {
   color: var(--color-accent-active);
   font-size: 0.72rem;
+  flex-shrink: 0;
   width: fit-content;
   padding: 0.12rem 0.35rem;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
   background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
 }
