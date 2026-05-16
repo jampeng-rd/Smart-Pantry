@@ -41,7 +41,7 @@ Phase 12-3：Deployment Migration / DB Upgrade 驗收(文件調整) ✅
 Phase 13：AI Queue / Worker Scaling（先規劃，暫不實作）⏳
 Phase 14-0：Admin / Billing / Web Deployment 文件與架構方向調整 ✅
 Phase 14-1：Admin 權限與會員管理基礎 ✅
-Phase 14-2：Web Deployment Baseline（Render + Vercel）⏳
+Phase 14-2：Web Deployment Baseline（Render + Vercel）✅
 Phase 14-3：Billing 核心資料模型與 Upgrade 入口 ⏳
 Phase 14-4：藍新單次付款（one-time）⏳
 Phase 14-5：藍新訂閱制（subscription）⏳
@@ -790,6 +790,51 @@ python -m backend.app.jobs.bootstrap_admin \
   --password 'change-me-strong-password' \
   --display-name '第一位管理員'
 ```
+
+## Phase 14-2：Web Deployment Baseline（Render + Vercel）（已完成）
+
+本階段完成目標：把專案整理為可手動部署到 Render + Vercel 的基線，並補齊 migration 與 smoke test 文件。
+
+部署邊界：
+
+- backend：Render Web Service
+- frontend：Vercel
+- DB：Render PostgreSQL（或其他 managed PostgreSQL）
+- AI server / Ollama：不在本輪部署範圍
+
+部署順序（建議）：
+
+1. 先建立 managed PostgreSQL 並設定 `DATABASE_URL`
+2. 先部署 backend（Render）
+3. 執行 `alembic upgrade head`（雲端也必做）
+4. 驗證 backend `/health`
+5. 再部署 frontend（Vercel）
+6. 以 smoke test 驗收前後端串接
+
+環境變數切分：
+
+- Render backend 必填：`APP_ENV`、`DATABASE_URL`、`JWT_SECRET_KEY`、`CORS_ORIGINS`、Email provider 必要欄位
+- Vercel frontend 必填：`VITE_API_BASE_URL`
+- 本輪可不填：AI/Ollama 相關 env（`OLLAMA_*`、`LLM_*`、`AI_WORKER_*`）
+
+Migration 規範重申：
+
+- `alembic upgrade head` 不只是本地開發命令，雲端部署也必須執行
+- migration 失敗必須中止 deployment
+- production 不可使用 drop/recreate DB
+
+最小 smoke test：
+
+1. `GET /health` 回 200
+2. frontend 可正常載入
+3. login 可用
+4. `/pantry`、`/shopping`、`/settings` 可進入
+5. admin 帳號可進入 `/admin/members`
+6. 前端請求確實打到 Render backend
+7. CORS 正常
+8. `alembic current` revision 正確
+
+詳細操作文件：`docs/phase-14-2-web-deployment-baseline-render-vercel.md`
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 

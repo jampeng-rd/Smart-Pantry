@@ -231,3 +231,22 @@ Forgot Password / Reset Password：
   3. Admin 權限規範明確要求 DB 欄位控制，不可只靠前端判斷。
   4. Billing 入口與 `BILLING_MODE=one_time|subscription` 規範已文件化。
   5. Render + Vercel 部署邊界與 AI server 暫不部署範圍已明確記錄。
+
+## Phase 14-2 測試與驗收補充（Web Deployment Baseline）
+
+deployment smoke test 至少覆蓋：
+
+1. backend `GET /health` 回 200
+2. frontend 頁面可載入
+3. login 可用
+4. `/pantry`、`/shopping`、`/settings` 可進入
+5. admin 帳號可進入 `/admin/members`
+6. frontend API 請求確實打到 Render backend（`VITE_API_BASE_URL` 正確）
+7. CORS 設定正確（允許 Vercel 網域、阻擋非 allowlist）
+8. migration revision 驗證：`alembic current` 已到 head
+
+migration 驗收強制規則：
+
+- 雲端部署也必須執行 `alembic upgrade head`
+- migration failure 必須中止 deployment
+- production 不可使用 drop/recreate DB

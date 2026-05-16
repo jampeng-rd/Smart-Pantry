@@ -79,6 +79,68 @@ jobs:
 - AI server / Ollama 暫不列入本輪免費雲端部署範圍。
 - 金流 callback / notify 需要公開網址，因此先完成 Web deployment 再進入 NewebPay runtime 串接。
 
+## Phase 14-2：Web Deployment Baseline（Render + Vercel）
+
+### 部署拓樸
+
+- backend：Render Web Service
+- frontend：Vercel
+- DB：Render PostgreSQL（或同級 managed PostgreSQL）
+- AI server / Ollama：本輪不部署
+
+### 建議部署順序
+
+1. 建立 Render PostgreSQL，取得 `DATABASE_URL`
+2. 建立 Render backend service 並配置 env
+3. 先執行 `alembic upgrade head`
+4. backend `/health` 驗證通過
+5. 建立 Vercel frontend 並設定 `VITE_API_BASE_URL`
+6. 完成 smoke test 後再對外開放
+
+### Render backend 建議設定（手動 baseline）
+
+- Build Command：`pip install -r backend/requirements.txt`
+- Start Command：`python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
+- Root Directory：repo root（避免 Alembic/migrations 路徑遺失）
+
+### 環境變數切分
+
+Render backend 至少需要：
+
+- `APP_ENV`
+- `DATABASE_URL`
+- `JWT_SECRET_KEY`
+- `CORS_ORIGINS`（填入 Vercel 網域）
+- `EMAIL_PROVIDER`
+- `EMAIL_FROM_NAME`
+- `EMAIL_FROM_ADDRESS`
+- `PRODUCTION_EMAIL_PROVIDER`
+- `RESEND_API_KEY`（當 `EMAIL_PROVIDER=production` + `PRODUCTION_EMAIL_PROVIDER=resend`）
+
+Vercel frontend 至少需要：
+
+- `VITE_API_BASE_URL`（指向 Render backend 公網 URL）
+
+本輪不需填寫（AI）：
+
+- `OLLAMA_BASE_URL`
+- `OLLAMA_TEXT_BASE_URL`
+- `OLLAMA_VISION_BASE_URL`
+- `LLM_TEXT_MODEL`
+- `LLM_VISION_MODEL`
+- `AI_WORKER_*`
+
+### 最小 smoke test
+
+1. backend `GET /health` 回 200
+2. frontend 首頁可載入
+3. login 可用
+4. `/pantry`、`/shopping`、`/settings` 可進入
+5. admin 帳號可進入 `/admin/members`
+6. 前端 API 請求打到 Render backend domain
+7. CORS 允許 Vercel domain，拒絕非 allowlist 網域
+8. `alembic current` revision 到 head
+
 ## 使用者過多與服務穩定性
 
 風險：backend CPU/RAM 不足、DB connection 過多、慢查詢、AI 推論阻塞、圖片佔用頻寬與儲存。

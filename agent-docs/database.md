@@ -16,6 +16,14 @@
 - migration 失敗必須中止 deployment，不可繼續上線。
 - production 升級不可使用 drop/recreate DB。
 
+## Phase 14-2 雲端部署補充（Render + Vercel）
+
+- Render backend 部署也必須先執行 `alembic upgrade head`，不是只在本地做 migration。
+- migration 執行順序必須在 backend rollout 前，失敗即中止 deployment。
+- `DATABASE_URL` 必須指向雲端 managed PostgreSQL（例如 Render PostgreSQL），不可誤連本地 DB。
+- deployment 後需執行 `alembic current` 驗證 revision 是否到 head。
+- production 不可用 drop/recreate DB 取代 migration 升級流程。
+
 ## DB Upgrade 驗收（Phase 12-3）
 
 最小驗收流程：
