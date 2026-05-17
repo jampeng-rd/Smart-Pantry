@@ -43,11 +43,13 @@ export function UserMenu({
         <FiHelpCircle aria-hidden="true" />
         {collapsed ? null : "使用說明"}
       </button>
+
       <button type="button" className="user-menu-item" role="menuitem" aria-label="升級 PRO" title="升級 PRO" onClick={onUpgradePro}>
         <FiStar aria-hidden="true" />
         {collapsed ? null : "升級 PRO"}
       </button>
-      {/* Phase 10-1 UX：主題切換功能已移到 Settings 第一個區塊，UserMenu 先暫時隱藏。 */}
+
+      {/* 主題切換功能已移到 Settings 分頁中。 */}
       {/* <button
         type="button"
         className="user-menu-item"

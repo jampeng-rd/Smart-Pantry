@@ -1,8 +1,11 @@
 import psycopg
+"""
+檢查全部付款狀態
+"""
 
-db_url = "輸入 External Database URL"
+DB_URL = "輸入你的 Render External Database URL"
 
-with psycopg.connect(db_url, connect_timeout=10) as conn:
+with psycopg.connect(DB_URL, connect_timeout=10) as conn:
     with conn.cursor() as cur:
         cur.execute("""
             SELECT id, user_id, external_trade_no, transaction_status, amount, paid_at, failed_at, membership_id
