@@ -133,7 +133,7 @@
 
 ### Bug Fix：recipient email 格式錯誤分類
 
-修正：`invalid to` / `invalid recipient` / 收件者 email 不完整（例如 `jampeng.rd@gmail`）現在歸類為「使用者 Email 無法寄送」。
+修正：`invalid to` / `invalid recipient` / 收件者 email 不完整（例如 `admin@gmail`）現在歸類為「使用者 Email 無法寄送」。
 
 - `invalid to` / `invalid recipient` / recipient mailbox / recipient email 格式錯誤
   - `此 Email 無法正確寄送通知，若有問題請來信諮詢。`

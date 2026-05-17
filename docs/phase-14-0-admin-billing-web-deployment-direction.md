@@ -47,7 +47,7 @@
 
 ### 既有帳號
 
-- `jampeng.rd@gmail.com` 規劃作為第一個既有 admin 帳號來源之一。
+- `admin@gmail.com` 規劃作為第一個既有 admin 帳號來源之一。
 
 ### 空 DB / 初始部署
 
@@ -102,5 +102,5 @@
 
 - 已建立 Phase 14-0～14-6 文件化規劃。
 - 已明確 Admin、Billing、Deployment 三條方向邊界。
-- 已明確 `jampeng.rd@gmail.com` 與空 DB 第一個 admin 初始化策略要求。
+- 已明確 `admin@gmail.com` 與空 DB 第一個 admin 初始化策略要求。
 - 已明確 AI server 暫不列入本輪部署。

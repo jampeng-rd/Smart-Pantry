@@ -259,7 +259,7 @@ Admin 權限：
 - 可接受方案：
   - `users.role`（`user` / `admin`）
   - `users.is_admin`（boolean）
-- `jampeng.rd@gmail.com` 規劃為第一個既有 admin 帳號，具體寫入方式留在 Phase 14-1 實作。
+- `admin@gmail.com` 規劃為第一個既有 admin 帳號，具體寫入方式留在 Phase 14-1 實作。
 
 空 DB 初始化第一個 admin（Phase 14-0 文件規劃）：
 

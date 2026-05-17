@@ -12,7 +12,7 @@
 
 2. 第一個 admin 建立方式
    - 實作 `python -m backend.app.jobs.bootstrap_admin` 命令。
-   - 可將既有 `jampeng.rd@gmail.com` 設為 admin。
+   - 可將既有 `admin@gmail.com` 設為 admin。
    - 支援空 DB 建立第一個 admin（`--create-if-not-exists`）。
 
 3. Backend admin API 基礎
@@ -42,7 +42,7 @@ alembic upgrade head
 ### 1) 既有帳號設為 admin
 
 ```bash
-python -m backend.app.jobs.bootstrap_admin --email jampeng.rd@gmail.com
+python -m backend.app.jobs.bootstrap_admin --email admin@gmail.com
 ```
 
 ### 2) 空 DB 建立第一個 admin

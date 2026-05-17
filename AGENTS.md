@@ -260,7 +260,7 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 
 - admin 權限最終需由 DB 欄位控制（`role` 或 `is_admin`），不可只做前端判斷。
 - backend admin API 不混入既有 `backend/app/api/`，改為獨立資料夾（例如 `backend/app/admin_api/`），但仍維持分層架構。
-- 既有帳號 `jampeng.rd@gmail.com` 規劃為第一個 admin 帳號來源之一。
+- 既有帳號 `admin@gmail.com` 規劃為第一個 admin 帳號來源之一。
 - 空 DB 初始部署需有第一個 admin 建立方案（migration seed / init script / bootstrap command / 手動 SQL / 後台初始化流程），Phase 14-0 僅文件規劃，不先實作 runtime。
 - Billing 統一入口：`/billing/upgrade`，並依 `BILLING_MODE=one_time|subscription` 導向 `/billing/newebpay-one-time` 或 `/billing/newebpay-subscription`。
 - 單次付款與訂閱制為不同制度，但需共用部分 billing 資料模型。

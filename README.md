@@ -1,6 +1,6 @@
 # 智慧食材保存與膳食管理系統（Smart Pantry & Nutritionist）
 
-<!-- ## Preview
+## Preview
 
 <table width="100%">
     <tr>
@@ -10,17 +10,17 @@
     <p align="center">
     Web Workspace
     </p>
-    <img src="assets/web.png" alt="Web Workspace">
+    <img src="assets/web_1.png" alt="Web Workspace">
     </td>
     <td width="21%"
     <br>
     <p align="center">
-    Mobile Workspace
+    Mobile RWD Workspace
     </p>
-    <img src="assets/mobile.png" alt="Mobile Workspace">
+    <img src="assets/mobile_2.png" alt="Mobile Workspace">
     </td>
     </tr>
-</table> -->
+</table>
 
 ## 專案狀態
 
@@ -1002,7 +1002,7 @@ Email delivery 錯誤改為四類 user-facing 文案：
 
 ### Phase 11-4 Bug Fix：Recipient Email 分類
 
-- `invalid to`、`invalid recipient`、不完整收件者 email（如 `jampeng.rd@gmail`）
+- `invalid to`、`invalid recipient`、不完整收件者 email（如 `example@gmail`）
   - 顯示：`此 Email 無法正確寄送通知，若有問題請來信諮詢。`
 - `invalid from`、`invalid sender`、API key invalid、domain not verified
   - 顯示：`目前系統偵測異常，系統維修中。`
@@ -1102,7 +1102,7 @@ curl http://127.0.0.1:8000/health
 - Phase 13 保留原定位不變（AI Queue / Worker Scaling，先規劃不實作）。
 - Admin 權限最終必須以 DB 欄位控管（`role` 或 `is_admin`），不可只做前端判斷。
 - backend admin API 不混入既有 `backend/app/api/`，規劃使用獨立 `backend/app/admin_api/`。
-- 既有帳號 `jampeng.rd@gmail.com` 規劃作為第一個 admin 帳號來源之一。
+- 既有帳號 `admin@gmail.com` 規劃作為第一個 admin 帳號來源之一。
 - 空 DB 初始部署需定義第一個 admin 建立方式（migration seed / bootstrap command / init script / 手動 SQL / 後台初始化流程），Phase 14-0 只做文件規劃。
 - Billing 入口規劃：
   - `/billing/upgrade`
@@ -1122,17 +1122,17 @@ curl http://127.0.0.1:8000/health
 - 新增 admin 專用 API 模組：`backend/app/admin_api/`。
 - 新增 admin guard（非 admin 回 403）與會員列表 API：`GET /admin/members`。
 - 新增第一個 admin 可執行初始化方案：`python -m backend.app.jobs.bootstrap_admin`。
-- 既有帳號 `jampeng.rd@gmail.com` 可直接設為 admin。
+- 既有帳號 `admin@gmail.com` 可直接設為 admin。
 - 空 DB 可用 `--create-if-not-exists` 建立第一個 admin。
 - 前端 Sidebar 新增「會員管理」入口（僅 admin 可見）。
 - 前端新增最小可操作頁面：`/admin/members`（含載入/錯誤/空狀態/列表）。
 
 ### Admin Bootstrap 指令
 
-將既有使用者設為 admin（預設 email 即 `jampeng.rd@gmail.com`）：
+將既有使用者設為 admin（預設 email 即 `admin@gmail.com`）：
 
 ```bash
-python -m backend.app.jobs.bootstrap_admin --email jampeng.rd@gmail.com
+python -m backend.app.jobs.bootstrap_admin --email admin@gmail.com
 ```
 
 空 DB 建立第一個 admin：

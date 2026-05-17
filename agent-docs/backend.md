@@ -254,7 +254,7 @@ Nutrition 暫緩。Phase 10 後端重點改為使用者偏好、設定與到期 
 
 - Admin API 不混入既有 `backend/app/api/`，改放 `backend/app/admin_api/`。
 - admin 權限判斷不可只在前端，最終必須由 DB 欄位與後端權限驗證控制（例如 `users.role` 或 `users.is_admin`）。
-- `jampeng.rd@gmail.com` 需作為第一個既有 admin 帳號來源之一（實際寫入方式於 Phase 14-1 實作）。
+- `admin@gmail.com` 需作為第一個既有 admin 帳號來源之一（實際寫入方式於 Phase 14-1 實作）。
 - 若為空 DB 初始部署，第一個 admin 建立方式可採：migration seed、bootstrap command、init script、手動 SQL（皆需文件化）；Phase 14-0 僅規劃不實作。
 - Billing 路由規劃：
   - `/billing/upgrade`
