@@ -10,6 +10,17 @@ import { formatLocalDateTime } from "../utils/dateTime";
 
 const DEFAULT_PAGE_SIZE = 10;
 
+/** 依管理員與 PRO 狀態產生角色標籤與樣式。 */
+function resolveRoleBadge(member: AdminMemberItem): { label: string; className: string } {
+  if (member.is_admin) {
+    return { label: "管理員", className: "admin" };
+  }
+  if (member.is_pro) {
+    return { label: "PRO", className: "pro" };
+  }
+  return { label: "一般會員", className: "member" };
+}
+
 /** Admin 會員管理頁。 */
 export function AdminMembersPage() {
   const [items, setItems] = useState<AdminMemberItem[]>([]);
@@ -107,12 +118,14 @@ export function AdminMembersPage() {
 
       {!loading && !error && hasData ? (
         <div className="admin-members-list">
-          {items.map((member) => (
-            <article
-              key={member.id}
-              className={`admin-member-row${expandedMemberIds.includes(member.id) ? " expanded" : ""}`}
-              aria-label={`會員 ${member.display_name}`}
-            >
+          {items.map((member) => {
+            const roleBadge = resolveRoleBadge(member);
+            return (
+              <article
+                key={member.id}
+                className={`admin-member-row${expandedMemberIds.includes(member.id) ? " expanded" : ""}`}
+                aria-label={`會員 ${member.display_name}`}
+              >
               <div className="admin-member-field admin-member-desktop-field">
                 <p className="admin-member-label">會員 ID</p>
                 <p className="admin-member-value">#{member.id}</p>
@@ -127,7 +140,7 @@ export function AdminMembersPage() {
               </div>
               <div className="admin-member-field admin-member-desktop-field">
                 <p className="admin-member-label">角色</p>
-                <p className={`admin-member-role ${member.is_admin ? "admin" : "member"}`}>{member.is_admin ? "管理員" : "一般會員"}</p>
+                <p className={`admin-member-role ${roleBadge.className}`}>{roleBadge.label}</p>
               </div>
               <div className="admin-member-field admin-member-desktop-field">
                 <p className="admin-member-label">建立時間</p>
@@ -147,7 +160,7 @@ export function AdminMembersPage() {
               </div>
               <div className="admin-member-field admin-member-detail-field">
                 <p className="admin-member-label">角色</p>
-                <p className={`admin-member-role ${member.is_admin ? "admin" : "member"}`}>{member.is_admin ? "管理員" : "一般會員"}</p>
+                <p className={`admin-member-role ${roleBadge.className}`}>{roleBadge.label}</p>
               </div>
               <div className="admin-member-field admin-member-detail-field">
                 <p className="admin-member-label">建立時間</p>
@@ -166,8 +179,9 @@ export function AdminMembersPage() {
                 {expandedMemberIds.includes(member.id) ? <FiChevronUp aria-hidden="true" /> : <FiChevronDown aria-hidden="true" />}
                 {expandedMemberIds.includes(member.id) ? "收合詳細資料" : "展開詳細資料"}
               </button>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       ) : null}
 

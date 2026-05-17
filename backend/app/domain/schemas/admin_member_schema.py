@@ -12,6 +12,8 @@ class AdminMemberItem(BaseModel):
     email: EmailStr
     display_name: str
     is_admin: bool
+    is_pro: bool
+    membership_status: str
     created_at: datetime
 
 

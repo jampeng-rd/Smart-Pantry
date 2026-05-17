@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiArrowRight, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
 
+import { formatMembershipStatusZh } from "../features/billing/billingFormatters";
 import type { BillingUpgradeEntryData } from "../features/billing/billingTypes";
 import { billingApi } from "../services/apiClient";
 
@@ -60,7 +61,7 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
         </p>
         <p>
           <strong>會員狀態：</strong>
-          {data.membership.membership_status}
+          {formatMembershipStatusZh(data.membership.membership_status)}
         </p>
         <p>
           <strong>是否為 PRO：</strong>
@@ -68,7 +69,7 @@ export function BillingUpgradePage({ onNavigate }: BillingUpgradePageProps) {
         </p>
         {data.membership.is_pro && data.membership.membership_status === "active" ? (
           <p className="muted-text">
-            <FiCheckCircle aria-hidden="true" /> 已升級為 PRO（狀態：active）
+            <FiCheckCircle aria-hidden="true" /> 已升級為 PRO（狀態：啟用）
           </p>
         ) : null}
       </div>

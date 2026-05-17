@@ -20,7 +20,17 @@ class FakeUser:
     password_hash: str
     display_name: str
     is_admin: bool
+    is_pro: bool
+    membership_status: str
     created_at: datetime
+
+
+@dataclass
+class FakeMembership:
+    """測試用會員狀態資料。"""
+
+    tier: str
+    membership_status: str
 
 
 class FakeAdminMemberRepository:
@@ -36,6 +46,8 @@ class FakeAdminMemberRepository:
                 password_hash="hashed-1",
                 display_name="管理員",
                 is_admin=True,
+                is_pro=False,
+                membership_status="inactive",
                 created_at=now,
             ),
             2: FakeUser(
@@ -44,6 +56,8 @@ class FakeAdminMemberRepository:
                 password_hash="hashed-2",
                 display_name="一般會員",
                 is_admin=False,
+                is_pro=True,
+                membership_status="active",
                 created_at=now - timedelta(hours=1),
             ),
         }
@@ -68,6 +82,8 @@ class FakeAdminMemberRepository:
             password_hash=password_hash,
             display_name=display_name,
             is_admin=is_admin,
+            is_pro=False,
+            membership_status="inactive",
             created_at=datetime.now(timezone.utc),
         )
         self.users[user.id] = user
@@ -78,7 +94,7 @@ class FakeAdminMemberRepository:
         self.users[user.id] = user
         return user
 
-    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[FakeUser], int]:
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[tuple[FakeUser, FakeMembership]], int]:
         """分頁查詢使用者（ID 由小到大），支援關鍵字搜尋。"""
         rows = sorted(self.users.values(), key=lambda user: user.id)
         keyword = (q or "").strip().lower()
@@ -87,7 +103,8 @@ class FakeAdminMemberRepository:
         total = len(rows)
         start = (page - 1) * page_size
         end = start + page_size
-        return rows[start:end], total
+        page_rows = rows[start:end]
+        return [(row, FakeMembership(tier="PRO" if row.is_pro else "FREE", membership_status=row.membership_status)) for row in page_rows], total
 
 
 @pytest.fixture
@@ -118,6 +135,7 @@ def test_list_members_should_return_member_list(admin_service: tuple[AdminMember
     assert data.total == 2
     assert len(data.items) == 2
     assert data.items[0].email == "admin@example.com"
+    assert data.items[1].is_pro is True
 
 
 def test_list_members_should_support_keyword_search(admin_service: tuple[AdminMemberService, FakeAdminMemberRepository]) -> None:

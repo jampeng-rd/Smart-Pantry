@@ -4,6 +4,8 @@ export interface AdminMemberItem {
   email: string;
   display_name: string;
   is_admin: boolean;
+  is_pro: boolean;
+  membership_status: string;
   created_at: string;
 }
 

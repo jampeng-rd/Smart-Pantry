@@ -3,6 +3,7 @@
 from sqlalchemy import asc, func, or_, select
 from sqlalchemy.orm import Session
 
+from backend.app.domain.models.billing_membership_model import BillingMembership
 from backend.app.domain.models.user_model import User
 
 
@@ -38,7 +39,7 @@ class AdminMemberRepository:
         self.db.refresh(user)
         return user
 
-    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[User], int]:
+    def list_members(self, page: int, page_size: int, q: str | None = None) -> tuple[list[tuple[User, BillingMembership | None]], int]:
         """分頁查詢會員列表（依 ID 由小到大），可依姓名或 Email 搜尋。"""
         filters = []
         keyword = (q or "").strip()
@@ -52,11 +53,12 @@ class AdminMemberRepository:
         total = self.db.execute(total_statement).scalar_one()
 
         statement = (
-            select(User)
+            select(User, BillingMembership)
+            .outerjoin(BillingMembership, BillingMembership.user_id == User.id)
             .where(*filters)
             .order_by(asc(User.id))
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
-        rows = list(self.db.execute(statement).scalars().all())
+        rows = list(self.db.execute(statement).all())
         return rows, total

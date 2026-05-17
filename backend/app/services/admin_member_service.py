@@ -25,16 +25,21 @@ class AdminMemberService:
     def list_members(self, page: int, page_size: int, q: str | None = None) -> AdminMemberListResponseData:
         """查詢會員列表（依 ID 由小到大），支援 display_name / email 關鍵字搜尋。"""
         rows, total = self.repository.list_members(page=page, page_size=page_size, q=q)
-        items = [
-            AdminMemberItem(
-                id=row.id,
-                email=row.email,
-                display_name=row.display_name,
-                is_admin=row.is_admin,
-                created_at=row.created_at,
+        items: list[AdminMemberItem] = []
+        for user, membership in rows:
+            is_pro = bool(membership and membership.tier.upper() == "PRO" and membership.membership_status in {"active", "trialing"})
+            membership_status = membership.membership_status if membership else "inactive"
+            items.append(
+                AdminMemberItem(
+                    id=user.id,
+                    email=user.email,
+                    display_name=user.display_name,
+                    is_admin=user.is_admin,
+                    is_pro=is_pro,
+                    membership_status=membership_status,
+                    created_at=user.created_at,
+                )
             )
-            for row in rows
-        ]
         return AdminMemberListResponseData(items=items, page=page, page_size=page_size, total=total)
 
     def bootstrap_admin(

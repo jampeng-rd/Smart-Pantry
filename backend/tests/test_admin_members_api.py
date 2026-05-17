@@ -35,6 +35,8 @@ class FakeAdminMemberService(AdminMemberService):
                     email="admin@example.com",
                     display_name="管理員",
                     is_admin=True,
+                    is_pro=False,
+                    membership_status="inactive",
                     created_at=datetime.now(timezone.utc),
                 )
             ],

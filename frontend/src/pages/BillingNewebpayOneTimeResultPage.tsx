@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiClock, FiCreditCard, FiXCircle } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiClock, FiXCircle } from "react-icons/fi";
 
+import { formatMembershipStatusZh } from "../features/billing/billingFormatters";
 import type { BillingTransactionStatusData } from "../features/billing/billingTypes";
 import { billingApi } from "../services/apiClient";
 
@@ -51,9 +52,6 @@ export function BillingNewebpayOneTimeResultPage() {
 
   return (
     <section className="card workspace-card billing-one-time-page">
-      <h2 className="workspace-title">
-        <FiCreditCard aria-hidden="true" /> 單次付款結果
-      </h2>
       {loading ? <p>載入交易狀態中...</p> : null}
       {error ? (
         <p className="error-text">
@@ -73,7 +71,7 @@ export function BillingNewebpayOneTimeResultPage() {
             </p>
             <p>
               <strong>會員狀態：</strong>
-              {statusData.membership_status}
+              {formatMembershipStatusZh(statusData.membership_status)}
             </p>
             <p>
               <strong>目前方案：</strong>

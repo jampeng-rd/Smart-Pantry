@@ -786,6 +786,12 @@ body {
   border-color: color-mix(in srgb, var(--color-muted) 30%, var(--color-border));
 }
 
+.admin-member-role.pro {
+  background: color-mix(in srgb, #e0b84b 32%, transparent);
+  color: color-mix(in srgb, #ffe8a3 78%, var(--color-text));
+  border-color: color-mix(in srgb, #e0b84b 52%, var(--color-border));
+}
+
 .admin-member-expand-btn {
   display: none;
   align-items: center;

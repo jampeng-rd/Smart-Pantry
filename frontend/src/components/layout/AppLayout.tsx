@@ -92,6 +92,9 @@ export function AppLayout({ pathname, children, onNavigate }: AppLayoutProps) {
     if (pathname === "/billing/newebpay-one-time") {
       return { icon: <FiCreditCard aria-hidden="true" />, text: "藍新單次付款" };
     }
+    if (pathname === "/billing/newebpay-one-time/result") {
+      return { icon: <FiCreditCard aria-hidden="true" />, text: "單次付款結果" };
+    }
     if (pathname === "/billing/newebpay-subscription") {
       return { icon: <FiRepeat aria-hidden="true" />, text: "藍新訂閱付款" };
     }
