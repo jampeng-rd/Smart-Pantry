@@ -95,7 +95,6 @@ Sidebar 底部固定顯示目前登入使用者。
 - `/dashboard` route 目前保留為未來總覽頁（placeholder）。
 - MVP 側邊欄暫時隱藏「儀表板」導航項目。
 
-
 ## Phase 10 方向調整
 
 下一階段不做 Dashboard 總覽，也暫緩 Nutrition。登入後直接進入食材庫存仍是合理主流程，因為 Pantry 是本產品的主要工作區。
@@ -146,3 +145,7 @@ Billing 主線已完成基礎架構：
 - 完成藍新單次付款（one-time）最小可用流程：checkout → 跳轉付款頁 → notify → 結果查詢。
 - callback/notify 事件寫入 `billing_webhook_events`，交易與會員狀態同步更新。
 - 成功交易啟用 PRO，且重送通知不會重複升級。
+- 收尾 UI/文案同步完成：
+  - 結果頁 TopToolbar 標題固定為 `單次付款結果`，頁內不重複同名標題。
+  - billing 會員狀態前端文案改為中文（`啟用/未啟用`）。
+  - 會員管理頁角色顯示改為管理員/PRO/一般會員規則，且 PRO 採黃色 badge。

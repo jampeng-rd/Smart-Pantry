@@ -293,7 +293,6 @@ Nutrition UI（未來恢復後）：
 - nutrition estimate result
 - AI 生活參考聲明
 
-
 ## Profile / Settings / Help 頁面規範（Phase 10-1 已實作）
 
 ### Profile（個人資料）
@@ -319,7 +318,6 @@ Settings 是系統行為偏好。頁面區塊建議順序：
 ### Help（說明）
 
 Help 應包含：基本操作教學、AI 食譜限制、食材辨識拍攝建議、Email 提醒規則與 FAQ。Help 文字需使用繁體中文，並避免過度技術化。
-
 
 Phase 10-1 已完成重點：
 
@@ -380,3 +378,12 @@ Phase 10-1 已完成重點：
 - `ReturnURL` 必須指向 backend `POST /billing/newebpay/return`，不可直接指向 Vercel 靜態頁。
 - 結果頁以 `external_trade_no` 查詢 backend 交易狀態，不直接信任前端 query 文案。
 - 前端應使用 `GET /billing/upgrade` 回傳的 `membership.is_pro/tier/membership_status` 顯示 PRO 狀態。
+- `/billing/newebpay-one-time/result` 的頁面標題以 TopToolbar 為主（`單次付款結果`），內容區不重複顯示 `workspace-title`。
+- `/billing/upgrade` 與 `/billing/newebpay-one-time/result` 的會員狀態文案需為繁中：
+  - `active` → `啟用`
+  - 其他狀態 → `未啟用`
+- `/admin/members` 角色顯示規則：
+  - `is_admin=true` → `管理員`
+  - `is_admin=false` 且 `is_pro=true` → `PRO`
+  - 其他 → `一般會員`
+- `PRO` 角色 badge 使用黃色系小圓角樣式，且不可影響既有管理員/一般會員 badge 風格。

@@ -43,6 +43,23 @@
   - 顯示目前會員狀態（`is_pro`、`tier`、`membership_status`）
   - PRO active 顯示已升級文案
 
+## Phase 14-4 收尾（UI / 顯示規則）
+
+- `/billing/newebpay-one-time/result`
+  - TopToolbar 標題為 `單次付款結果`
+  - 內容區不重複顯示同名 `workspace-title`
+- billing 會員狀態前端顯示改為繁中：
+  - `active` → `啟用`
+  - 其他狀態 → `未啟用`
+- `/admin/members` API 補最小必要欄位：
+  - `is_pro`
+  - `membership_status`
+- `/admin/members` 角色顯示規則：
+  - `is_admin=true` → `管理員`
+  - `is_admin=false` 且 `is_pro=true` → `PRO`
+  - 其他 → `一般會員`
+- `PRO` badge 使用黃色系小圓角樣式，且管理員/一般會員 badge 樣式維持不變。
+
 ## one-time PRO 規則（本階段）
 
 - 採 **永久 PRO（ended_at=null）**。

@@ -129,7 +129,6 @@ Manual E2E：
 - 可用 env 或 CLI 指定 worker 處理的 job types
 - 暫不導入 Redis / Celery / RQ / Dramatiq / RabbitMQ
 
-
 ## Phase 10 Profile / Settings / Email Reminder 測試補充（10-1/10-2/10-3）
 
 Backend：
@@ -254,6 +253,7 @@ migration 驗收強制規則：
 ## Phase 14-3 測試補充（Billing Core + Upgrade Entry）
 
 Backend：
+
 1. `BILLING_MODE=one_time` 時，`GET /billing/upgrade` 回傳單次付款入口。
 2. `BILLING_MODE=subscription` 時，`GET /billing/upgrade` 回傳訂閱入口。
 3. membership 存在且 `tier=PRO` + `membership_status=active/trialing` 時，`is_pro=true`。
@@ -261,6 +261,7 @@ Backend：
 5. migration 檔案存在且可在 DB 可用時執行 `alembic upgrade head`。
 
 Frontend：
+
 1. `/billing/upgrade` 可進入。
 2. UserMenu「升級 PRO」可導到 `/billing/upgrade`。
 3. `/billing/newebpay-one-time` 與 `/billing/newebpay-subscription` 目前為占位頁，不顯示成功付款。
@@ -269,6 +270,7 @@ Frontend：
 ## Phase 14-4 測試補充（NewebPay one-time）
 
 Backend：
+
 1. `POST /billing/newebpay/one-time/checkout` 可建立 pending 交易並回傳藍新表單欄位。
 2. `POST /billing/newebpay/notify` 成功通知會更新交易為 success 並啟用 PRO。
 3. `POST /billing/newebpay/return` 可接收前台返回並 redirect 到 `/billing/newebpay-one-time/result?external_trade_no=...`。
@@ -277,8 +279,17 @@ Backend：
 6. webhook 原始資料會寫入 `billing_webhook_events`。
 
 Frontend：
+
 1. `/billing/newebpay-one-time` 可發起 checkout 並 form POST 至藍新測試 gateway。
 2. `/billing/newebpay-one-time/result` 可查詢並顯示 success/failed/pending。
 3. `/billing/upgrade` 可明確顯示 `tier`、`membership_status`、`is_pro`。
 4. 使用者區塊至少一處可顯示 PRO（依 `GET /billing/upgrade`）。
 5. `npm run build` 必須通過。
+6. `/billing/newebpay-one-time/result` TopToolbar 標題需為 `單次付款結果`。
+7. `/billing/newebpay-one-time/result` 內容區不可重複出現同名 `workspace-title`。
+8. `/billing/upgrade` 與 `/billing/newebpay-one-time/result` 的 `會員狀態` 需顯示中文（`啟用/未啟用`），不可顯示英文狀態值。
+9. `/admin/members` 角色顯示規則需正確：
+   - 管理員固定顯示 `管理員`
+   - 非管理員且 `is_pro=true` 顯示 `PRO`
+   - 其餘顯示 `一般會員`
+10. `/admin/members` 的 `PRO` badge 需為黃色系，且不得改壞管理員與一般會員 badge 樣式。

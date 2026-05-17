@@ -264,6 +264,10 @@ Phase 06 不可一次做完整前端。必須拆分子階段：
 - 空 DB 初始部署需有第一個 admin 建立方案（migration seed / init script / bootstrap command / 手動 SQL / 後台初始化流程），Phase 14-0 僅文件規劃，不先實作 runtime。
 - Billing 統一入口：`/billing/upgrade`，並依 `BILLING_MODE=one_time|subscription` 導向 `/billing/newebpay-one-time` 或 `/billing/newebpay-subscription`。
 - 單次付款與訂閱制為不同制度，但需共用部分 billing 資料模型。
+- Phase 14-4 收尾 UI 規則：
+  - `/billing/newebpay-one-time/result` 以 TopToolbar 顯示 `單次付款結果`，頁內不重複同名標題。
+  - billing 會員狀態前端顯示使用繁中（`啟用/未啟用`），不顯示英文狀態值。
+  - `/admin/members` 角色顯示依 `is_admin + is_pro`（管理員/PRO/一般會員），PRO badge 使用黃色系且不影響既有管理員/一般會員樣式。
 - Web 先部署 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
 - 金流 callback / notify 需要公開網址，因此 Web Deployment 需先完成。
 

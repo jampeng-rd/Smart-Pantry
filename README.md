@@ -369,6 +369,24 @@ AI 食譜為生活建議；食材照片辨識結果需由使用者確認。餐�
 - `backend/` 是 Web API server：負責 auth、pantry、expiration、shopping、AI job API、使用者驗證與資料權限。
 - `ai_server/`（或 `ai_worker`）是 AI runtime：負責 LangChain、Ollama、Vision、Nutrition 長任務。
 
+## Phase 08-0：AI Job 架構初始化（已完成）
+
+已完成：
+
+- backend 新增 `ai_jobs` 基礎資料結構（含 user/job_type/status/input_snapshot/result/error_message/時間欄位）。
+- backend 新增 recipe recommendation job API：
+  - `POST /recipes/recommendation-jobs`
+  - `GET /recipes/recommendation-jobs/{job_id}`
+- API 僅建立/查詢 job，不同步等待 AI 推論。
+- `selected_items` 模式會驗證 `selected_pantry_item_ids` 皆屬於目前使用者，且不可為空。
+- `auto_from_pantry` 模式本階段僅建立 job，`input_snapshot` 會標示 `pending_auto_selection=true`。
+- 新增 `ai_server/ai_worker` 骨架與 DB polling loop placeholder（Phase 08-1 再接 fake handler）。
+
+本階段限制：
+
+- 不呼叫真實 Ollama。
+- 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
+
 ## Phase 08-1：AI 食譜推薦 Mock（job-based）
 
 已完成：
@@ -440,24 +458,6 @@ job-based 流程：
 
 job 狀態至少包含：`pending`、`running`、`success`、`failed`、`cancelled`。
 job 查詢必須驗證 `user_id`，不可跨使用者查詢。
-
-## Phase 08-0：AI Job 架構初始化（已完成）
-
-已完成：
-
-- backend 新增 `ai_jobs` 基礎資料結構（含 user/job_type/status/input_snapshot/result/error_message/時間欄位）。
-- backend 新增 recipe recommendation job API：
-  - `POST /recipes/recommendation-jobs`
-  - `GET /recipes/recommendation-jobs/{job_id}`
-- API 僅建立/查詢 job，不同步等待 AI 推論。
-- `selected_items` 模式會驗證 `selected_pantry_item_ids` 皆屬於目前使用者，且不可為空。
-- `auto_from_pantry` 模式本階段僅建立 job，`input_snapshot` 會標示 `pending_auto_selection=true`。
-- 新增 `ai_server/ai_worker` 骨架與 DB polling loop placeholder（Phase 08-1 再接 fake handler）。
-
-本階段限制：
-
-- 不呼叫真實 Ollama。
-- 不導入 Redis/Celery/RQ/Dramatiq/RabbitMQ。
 
 ## Phase 09-0：AI Worker 架構調整 / job_type 隔離（已完成）
 
@@ -671,238 +671,6 @@ Phase 08～12 不可只完成 backend API 或 ai_worker。每個 AI 階段都必
 
 frontend 不可直接呼叫 ai_server，只能透過 backend job API。
 
-## Phase 12：Database Migration / Account Recovery（已完成）
-
-- `Phase 12-0`：文件與階段方向調整，將原 Phase 12 AI Queue 順延到 Phase 13。
-- `Phase 12-1`：導入 Alembic migration system，建立 baseline，後續 schema 變更必須走 migration。
-- `Phase 12-2`：Forgot Password / Reset Password（`POST /auth/forgot-password`、`POST /auth/reset-password`）。
-- `Phase 12-3`：deployment migration checklist、rollback 策略、failure handling 與 DB upgrade 驗收。
-
-補充：
-
-- migration 導入後，正式流程不可再使用手動 `ALTER TABLE`。
-- Forgot Password 必須共用既有 `email_client_factory` 與 provider abstraction，不可新增獨立 SMTP 實作。
-- deployment 前需執行 `alembic upgrade head`。
-
-## Phase 12-1：Alembic Migration System（已完成）
-
-本階段已導入 Alembic 基礎結構：
-
-- `alembic.ini`
-- `migrations/env.py`
-- `migrations/versions/20260514_1201_baseline_schema.py`
-
-規範：
-
-- 後續 schema 變更必須新增 migration 檔案。
-- 不可再以手動 `ALTER TABLE` 作為正式流程。
-
-本地驗證流程（開發環境）：
-
-1. 啟動 PostgreSQL（本機或 Docker Compose）。
-2. 設定 `.env` 的 `DATABASE_URL` 指向目標 DB。
-3. 執行 `alembic upgrade head`。
-4. 執行 `alembic current`，確認 revision 為 `20260514_1201`。
-5. 啟動後端 `python -m uvicorn backend.app.main:app --reload`。
-
-若是「已存在舊資料表」的開發資料庫，第一次導入 Alembic 請先執行：
-
-```bash
-alembic stamp 20260514_1201
-```
-
-之後再以 migration revision 管理後續 schema 變更。
-
-## Phase 12-3：Deployment Migration / DB Upgrade 驗收（已完成）
-
-本階段已補齊 deployment migration 驗收規範，重點如下：
-
-- deployment 前必須執行 `alembic upgrade head`。
-- migration 失敗必須中止 deployment，不可忽略錯誤繼續 rollout。
-- production 不可使用 drop/recreate DB 作為升級方式。
-- 已明確區分 development / staging / production 的 migration 流程差異。
-- 已定義 migration failure handling 與 rollback 策略（可逆變更可 downgrade，不可逆風險優先 restore backup/snapshot）。
-
-詳細文件請參考：
-
-- `docs/phase-12-3-deployment-migration-db-upgrade-validation.md`
-
-### Deployment 前 Migration Checklist（摘要）
-
-1. 確認 migration 檔案與 head 狀態（`alembic heads`）。
-2. 確認目標環境 `DATABASE_URL` 與 secrets 正確。
-3. production 升級前先完成 DB backup/snapshot。
-4. 執行 `alembic upgrade head`。
-5. 執行 `alembic current` 並做 `GET /health` smoke test。
-
-### 本地 DB Upgrade 驗收（最小流程）
-
-```bash
-alembic upgrade head
-alembic current
-python -m uvicorn backend.app.main:app --reload
-curl http://127.0.0.1:8000/health
-```
-
-若 migration 失敗，必須先中止流程並修正，不可繼續部署。
-
-## Phase 14：Admin / Billing / Web Deployment（新主線）
-
-本主線在 Phase 14-0 先完成文件與架構方向調整，不提前實作 runtime。
-
-子階段規劃：
-
-- Phase 14-0：文件與架構方向調整（已完成）
-- Phase 14-1：Admin 權限與會員管理基礎（已完成）
-- Phase 14-2：Web Deployment Baseline（Render + Vercel）
-- Phase 14-3：Billing 核心資料模型與 Upgrade 入口
-- Phase 14-4：藍新單次付款（one-time）
-- Phase 14-5：藍新訂閱制（subscription）
-- Phase 14-6：Admin Billing Management
-
-關鍵規範：
-
-- Phase 13 保留原定位不變（AI Queue / Worker Scaling，先規劃不實作）。
-- Admin 權限最終必須以 DB 欄位控管（`role` 或 `is_admin`），不可只做前端判斷。
-- backend admin API 不混入既有 `backend/app/api/`，規劃使用獨立 `backend/app/admin_api/`。
-- 既有帳號 `jampeng.rd@gmail.com` 規劃作為第一個 admin 帳號來源之一。
-- 空 DB 初始部署需定義第一個 admin 建立方式（migration seed / bootstrap command / init script / 手動 SQL / 後台初始化流程），Phase 14-0 只做文件規劃。
-- Billing 入口規劃：
-  - `/billing/upgrade`
-  - `/billing/newebpay-one-time`
-  - `/billing/newebpay-subscription`
-- `BILLING_MODE=one_time|subscription` 決定 upgrade 入口導向。
-- 「升級 PRO」入口不放 Sidebar 主導航，規劃放在 `frontend/components/layout/UserMenu.tsx` 的 Help 下方、Log out 上方。
-- Web deployment 先做 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
-- 金流 callback / notify 需公開網址，因此先完成 Web deployment baseline。
-
-## Phase 14-1：Admin 權限與會員管理基礎（已完成）
-
-已完成項目：
-
-- DB 權限模型：`users.is_admin`（透過 Alembic migration 管理）。
-- 新增 migration：`migrations/versions/20260515_1401_admin_role_and_members_api.py`。
-- 新增 admin 專用 API 模組：`backend/app/admin_api/`。
-- 新增 admin guard（非 admin 回 403）與會員列表 API：`GET /admin/members`。
-- 新增第一個 admin 可執行初始化方案：`python -m backend.app.jobs.bootstrap_admin`。
-- 既有帳號 `jampeng.rd@gmail.com` 可直接設為 admin。
-- 空 DB 可用 `--create-if-not-exists` 建立第一個 admin。
-- 前端 Sidebar 新增「會員管理」入口（僅 admin 可見）。
-- 前端新增最小可操作頁面：`/admin/members`（含載入/錯誤/空狀態/列表）。
-
-### Admin Bootstrap 指令
-
-將既有使用者設為 admin（預設 email 即 `jampeng.rd@gmail.com`）：
-
-```bash
-python -m backend.app.jobs.bootstrap_admin --email jampeng.rd@gmail.com
-```
-
-空 DB 建立第一個 admin：
-
-```bash
-python -m backend.app.jobs.bootstrap_admin \
-  --email first-admin@example.com \
-  --create-if-not-exists \
-  --password 'change-me-strong-password' \
-  --display-name '第一位管理員'
-```
-
-## Phase 14-2：Web Deployment Baseline（Render + Vercel）（已完成）
-
-本階段完成目標：把專案整理為可手動部署到 Render + Vercel 的基線，並補齊 migration 與 smoke test 文件。
-
-部署邊界：
-
-- backend：Render Web Service
-- frontend：Vercel
-- DB：Render PostgreSQL（或其他 managed PostgreSQL）
-- AI server / Ollama：不在本輪部署範圍
-
-部署順序（建議）：
-
-1. 先建立 managed PostgreSQL 並設定 `DATABASE_URL`
-2. 先部署 backend（Render）
-3. 執行 `alembic upgrade head`（雲端也必做）
-4. 驗證 backend `/health`
-5. 再部署 frontend（Vercel）
-6. 以 smoke test 驗收前後端串接
-
-環境變數切分：
-
-- Render backend 必填：`APP_ENV`、`DATABASE_URL`、`JWT_SECRET_KEY`、`CORS_ORIGINS`、Email provider 必要欄位
-- Vercel frontend 必填：`VITE_API_BASE_URL`
-- 本輪可不填：AI/Ollama 相關 env（`OLLAMA_*`、`LLM_*`、`AI_WORKER_*`）
-
-Migration 規範重申：
-
-- `alembic upgrade head` 不只是本地開發命令，雲端部署也必須執行
-- migration 失敗必須中止 deployment
-- production 不可使用 drop/recreate DB
-
-最小 smoke test：
-
-1. `GET /health` 回 200
-2. frontend 可正常載入
-3. login 可用
-4. `/pantry`、`/shopping`、`/settings` 可進入
-5. admin 帳號可進入 `/admin/members`
-6. 前端請求確實打到 Render backend
-7. CORS 正常
-8. `alembic current` revision 正確
-
-詳細操作文件：`docs/phase-14-2-web-deployment-baseline-render-vercel.md`
-
-## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
-
-已完成項目：
-
-- 新增 migration：`migrations/versions/20260516_1900_phase_14_3_billing_core_models.py`
-- 新增 Billing 核心資料模型：
-  - `billing_memberships`
-  - `billing_transactions`
-  - `billing_webhook_events`
-- 新增 backend API：`GET /billing/upgrade`
-- 新增 backend billing 分層骨架：
-  - `backend/app/api/billing.py`
-  - `backend/app/services/billing_service.py`
-  - `backend/app/infra/repository/billing_repository.py`
-  - `backend/app/domain/schemas/billing_schema.py`
-- 新增 `BILLING_MODE=one_time|subscription` 設定驗證
-- 前端完成 `/billing/upgrade` 統一入口頁與導向邏輯
-- UserMenu 新增「升級 PRO」入口（Help 下方、Log out 上方）
-- 新增最小占位頁：
-  - `/billing/newebpay-one-time`（Phase 14-4 串接）
-  - `/billing/newebpay-subscription`（Phase 14-5 串接）
-
-本階段明確未實作：
-
-- Phase 14-5 真實藍新訂閱扣款流程
-- Phase 14-6 Admin Billing Management
-
-詳細操作文件：`docs/phase-14-3-billing-core-models-upgrade-entry.md`
-
-## Phase 14-4：藍新單次付款（one-time）（已完成）
-
-已完成項目：
-
-- 新增 checkout API：`POST /billing/newebpay/one-time/checkout`
-- 新增 notify API：`POST /billing/newebpay/notify`
-- 新增前台返回 API：`POST /billing/newebpay/return`
-- 新增交易狀態 API：`GET /billing/newebpay/one-time/transactions/{external_trade_no}`
-- 後端完成 TradeInfo / TradeSha 產生與驗證、test/production gateway 切換
-- notify/callback 原始資料寫入 `billing_webhook_events`
-- 前台返回由 backend 接收後 303 redirect 到前端結果頁（帶 `external_trade_no`）
-- 交易成功時更新 `billing_transactions` 並啟用 PRO 會員
-- idempotency：同一筆成功通知重送不重複升級
-- 前端完成 `/billing/newebpay-one-time` 付款頁與 `/billing/newebpay-one-time/result` 結果頁
-
-本階段明確未實作：
-
-- Phase 14-5 訂閱制 runtime
-- Phase 14-6 Admin Billing Management
-
-詳細操作文件：`docs/phase-14-4-newebpay-one-time-mvp.md`
 
 ## Phase 10：Profile / Settings / Help / 到期 Email 提醒（規劃）
 
@@ -1216,3 +984,243 @@ Email delivery 錯誤改為四類 user-facing 文案：
   - 顯示：`此 Email 無法正確寄送通知，若有問題請來信諮詢。`
 - `invalid from`、`invalid sender`、API key invalid、domain not verified
   - 顯示：`目前系統偵測異常，系統維修中。`
+
+
+## Phase 12：Database Migration / Account Recovery（已完成）
+
+- `Phase 12-0`：文件與階段方向調整，將原 Phase 12 AI Queue 順延到 Phase 13。
+- `Phase 12-1`：導入 Alembic migration system，建立 baseline，後續 schema 變更必須走 migration。
+- `Phase 12-2`：Forgot Password / Reset Password（`POST /auth/forgot-password`、`POST /auth/reset-password`）。
+- `Phase 12-3`：deployment migration checklist、rollback 策略、failure handling 與 DB upgrade 驗收。
+
+補充：
+
+- migration 導入後，正式流程不可再使用手動 `ALTER TABLE`。
+- Forgot Password 必須共用既有 `email_client_factory` 與 provider abstraction，不可新增獨立 SMTP 實作。
+- deployment 前需執行 `alembic upgrade head`。
+
+## Phase 12-1：Alembic Migration System（已完成）
+
+本階段已導入 Alembic 基礎結構：
+
+- `alembic.ini`
+- `migrations/env.py`
+- `migrations/versions/20260514_1201_baseline_schema.py`
+
+規範：
+
+- 後續 schema 變更必須新增 migration 檔案。
+- 不可再以手動 `ALTER TABLE` 作為正式流程。
+
+本地驗證流程（開發環境）：
+
+1. 啟動 PostgreSQL（本機或 Docker Compose）。
+2. 設定 `.env` 的 `DATABASE_URL` 指向目標 DB。
+3. 執行 `alembic upgrade head`。
+4. 執行 `alembic current`，確認 revision 為 `20260514_1201`。
+5. 啟動後端 `python -m uvicorn backend.app.main:app --reload`。
+
+若是「已存在舊資料表」的開發資料庫，第一次導入 Alembic 請先執行：
+
+```bash
+alembic stamp 20260514_1201
+```
+
+之後再以 migration revision 管理後續 schema 變更。
+
+## Phase 12-3：Deployment Migration / DB Upgrade 驗收（已完成）
+
+本階段已補齊 deployment migration 驗收規範，重點如下：
+
+- deployment 前必須執行 `alembic upgrade head`。
+- migration 失敗必須中止 deployment，不可忽略錯誤繼續 rollout。
+- production 不可使用 drop/recreate DB 作為升級方式。
+- 已明確區分 development / staging / production 的 migration 流程差異。
+- 已定義 migration failure handling 與 rollback 策略（可逆變更可 downgrade，不可逆風險優先 restore backup/snapshot）。
+
+詳細文件請參考：
+
+- `docs/phase-12-3-deployment-migration-db-upgrade-validation.md`
+
+### Deployment 前 Migration Checklist（摘要）
+
+1. 確認 migration 檔案與 head 狀態（`alembic heads`）。
+2. 確認目標環境 `DATABASE_URL` 與 secrets 正確。
+3. production 升級前先完成 DB backup/snapshot。
+4. 執行 `alembic upgrade head`。
+5. 執行 `alembic current` 並做 `GET /health` smoke test。
+
+### 本地 DB Upgrade 驗收（最小流程）
+
+```bash
+alembic upgrade head
+alembic current
+python -m uvicorn backend.app.main:app --reload
+curl http://127.0.0.1:8000/health
+```
+
+若 migration 失敗，必須先中止流程並修正，不可繼續部署。
+
+## Phase 14：Admin / Billing / Web Deployment（新主線）
+
+本主線在 Phase 14-0 先完成文件與架構方向調整，不提前實作 runtime。
+
+子階段規劃：
+
+- Phase 14-0：文件與架構方向調整（已完成）
+- Phase 14-1：Admin 權限與會員管理基礎（已完成）
+- Phase 14-2：Web Deployment Baseline（Render + Vercel）
+- Phase 14-3：Billing 核心資料模型與 Upgrade 入口
+- Phase 14-4：藍新單次付款（one-time）
+- Phase 14-5：藍新訂閱制（subscription）
+- Phase 14-6：Admin Billing Management
+
+關鍵規範：
+
+- Phase 13 保留原定位不變（AI Queue / Worker Scaling，先規劃不實作）。
+- Admin 權限最終必須以 DB 欄位控管（`role` 或 `is_admin`），不可只做前端判斷。
+- backend admin API 不混入既有 `backend/app/api/`，規劃使用獨立 `backend/app/admin_api/`。
+- 既有帳號 `jampeng.rd@gmail.com` 規劃作為第一個 admin 帳號來源之一。
+- 空 DB 初始部署需定義第一個 admin 建立方式（migration seed / bootstrap command / init script / 手動 SQL / 後台初始化流程），Phase 14-0 只做文件規劃。
+- Billing 入口規劃：
+  - `/billing/upgrade`
+  - `/billing/newebpay-one-time`
+  - `/billing/newebpay-subscription`
+- `BILLING_MODE=one_time|subscription` 決定 upgrade 入口導向。
+- 「升級 PRO」入口不放 Sidebar 主導航，規劃放在 `frontend/components/layout/UserMenu.tsx` 的 Help 下方、Log out 上方。
+- Web deployment 先做 backend(Render) + frontend(Vercel)；AI server / Ollama 暫不列入本輪部署。
+- 金流 callback / notify 需公開網址，因此先完成 Web deployment baseline。
+
+## Phase 14-1：Admin 權限與會員管理基礎（已完成）
+
+已完成項目：
+
+- DB 權限模型：`users.is_admin`（透過 Alembic migration 管理）。
+- 新增 migration：`migrations/versions/20260515_1401_admin_role_and_members_api.py`。
+- 新增 admin 專用 API 模組：`backend/app/admin_api/`。
+- 新增 admin guard（非 admin 回 403）與會員列表 API：`GET /admin/members`。
+- 新增第一個 admin 可執行初始化方案：`python -m backend.app.jobs.bootstrap_admin`。
+- 既有帳號 `jampeng.rd@gmail.com` 可直接設為 admin。
+- 空 DB 可用 `--create-if-not-exists` 建立第一個 admin。
+- 前端 Sidebar 新增「會員管理」入口（僅 admin 可見）。
+- 前端新增最小可操作頁面：`/admin/members`（含載入/錯誤/空狀態/列表）。
+
+### Admin Bootstrap 指令
+
+將既有使用者設為 admin（預設 email 即 `jampeng.rd@gmail.com`）：
+
+```bash
+python -m backend.app.jobs.bootstrap_admin --email jampeng.rd@gmail.com
+```
+
+空 DB 建立第一個 admin：
+
+```bash
+python -m backend.app.jobs.bootstrap_admin \
+  --email first-admin@example.com \
+  --create-if-not-exists \
+  --password 'change-me-strong-password' \
+  --display-name '第一位管理員'
+```
+
+## Phase 14-2：Web Deployment Baseline（Render + Vercel）（已完成）
+
+本階段完成目標：把專案整理為可手動部署到 Render + Vercel 的基線，並補齊 migration 與 smoke test 文件。
+
+部署邊界：
+
+- backend：Render Web Service
+- frontend：Vercel
+- DB：Render PostgreSQL（或其他 managed PostgreSQL）
+- AI server / Ollama：不在本輪部署範圍
+
+部署順序（建議）：
+
+1. 先建立 managed PostgreSQL 並設定 `DATABASE_URL`
+2. 先部署 backend（Render）
+3. 執行 `alembic upgrade head`（雲端也必做）
+4. 驗證 backend `/health`
+5. 再部署 frontend（Vercel）
+6. 以 smoke test 驗收前後端串接
+
+環境變數切分：
+
+- Render backend 必填：`APP_ENV`、`DATABASE_URL`、`JWT_SECRET_KEY`、`CORS_ORIGINS`、Email provider 必要欄位
+- Vercel frontend 必填：`VITE_API_BASE_URL`
+- 本輪可不填：AI/Ollama 相關 env（`OLLAMA_*`、`LLM_*`、`AI_WORKER_*`）
+
+Migration 規範重申：
+
+- `alembic upgrade head` 不只是本地開發命令，雲端部署也必須執行
+- migration 失敗必須中止 deployment
+- production 不可使用 drop/recreate DB
+
+最小 smoke test：
+
+1. `GET /health` 回 200
+2. frontend 可正常載入
+3. login 可用
+4. `/pantry`、`/shopping`、`/settings` 可進入
+5. admin 帳號可進入 `/admin/members`
+6. 前端請求確實打到 Render backend
+7. CORS 正常
+8. `alembic current` revision 正確
+
+詳細操作文件：`docs/phase-14-2-web-deployment-baseline-render-vercel.md`
+
+## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
+
+已完成項目：
+
+- 新增 migration：`migrations/versions/20260516_1900_phase_14_3_billing_core_models.py`
+- 新增 Billing 核心資料模型：
+  - `billing_memberships`
+  - `billing_transactions`
+  - `billing_webhook_events`
+- 新增 backend API：`GET /billing/upgrade`
+- 新增 backend billing 分層骨架：
+  - `backend/app/api/billing.py`
+  - `backend/app/services/billing_service.py`
+  - `backend/app/infra/repository/billing_repository.py`
+  - `backend/app/domain/schemas/billing_schema.py`
+- 新增 `BILLING_MODE=one_time|subscription` 設定驗證
+- 前端完成 `/billing/upgrade` 統一入口頁與導向邏輯
+- UserMenu 新增「升級 PRO」入口（Help 下方、Log out 上方）
+- 新增最小占位頁：
+  - `/billing/newebpay-one-time`（Phase 14-4 串接）
+  - `/billing/newebpay-subscription`（Phase 14-5 串接）
+
+本階段明確未實作：
+
+- Phase 14-5 真實藍新訂閱扣款流程
+- Phase 14-6 Admin Billing Management
+
+詳細操作文件：`docs/phase-14-3-billing-core-models-upgrade-entry.md`
+
+## Phase 14-4：藍新單次付款（one-time）（已完成）
+
+已完成項目：
+
+- 新增 checkout API：`POST /billing/newebpay/one-time/checkout`
+- 新增 notify API：`POST /billing/newebpay/notify`
+- 新增前台返回 API：`POST /billing/newebpay/return`
+- 新增交易狀態 API：`GET /billing/newebpay/one-time/transactions/{external_trade_no}`
+- 後端完成 TradeInfo / TradeSha 產生與驗證、test/production gateway 切換
+- notify/callback 原始資料寫入 `billing_webhook_events`
+- 前台返回由 backend 接收後 303 redirect 到前端結果頁（帶 `external_trade_no`）
+- 交易成功時更新 `billing_transactions` 並啟用 PRO 會員
+- idempotency：同一筆成功通知重送不重複升級
+- 前端完成 `/billing/newebpay-one-time` 付款頁與 `/billing/newebpay-one-time/result` 結果頁
+- 收尾 UI/顯示規則同步：
+  - `/billing/newebpay-one-time/result` TopToolbar 標題為 `單次付款結果`，內容區移除重複標題
+  - `/billing/upgrade` 與結果頁的會員狀態顯示改為中文（`啟用/未啟用`）
+  - `/admin/members` API 回傳補強 `is_pro`、`membership_status`
+  - `/admin/members` 角色顯示規則：管理員 / PRO / 一般會員
+  - `PRO` badge 採黃色系樣式（不影響管理員與一般會員樣式）
+
+本階段明確未實作：
+
+- Phase 14-5 訂閱制 runtime
+- Phase 14-6 Admin Billing Management
+
+詳細操作文件：`docs/phase-14-4-newebpay-one-time-mvp.md`

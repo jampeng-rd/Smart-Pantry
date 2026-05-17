@@ -227,7 +227,6 @@ Phase 08～12 AI 功能統一採 job-based API：
 - failed 必須回中文友善 error_message
 - 不可暴露 traceback
 
-
 ## Profile / Settings（Phase 10-1 已實作）
 
 ### GET /profile
@@ -374,6 +373,7 @@ python -m backend.app.jobs.expiration_email_runner
 用途：取得統一 upgrade 入口設定與目前會員狀態摘要。
 
 回傳重點：
+
 - `billing_mode`：`one_time` 或 `subscription`
 - `upgrade_entry_path`：目前模式對應入口
 - `one_time_entry_path`、`subscription_entry_path`
@@ -381,6 +381,7 @@ python -m backend.app.jobs.expiration_email_runner
 - `message`
 
 行為規則：
+
 - `BILLING_MODE=one_time` → `upgrade_entry_path=/billing/newebpay-one-time`
 - `BILLING_MODE=subscription` → `upgrade_entry_path=/billing/newebpay-subscription`
 
@@ -412,3 +413,15 @@ python -m backend.app.jobs.expiration_email_runner
 
 - 需登入且僅可查自己的交易。
 - 提供結果頁查詢：`transaction_status`、`membership_status`、`is_pro`、`paid_at`、`failed_at`。
+
+## Phase 14-4 收尾：Admin Members 回傳欄位補強
+
+### GET /admin/members
+
+- 回傳 `items[]` 新增欄位：
+  - `is_pro: boolean`
+  - `membership_status: string`
+- 前端角色顯示可依 `is_admin + is_pro` 判斷：
+  - `is_admin=true` → `管理員`
+  - `is_admin=false` 且 `is_pro=true` → `PRO`
+  - 其他 → `一般會員`

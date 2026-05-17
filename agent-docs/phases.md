@@ -364,10 +364,30 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 - 建立 `/billing/upgrade` 統一入口與導向規則。
 - 新增 `BILLING_MODE=one_time|subscription` 設定規範。
 
+## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
+
+- 建立 Billing 三張共用基礎表：`billing_memberships`、`billing_transactions`、`billing_webhook_events`。
+- 完成 `GET /billing/upgrade` 統一入口。
+- 以 `BILLING_MODE=one_time|subscription` 控制入口導向。
+- 前端完成 `/billing/upgrade` 與 UserMenu「升級 PRO」入口。
+- `/billing/newebpay-one-time`、`/billing/newebpay-subscription` 先提供占位頁，待 Phase 14-4 / 14-5 串接。
+
 ### Phase 14-4：藍新單次付款（one-time）
 
 - 實作藍新 one-time 付款流程與 callback/notify 對帳基礎。
 - 與會員升級狀態串接（PRO 啟用/失敗處理）。
+
+## Phase 14-4：藍新單次付款（one-time）（已完成）
+
+- 新增 checkout API、notify API、交易狀態查詢 API。
+- 完成 NewebPay TradeInfo/TradeSha 產生與驗證。
+- 完成 one-time 前端付款頁與結果頁。
+- 成功交易啟用 PRO，通知重送具 idempotency 防護。
+- 收尾 UI/顯示規則已完成同步：
+  - `/billing/newebpay-one-time/result` TopToolbar 顯示 `單次付款結果`，內容區不重複 `workspace-title` 標題。
+  - `/billing/upgrade` 與 `/billing/newebpay-one-time/result` 的會員狀態顯示為中文（`啟用/未啟用`）。
+  - `/admin/members` 以 `is_admin + is_pro` 顯示角色（管理員/PRO/一般會員），且 `PRO` badge 為黃色系樣式。
+- 本階段未實作 subscription runtime 與 admin billing management。
 
 ### Phase 14-5：藍新訂閱制（subscription）
 
@@ -378,19 +398,3 @@ worker 改用 LangChain + Ollama 產生推薦結果。
 
 - admin 後台可查詢付款紀錄、訂閱狀態、升級來源與異常交易。
 - 補齊 refund/cancel/manual review 文件與操作流程。
-
-## Phase 14-3：Billing 核心資料模型與 Upgrade 入口（已完成）
-
-- 建立 Billing 三張共用基礎表：`billing_memberships`、`billing_transactions`、`billing_webhook_events`。
-- 完成 `GET /billing/upgrade` 統一入口。
-- 以 `BILLING_MODE=one_time|subscription` 控制入口導向。
-- 前端完成 `/billing/upgrade` 與 UserMenu「升級 PRO」入口。
-- `/billing/newebpay-one-time`、`/billing/newebpay-subscription` 先提供占位頁，待 Phase 14-4 / 14-5 串接。
-
-## Phase 14-4：藍新單次付款（one-time）（已完成）
-
-- 新增 checkout API、notify API、交易狀態查詢 API。
-- 完成 NewebPay TradeInfo/TradeSha 產生與驗證。
-- 完成 one-time 前端付款頁與結果頁。
-- 成功交易啟用 PRO，通知重送具 idempotency 防護。
-- 本階段未實作 subscription runtime 與 admin billing management。
