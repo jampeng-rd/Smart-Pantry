@@ -44,10 +44,10 @@ export function UserMenu({
         {collapsed ? null : "使用說明"}
       </button>
 
-      <button type="button" className="user-menu-item" role="menuitem" aria-label="升級 PRO" title="升級 PRO" onClick={onUpgradePro}>
+      {/* <button type="button" className="user-menu-item" role="menuitem" aria-label="升級 PRO" title="升級 PRO" onClick={onUpgradePro}>
         <FiStar aria-hidden="true" />
         {collapsed ? null : "升級 PRO"}
-      </button>
+      </button> */}
 
       {/* 主題切換功能已移到 Settings 分頁中。 */}
       {/* <button

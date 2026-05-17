@@ -1,5 +1,27 @@
 # 智慧食材保存與膳食管理系統（Smart Pantry & Nutritionist）
 
+<!-- ## Preview
+
+<table width="100%">
+    <tr>
+    <td width="50%">
+    &nbsp;
+    <br>
+    <p align="center">
+    Web Workspace
+    </p>
+    <img src="assets/web.png" alt="Web Workspace">
+    </td>
+    <td width="21%"
+    <br>
+    <p align="center">
+    Mobile Workspace
+    </p>
+    <img src="assets/mobile.png" alt="Mobile Workspace">
+    </td>
+    </tr>
+</table> -->
+
 ## 專案狀態
 
 ```text
